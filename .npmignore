@@ -1,0 +1,20 @@
+node_modules/
+scripts/
+spec/
+reports/
+dist/spec/
+.vscode/
+
+karma.conf.js
+train-build.js
+train.yaml
+
+*.tgz
+
+# ignore main
+
+main/**/*
+
+# except for ts files (required for source maps)
+
+!main/**/*.ts

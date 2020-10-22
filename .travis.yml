@@ -1,0 +1,21 @@
+language: node_js
+node_js: 12
+script: npm run build-release
+install: skip
+
+after_success:
+  - "./node_modules/.bin/codecov -f ./reports/coverage/lcov.info"
+
+deploy:
+  - provider: pages:git
+    local_dir: docs/
+    github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    on:
+      branch: master
+    edge: true
+  - provider: npm
+    api_key: $NPM_TOKEN
+    email: oss-needle-dev@morganstanley.com
+    on:
+      tags: true
+    edge: true

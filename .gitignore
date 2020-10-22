@@ -1,0 +1,9 @@
+node_modules/
+dist/
+docs/
+reports/
+*.tgz
+$WORKSPACE/.npmrc
+npm-debug.log
+npm
+package-lock.json
