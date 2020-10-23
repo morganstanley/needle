@@ -6,4 +6,3 @@ reports/
 $WORKSPACE/.npmrc
 npm-debug.log
 npm
-package-lock.json
