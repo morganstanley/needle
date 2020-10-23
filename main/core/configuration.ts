@@ -23,14 +23,14 @@ export class Configuration {
      * If set to true, this will signal to the injector to attempt to construct types that have metadata but are not decorated with @Injectable
      */
     public set constructUndecoratedTypes(value: boolean) {
-        this._globalConfig._constructUndecoratedTypes = value
+        this._globalConfig._constructUndecoratedTypes = value;
     }
 
     /**
      * Gets the current turtle depth
      */
     public get turtleDepth(): number {
-        return this._globalConfig._turtleDepth
+        return this._globalConfig._turtleDepth;
     }
 
     /**
@@ -39,21 +39,21 @@ export class Configuration {
      *
      */
     public set turtleDepth(value: number) {
-        this._globalConfig._turtleDepth = value
+        this._globalConfig._turtleDepth = value;
     }
 
     /**
      * Gets the external type resolver if one has been registered
      */
     public get externalResolutionStrategy(): IExternalResolutionConfiguration | undefined {
-        return this._globalConfig._externalResolutionStrategy
+        return this._globalConfig._externalResolutionStrategy;
     }
 
     /**
      * Sets the type resolver to an external implementation. Delegates all construction and caching to that container
      */
     public set externalResolutionStrategy(value: IExternalResolutionConfiguration | undefined) {
-        this._globalConfig._externalResolutionStrategy = value
+        this._globalConfig._externalResolutionStrategy = value;
     }
 
     /**
@@ -61,14 +61,14 @@ export class Configuration {
      * @default false
      */
     public get allowDuplicateTokens(): boolean {
-        return this._globalConfig._allowDuplicateTokens
+        return this._globalConfig._allowDuplicateTokens;
     }
 
     /**
      * Sets the flag to signal to the injector that duplicate tokens are either allowed or restricted
      */
     public set allowDuplicateTokens(value: boolean) {
-        this._globalConfig._allowDuplicateTokens = value
+        this._globalConfig._allowDuplicateTokens = value;
     }
 
     /**
