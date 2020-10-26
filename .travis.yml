@@ -15,7 +15,7 @@ deploy:
     edge: true
   - provider: npm
     api_key: $NPM_TOKEN
-    email: oss-needle-dev@morganstanley.com
+    email: $NPM_PUBLISH_EMAIL
     on:
       tags: true
     edge: true
