@@ -31,7 +31,7 @@ export function createInstance<T extends new (...args: any[]) => any>(
         );
     }
 
-    if (familyTree.length > injector.configuration.turtleDepth) {
+    if (familyTree.length > injector.configuration.maxTreeDepth) {
         throw new Error(
             `Cannot construct Type '${(type as any).name}' with ancestry '${familyTree
                 .map(ancestor => ancestor.name)
