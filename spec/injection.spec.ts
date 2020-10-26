@@ -779,11 +779,11 @@ describe('Injector', () => {
             );
         });
 
-        it('should throw exception if type reaches maximum turtle depth', () => {
+        it('should throw exception if type reaches maximum tree depth', () => {
             const instance = getInstance();
             let exception: any;
 
-            instance.configuration.turtleDepth = 3;
+            instance.configuration.maxTreeDepth = 3;
             instance.register(NaughtyTurtle);
 
             try {

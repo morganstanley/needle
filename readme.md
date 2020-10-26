@@ -426,14 +426,14 @@ import { getRootInjector } from '@morgan-stanley/needle';
 getRootInjector().configuration.constructUndecoratedTypes = true;
 ```
 
-## Turtle depth
+## Max tree depth
 
-When constructing a tree of dependencies its certainly possible that a circular dependency may be encountered.  Determining if this is the case can be difficult which is where `turtle depth` can help.  Setting this value (`defaults to 100`) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. 
+When constructing a tree of dependencies the hierarchy can get very deep, this is especially so if a circular reference is encountered.  Determining if this is the case can be difficult which is where `maxTreeDepth` can help.  Setting this value (`defaults to 100`) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
 
-getRootInjector().configuration.turtleDepth = 1000;
+getRootInjector().configuration.maxTreeDepth = 1000;
 ```
 
 ## External Resolution Strategy

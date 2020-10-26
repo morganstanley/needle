@@ -6,7 +6,7 @@ import { globalState } from './globals';
  * Configurator class used for handling global container settings and behavioral flags
  */
 export class Configuration {
-    private _turtleDepth = 100;
+    private _maxTreeDepth = 100;
     private _externalResolutionStrategy: IExternalResolutionConfiguration | undefined;
     private _constructUndecoratedTypes = false;
     private _allowDuplicateTokens = false;
@@ -27,19 +27,17 @@ export class Configuration {
     }
 
     /**
-     * Gets the current turtle depth
+     * Gets the current max tree depth depth
      */
-    public get turtleDepth(): number {
-        return this._globalConfig._turtleDepth;
+    public get maxTreeDepth(): number {
+        return this._globalConfig._maxTreeDepth;
     }
 
     /**
-     * Sets the limit on how deep the dependency graph tree can go.  Avoiding possible circular references with a cut out.
-     * https://stackoverflow.com/questions/12022182/specific-to-the-world-of-programming-what-does-turtles-all-the-way-down-mean
-     *
+     * Sets the limit on how deep the dependency graph tree can go.
      */
-    public set turtleDepth(value: number) {
-        this._globalConfig._turtleDepth = value;
+    public set maxTreeDepth(value: number) {
+        this._globalConfig._maxTreeDepth = value;
     }
 
     /**
@@ -75,7 +73,7 @@ export class Configuration {
      * Resets the configuration back to its default state
      */
     public reset(): void {
-        this.turtleDepth = 100;
+        this.maxTreeDepth = 100;
         this.externalResolutionStrategy = undefined;
         this.allowDuplicateTokens = false;
         this.constructUndecoratedTypes = false;
