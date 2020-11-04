@@ -9,7 +9,7 @@
 
 # Documentation
 
-Documentation available here: [needle](https://morgan-stanley.github.io/needle/)
+Documentation available here: [needle](http://opensource.morganstanley.com/needle/)
 
 # Installation
 
