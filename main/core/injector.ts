@@ -28,7 +28,7 @@ const globalReference = getGlobal();
  * Injector type used for registering types for injection
  */
 export class Injector implements IInjector {
-    public static typeId = INJECTOR_TYPE_ID;
+    public static readonly typeId = INJECTOR_TYPE_ID;
     private _isDestroyed = false;
     private registrations = globalState(GLOBAL_REGISTRATION_MAP, () => new Map<any, IInjectionConfiguration>());
     private children = new Map<string, Injector>();
