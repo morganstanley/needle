@@ -169,7 +169,7 @@ describe('Injector', () => {
             expect(result).toBeTruthy();
         });
 
-        it('should return false if the type is injectorLike', () => {
+        it('should return false if the type is not injectorLike', () => {
             const result = isInjectorLike({});
 
             expect(result).toBeFalsy();
@@ -283,14 +283,14 @@ describe('Injector', () => {
 
             instance
                 .register(GeographyTeacher)
-                .register(Student, { tokens: ['geography-student'] })
+                .register(GeographyStudent, { tokens: ['geography-student'] })
                 .registerParamForTokenInjection('geography-student', GeographyTeacher, 0);
 
             const geographyTeacher = instance.get(GeographyTeacher);
 
             expect(geographyTeacher).toBeDefined();
             expect(geographyTeacher.student).toBeDefined();
-            expect(geographyTeacher.student instanceof GeographyStudent).toBeDefined();
+            expect(geographyTeacher.student instanceof GeographyStudent).toBeTruthy();
         });
 
         it('should resolve an instance of the type using multiple tokens', () => {

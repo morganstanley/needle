@@ -67,7 +67,7 @@ import { Injectable } from '@morgan-stanley/needle';
 class MyThing {}
 ```
 
-While annotation are recommend for most use cases, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function. 
+While annotations are recommended for most use cases, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
@@ -132,7 +132,7 @@ import { getRootInjector } from '@morgan-stanley/needle';
 getRootInjector().register(GeographyStudent, { tokens: ['geography-student'] });
 ```
 
-As stated, you are not limited to just one 1 token per type.  Simple add additional tokens to the list if you require more. 
+As stated, you are not limited to just one 1 token per type.  Simply add additional tokens to the list if you require more. 
 
 ```typescript
 import { Injectable } from '@morgan-stanley/needle';
@@ -198,8 +198,8 @@ export class PricingServiceV2 implements IPricing  {}
 
 @Injectable()
 export class CustomerPricing {
-    constructor(private @Inject('pricing') pricing: IPricing ) {
-        console.log(pricing instanceof PricingServiceV2) //True
+    constructor(@Inject('pricing') private pricing: IPricing) {
+        console.log(pricing instanceof PricingServiceV2) // true
         super();
     }
 }
@@ -241,9 +241,9 @@ getRootInjector()
 
 ## Creating strategies
 
-Strategies allows us to register multiple type providers against a given strategy key and then inject an array of all the strategies in the given consumer class. An injectable type can both exist as a strategy and pure injectable at the same time.  
+Strategies allow us to register multiple type providers against a given strategy key and then inject an array of all the strategies in the given consumer class. An injectable type can both exist as a strategy and pure injectable at the same time.  
 
-Creating strategies can be be achieved using the `@Injectable` annotation or the API. Both approaches make use of the `strategy` property on the injectable config. 
+Creating strategies can be achieved using the `@Injectable` annotation or the API. Both approaches make use of the `strategy` property on the injectable config. 
 
 ```typescript
 import { Injectable } from '@morgan-stanley/needle';
@@ -262,7 +262,7 @@ export class Strategy1 implements IStrategy {}
 export class Strategy2 implements IStrategy {}
 ```
 
-or registering view the API would look like this. 
+or registering via the API would look like this. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
@@ -306,7 +306,7 @@ console.log(strategies.length) // 2 strategies
 
 # Factories
 
-It is often the case that you need to be able to construct types with specific context or dependencies.  For these use cases you can rely of factories.
+It is often the case that you need to be able to construct types with specific context or dependencies.  For these use cases you can rely on factories.
 
 ## Registering a Factory
 
@@ -438,7 +438,7 @@ getRootInjector().configuration.maxTreeDepth = 1000;
 
 ## External Resolution Strategy
 
-In certain environments you will want to delegate the type construction to an external DI container. The `externalResolutionStrategy` is what makes this possible. When you define this strategy all construction will be delegated an the local type construction provided by this library will be ignored. 
+In certain environments you will want to delegate the type construction to an external DI container. The `externalResolutionStrategy` is what makes this possible. When you define this strategy all construction will be delegated and the local type construction provided by this library will be ignored. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
@@ -472,7 +472,7 @@ const typesWithFactories = getRegisteredTypesWithFactories() //Returns an Array<
 
 # Semantic Injection
 
-Node's module resolution works on a folder hierarchy where an applications dependencies are stored in a `node_modules` folder and dependencies can either be shared across multiple transient dependencies or localized to a specific dependencies needs. This means that if you have an npm package installed in your app that has a dependency on foo@1.1.1 and another that uses foo@2.0.0, both can co-exist in the same app domain.  
+Node's module resolution works on a folder hierarchy where an applications dependencies are stored in a `node_modules` folder and dependencies can either be shared across multiple transient dependencies or localized to a specific dependency's needs. This means that if you have an npm package installed in your app that has a dependency on foo@1.1.1 and another that uses foo@2.0.0, both can co-exist in the same app domain.  
 
 This is a powerful feature of the node/npm ecosystem and one that developers take advantage of everyday when building their apps. However, it is often the case that this semantic version isolation is not extended to your DI container.  This is something this library is trying help with.  
 
@@ -480,11 +480,11 @@ When constructing a tree of dependencies our DI container will guarantee that ea
 
 Further, due to the way npm organizes semantic versions, if you have two or more dependencies in your app that rely on foo@^1.x.x, then npm will determine what is the latest compatible version of the @foo dependency being used and then synchronize all the others to use that by de-duping out older versions.  So versions 1.1.1 and 1.2.1 would be aligned to 1.5.0 if that was being used. Read more about that [here](https://docs.npmjs.com/cli/dedupe)
 
-Semantic injection is a powerful technique for isolating change and instead letting it trickle through your system.  It can extend all the way through your package hierarchy and requires little effort from the developers to manager. 
+Semantic injection is a powerful technique for isolating change and instead letting it trickle through your system.  It can extend all the way through your package hierarchy and requires little effort from the developers to manage. 
 
 # Integrating with Angular 2+
 
-If you want to integrate this library with Angular's dependency injection system its a pretty easy thing to do.  In the `main.ts` file of your angular app you can resolve all the registered providers and then pass them to the `platformBrowserDynamic` call. 
+If you want to integrate this library with Angular's dependency injection system it's a pretty easy thing to do.  In the `main.ts` file of your Angular app you can resolve all the registered providers and then pass them to the `platformBrowserDynamic` call. 
 
 ```typescript
 import 'reflect-metadata';
