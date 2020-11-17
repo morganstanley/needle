@@ -19,7 +19,7 @@ npm install @morgan-stanley/needle
 
 # TypeScript
 
-Required Typescript version: >4.0
+Required Typescript version: >3.2
 
 The library depends on TypeScript's support for decorators. Therefore you must enable `experimentalDecorators` and `emitDecoratorMetadata`
 
