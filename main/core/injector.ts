@@ -6,11 +6,14 @@ import { Strategy } from '../annotations/strategy';
 import { DI_ROOT_INJECTOR_KEY, GLOBAL_REGISTRATION_MAP, INJECTOR_TYPE_ID } from '../constants/constants';
 import { defaultInjectionConfiguration } from '../constants/defaults';
 import {
+    ICache,
+    IConfiguration,
     IConstructionOptions,
     IInjectionConfiguration,
     IInjectionToken,
     IInjector,
     IScopeConfiguration,
+    ITokenCache,
     Newable,
 } from '../contracts/contracts';
 import { createInstance } from '../internal/construction';
@@ -33,14 +36,23 @@ export class Injector implements IInjector {
     private registrations = globalState(GLOBAL_REGISTRATION_MAP, () => new Map<any, IInjectionConfiguration>());
     private children = new Map<string, Injector>();
     public readonly id = uuid();
+    public readonly cache: ICache;
+    public readonly tokenCache: ITokenCache;
+    public readonly configuration: IConfiguration;
+    public readonly parent?: IInjector;
 
     constructor(
-        public readonly cache: InstanceCache,
-        public readonly configuration: Configuration,
-        public readonly tokenCache: InjectionTokensCache,
-        public readonly parent?: Injector,
+        readonly _cache: InstanceCache,
+        readonly _configuration: Configuration,
+        readonly _tokenCache: InjectionTokensCache,
+        readonly _parent?: IInjector,
         public readonly scope?: IScopeConfiguration,
-    ) {}
+    ) {
+        this.cache = _cache;
+        this.configuration = _configuration;
+        this.tokenCache = _tokenCache;
+        this.parent = _parent;
+    }
 
     /**
      * Registers a type and associated injection config with the the injector
@@ -130,7 +142,7 @@ export class Injector implements IInjector {
 
         // Remove ourselves from the parent scope if not root.
         if (this.parent != null) {
-            this.parent.children.delete(this.id);
+            (this.parent as Injector).children.delete(this.id);
         }
         this._isDestroyed = true;
     }

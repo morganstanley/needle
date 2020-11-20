@@ -1,8 +1,5 @@
-import { InstanceCache } from '../core/cache';
-import { Configuration } from '../core/configuration';
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
-import { InjectionTokensCache } from '../core/tokens';
 
 export type InstanceFactory = () => InstanceType<any>;
 
@@ -34,19 +31,134 @@ export interface IInjectionToken {
 }
 
 /**
- * Injection token parameter metadata. Used for looking up param tokens during type construction
+ * Injection token parameter metadata.
  */
 export interface IParameterInjectionToken extends IInjectionToken {
     property: string | symbol;
     index: number;
 }
 
+/**
+ * Injection factory token parameter metadata.
+ */
 export interface IFactoryParameterInjectionToken extends IParameterInjectionToken {
     factoryTarget: Newable;
 }
 
+/**
+ * Injection lazy token parameter metadata.
+ */
 export interface ILazyParameterInjectionToken extends IParameterInjectionToken {
     lazyTarget: Newable;
+}
+
+/**
+ * The Injector configuration contract
+ */
+export interface IConfiguration {
+    /**
+     * A flag signalling if types not decoratored with @Injectable should attempt to be constructed by the Injector
+     */
+    constructUndecoratedTypes: boolean;
+    /**
+     * The maximum depth the injection graph will reach before throwing an error.
+     */
+    maxTreeDepth: number;
+    /**
+     * Specify an external resolution strategy rather than using the default resolution strategy
+     */
+    externalResolutionStrategy?: IExternalResolutionConfiguration;
+    /**
+     * A flag that determines if a type can be registered against multiple tokens.
+     */
+    allowDuplicateTokens: boolean;
+}
+
+/**
+ * The Cache holds all instantiated injectable types.
+ */
+export interface ICache {
+    /**
+     * Gets the number of instances held in the cache
+     */
+    readonly instanceCount: number;
+    /**
+     * Gets an instance from the cache based on the constructor type
+     * @param type
+     */
+    resolve<T extends Newable>(type: T): InstanceType<T>;
+    /**
+     * Updates or inserts a record into the instance cache
+     * @param type The constructor type
+     * @param instance the instance
+     */
+    update(type: any, instance: any): void;
+    /**
+     * Clears the cache
+     */
+    clear(): void;
+}
+
+/**
+ * The injection token cache is used to store all uses of the @Inject annotation.
+ */
+export interface ITokenCache {
+    /**
+     * Get a list of associated inject parameter tokens for the given constructor of a type
+     * @param type
+     */
+    getInjectTokens(type: any): IParameterInjectionToken[];
+    /**
+     * Get a list of associated strategy parameter tokens for the given constructor of a type
+     * @param type
+     */
+    getStrategyTokens(type: any): IParameterInjectionToken[];
+    /**
+     * Get a list of associated factory parameter tokens for the given constructor of a type
+     * @param type
+     */
+    getFactoryTokens(type: any): IParameterInjectionToken[];
+    /**
+     * Get a list of associated lazy parameter tokens for the given constructor of a type
+     * @param type
+     */
+    getLazyTokens(type: any): IParameterInjectionToken[];
+    /**
+     * Gets a list of tokens this type has be registered against
+     */
+    getTokensForType(type: any): IInjectionToken[];
+    /**
+     * Gets a list of types registered against this token
+     * @param token
+     */
+    getTypesForToken(token: string): any[];
+    /**
+     * Gets a list of types which are consumers of the given strategy key
+     * @param token
+     */
+    getStrategyConsumers(token: string): any[];
+    /**
+     * Gets the type associated to this token.  Note, if there are many it will return the last one registered
+     * @param token
+     */
+    getTypeForToken(token: string): any | undefined;
+
+    /**
+     * Register either constructor parameter token or Type injection token
+     * @param metadata
+     */
+    register(
+        metadata:
+            | IParameterInjectionToken
+            | IInjectionToken
+            | IFactoryParameterInjectionToken
+            | ILazyParameterInjectionToken,
+    ): void;
+
+    /**
+     * Clears the token cache
+     */
+    clear(): void;
 }
 
 /**
@@ -54,9 +166,9 @@ export interface ILazyParameterInjectionToken extends IParameterInjectionToken {
  */
 export interface IInjector {
     readonly id: string;
-    readonly cache: InstanceCache;
-    readonly configuration: Configuration;
-    readonly tokenCache: InjectionTokensCache;
+    readonly cache: ICache;
+    readonly configuration: IConfiguration;
+    readonly tokenCache: ITokenCache;
     readonly parent?: IInjector;
     readonly scope?: IScopeConfiguration;
 

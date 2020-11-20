@@ -1,6 +1,8 @@
+/* INTERNALS */
+import { Configuration } from 'main/core/configuration';
+/* INTERNALS */
 import {
     AutoFactory,
-    Configuration,
     Factory,
     getRootInjector,
     Inject,
