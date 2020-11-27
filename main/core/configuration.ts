@@ -1,17 +1,11 @@
 import { GLOBAL_CONFIGURATION } from '../constants/constants';
-import { IExternalResolutionConfiguration } from '../contracts/contracts';
+import { IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts';
 import { globalState } from './globals';
 
 /**
  * Configurator class used for handling global container settings and behavioral flags
  */
-export class Configuration {
-    private _maxTreeDepth = 100;
-    private _externalResolutionStrategy: IExternalResolutionConfiguration | undefined;
-    private _constructUndecoratedTypes = false;
-    private _allowDuplicateTokens = false;
-    private _globalConfig = globalState(GLOBAL_CONFIGURATION, () => this);
-
+export class Configuration implements IConfiguration {
     /**
      * Gets the value indicating if the injector should attempt to construct types that have metadata but are not decorated with @Injectable
      */
@@ -70,6 +64,28 @@ export class Configuration {
     }
 
     /**
+     * Gets the flag indicating if metrics tracking is enabled
+     * @default false
+     */
+    public get trackMetrics(): boolean {
+        return this._globalConfig._trackMetrics;
+    }
+
+    /**
+     * Sets the flag to signal if metrics tracking is enabled
+     */
+    public set trackMetrics(value: boolean) {
+        this._globalConfig._trackMetrics = value;
+    }
+
+    private _maxTreeDepth = 100;
+    private _externalResolutionStrategy: IExternalResolutionConfiguration | undefined;
+    private _constructUndecoratedTypes = false;
+    private _allowDuplicateTokens = false;
+    private _globalConfig = globalState(GLOBAL_CONFIGURATION, () => this);
+    public _trackMetrics = true;
+
+    /**
      * Resets the configuration back to its default state
      */
     public reset(): void {
@@ -77,5 +93,6 @@ export class Configuration {
         this.externalResolutionStrategy = undefined;
         this.allowDuplicateTokens = false;
         this.constructUndecoratedTypes = false;
+        this._trackMetrics = false;
     }
 }

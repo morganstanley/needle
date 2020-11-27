@@ -72,6 +72,11 @@ export interface IConfiguration {
      * A flag that determines if a type can be registered against multiple tokens.
      */
     allowDuplicateTokens: boolean;
+
+    /**
+     * A flag indicating if metrics will be tracked for resolutions
+     */
+    trackMetrics: boolean;
 }
 
 /**
@@ -171,6 +176,7 @@ export interface IInjector {
     readonly tokenCache: ITokenCache;
     readonly parent?: IInjector;
     readonly scope?: IScopeConfiguration;
+    readonly metrics: IMetrics;
 
     /**
      * Registers a type and associated injection config with the the injector
@@ -304,4 +310,72 @@ export interface IExternalResolutionConfiguration {
      * @description By default no cache syncing is done
      */
     cacheSyncing?: boolean;
+}
+
+/**
+ * Metric record represents a single types metric information
+ */
+export interface IMetricRecord {
+    /**
+     * The type whos metrics are being tracked
+     */
+    type: any;
+    /**
+     * First activation time
+     */
+    activated: Date;
+    /**
+     * What type constructed this type. (Defaults to self if bare resolution)
+     */
+    activationTypeOwner: any;
+    /**
+     * The number of times this type has been resolved
+     */
+    resolutionCount: number;
+    /**
+     * The last time this type resolved
+     */
+    lastResolution: Date;
+    /**
+     * The number of types this type depends on based on constructor signature.
+     */
+    dependencyCount: number;
+    /**
+     * The time it took to construct this type
+     */
+    creationTimeMs: number;
+}
+
+export interface IMetrics {
+    /**
+     * Returns all the data stored in the metrics DB
+     */
+    readonly data: ReadonlyArray<Readonly<IMetricRecord>>;
+    /**
+     * Clears all the data in the metrics DB
+     */
+    clear(): void;
+    /**
+     * Dumps all the data to the console from the metric DB
+     */
+    dump(): void;
+
+    /**
+     * Gets the metrics for a given type
+     * @param type The type who's metrics we want to read
+     */
+    getMetricsForType(type: any): Readonly<IMetricRecord> | undefined;
+}
+
+/**
+ * Provides the ability to update the metrics store
+ */
+export interface IMetricsProvider extends IMetrics {
+    /**
+     * Updates a given types metrics
+     * @param type
+     * @param owner defaults to the same type if not provided
+     * @param costMs Cost in milliseconds to construct the type
+     */
+    update(type: any, owner: any, costMs: number): void;
 }

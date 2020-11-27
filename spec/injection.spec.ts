@@ -1,5 +1,6 @@
 /* INTERNALS */
 import { Configuration } from 'main/core/configuration';
+import { Metrics } from 'main/core/metrics';
 /* INTERNALS */
 import {
     AutoFactory,
@@ -151,6 +152,7 @@ describe('Injector', () => {
             new InstanceCache(),
             new Configuration(),
             new InjectionTokensCache(),
+            new Metrics(),
         );
     });
 
@@ -158,7 +160,6 @@ describe('Injector', () => {
         if (resetInjector) {
             getRootInjector().reset();
         }
-
         return getRootInjector();
     };
 
@@ -859,6 +860,95 @@ describe('Injector', () => {
                 expect(invoked).toEqual(1);
                 expect(instance.cache.instanceCount).toBe(1); // Cache should not be updated by default.
             });
+        });
+    });
+
+    describe('Metrics', () => {
+        it('should record metrics for a given type on resolution', () => {
+            const instance = getInstance();
+            const startMetricCount = instance.metrics.data.length;
+            instance.register(Child);
+
+            instance.get(Child);
+
+            expect(startMetricCount).toBe(0);
+            expect(instance.metrics.data.length).toBe(1);
+            expect(instance.metrics.data[0]).toBeDefined();
+            expect(instance.metrics.data[0].activated instanceof Date).toBeTruthy();
+            expect(instance.metrics.data[0].activationTypeOwner).toBe(Child);
+            expect(instance.metrics.data[0].creationTimeMs).toBeDefined();
+            expect(instance.metrics.data[0].dependencyCount).toBe(0);
+            expect(instance.metrics.data[0].lastResolution instanceof Date).toBeTruthy();
+            expect(instance.metrics.data[0].resolutionCount).toBe(1);
+            expect(instance.metrics.data[0].type).toBe(Child);
+        });
+
+        it('should increment the resolution count on each resolution', () => {
+            const instance = getInstance();
+
+            instance.register(Child);
+
+            instance.get(Child);
+            instance.get(Child);
+            instance.get(Child);
+            instance.get(Child);
+            instance.get(Child);
+
+            expect(instance.metrics.data[0].resolutionCount).toBe(5);
+        });
+
+        it('should return metrics for a given type', () => {
+            const instance = getInstance();
+
+            instance.register(Child);
+            instance.get(Child);
+
+            const metrics = instance.metrics.getMetricsForType(Child);
+
+            expect(metrics!.resolutionCount).toBeDefined();
+        });
+
+        it('should not track metrics if the configuration disables this', () => {
+            const instance = getInstance();
+            instance.configuration.trackMetrics = false;
+
+            instance.register(Child);
+            instance.get(Child);
+
+            const metrics = instance.metrics.getMetricsForType(Child);
+
+            expect(metrics).toBeUndefined();
+        });
+
+        it('should record the correct dependency count for a given type', () => {
+            const instance = getInstance();
+
+            instance
+                .register(GrandParent)
+                .register(Parent)
+                .register(Child);
+
+            instance.get(GrandParent);
+            instance.metrics.dump();
+
+            expect(instance.metrics.data[0].dependencyCount).toBe(1);
+        });
+
+        it('should update the last resolution time', done => {
+            const instance = getInstance();
+
+            instance.register(Child);
+
+            instance.get(Child);
+            const firstResolutionTime = instance.metrics.data[0].lastResolution;
+
+            setTimeout(() => {
+                instance.get(Child);
+                expect(instance.metrics.data[0].lastResolution.getTime()).toBeGreaterThan(
+                    firstResolutionTime.getTime(),
+                );
+                done();
+            }, 50);
         });
     });
 });
