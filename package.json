@@ -1,5 +1,5 @@
 {
-    "version": "0.1.4",
+    "version": "1.0.0",
     "description": "A small & lightweight dependency injection container for use in multiple contexts like Angular, React & node.",
     "name": "@morgan-stanley/needle",
     "license": "Apache-2.0",
@@ -56,11 +56,11 @@
         "tslint-config-prettier": "^1.18.0",
         "tslint-plugin-prettier": "^2.3.0",
         "typedoc": "^0.16.1",
-        "typescript": "~3.2.4",
+        "typescript": "~3.4.5",
         "webpack": "^4.39.2"
     },
     "peerDependencies": {
-        "typescript": ">=3.2"
+        "typescript": ">=3.4"
     },
     "repository": {
         "type": "git",

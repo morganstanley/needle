@@ -6,11 +6,15 @@ import { Strategy } from '../annotations/strategy';
 import { DI_ROOT_INJECTOR_KEY, GLOBAL_REGISTRATION_MAP, INJECTOR_TYPE_ID } from '../constants/constants';
 import { defaultInjectionConfiguration } from '../constants/defaults';
 import {
+    ICache,
+    IConfiguration,
     IConstructionOptions,
     IInjectionConfiguration,
     IInjectionToken,
     IInjector,
+    IMetrics,
     IScopeConfiguration,
+    ITokenCache,
     Newable,
 } from '../contracts/contracts';
 import { createInstance } from '../internal/construction';
@@ -20,6 +24,7 @@ import { AutoFactory } from './factory';
 import { getGlobal, globalState } from './globals';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
+import { Metrics } from './metrics';
 import { InjectionTokensCache } from './tokens';
 
 const globalReference = getGlobal();
@@ -33,14 +38,26 @@ export class Injector implements IInjector {
     private registrations = globalState(GLOBAL_REGISTRATION_MAP, () => new Map<any, IInjectionConfiguration>());
     private children = new Map<string, Injector>();
     public readonly id = uuid();
+    public readonly cache: ICache;
+    public readonly tokenCache: ITokenCache;
+    public readonly configuration: IConfiguration;
+    public readonly parent?: IInjector;
+    public readonly metrics: IMetrics;
 
     constructor(
-        public readonly cache: InstanceCache,
-        public readonly configuration: Configuration,
-        public readonly tokenCache: InjectionTokensCache,
-        public readonly parent?: Injector,
+        readonly _cache: InstanceCache,
+        readonly _configuration: Configuration,
+        readonly _tokenCache: InjectionTokensCache,
+        readonly _metrics: Metrics,
+        readonly _parent?: IInjector,
         public readonly scope?: IScopeConfiguration,
-    ) {}
+    ) {
+        this.cache = _cache;
+        this.configuration = _configuration;
+        this.tokenCache = _tokenCache;
+        this.parent = _parent;
+        this.metrics = this._metrics;
+    }
 
     /**
      * Registers a type and associated injection config with the the injector
@@ -130,7 +147,7 @@ export class Injector implements IInjector {
 
         // Remove ourselves from the parent scope if not root.
         if (this.parent != null) {
-            this.parent.children.delete(this.id);
+            (this.parent as Injector).children.delete(this.id);
         }
         this._isDestroyed = true;
     }
@@ -174,6 +191,9 @@ export class Injector implements IInjector {
         ancestry: any[] = [],
         options?: IConstructionOptions<T>,
     ): InstanceType<T> {
+        // Measuring time taken
+        const start = Date.now();
+
         const constructorType: any =
             typeof typeOrToken === 'string' ? this.tokenCache.getTypeForToken(typeOrToken) : typeOrToken;
 
@@ -186,48 +206,53 @@ export class Injector implements IInjector {
         // We use a special ID to determine a type could be an injector type
         const isInjectorType = constructorType.typeId === Injector.typeId;
 
+        // Lets check the cache and see if we have an instance ready to service
+        let instance = this.cache.resolve(constructorType);
+
         // Support resolving Injector as injectable if found in the dependency tree
         if (isInjectorType) {
-            // Do we have a pre-cached instance?
-            const instance = this.cache.resolve(constructorType);
             if (instance == null) {
-                // Does the instance being requested share the same prototype as our current injector instance
-                if (constructorType === Injector) {
-                    this.cache.update(constructorType, this);
+                // Does the instance being requested share the same prototype as our current injector instance (Or it has no create function)
+                if (
+                    constructorType === Injector ||
+                    (constructorType !== Injector && constructorType.create === undefined)
+                ) {
+                    instance = this;
+                    this.cache.update(constructorType, instance);
                 } else {
                     /* If we are here then we have multiple injector versions in play.
                      * we check to see if the type has the static create method.  If
                      * we find it we can instance it using that method. */
-                    if (constructorType.create) {
-                        this.cache.update(constructorType, constructorType.create());
-                    } else {
-                        /* We have no create method so best we can do is service this type with the current injector
-                         * NOTE: I cannot see how we would reach here. It is more as a fallback in some very unusual
-                         * circumstance */
-                        this.cache.update(constructorType, this);
-                    }
+                    instance = constructorType.create();
+                    this.cache.update(constructorType, instance);
                 }
             }
         }
 
-        let cacheInstance = this.cache.resolve(constructorType);
-        if (cacheInstance != null) {
-            return cacheInstance;
+        if (instance == null) {
+            // If an external resolution strategy has been set, delegate all responsibility to it
+            if (this.configuration.externalResolutionStrategy != null) {
+                instance = this.configuration.externalResolutionStrategy.resolver(
+                    constructorType,
+                    (options || {}).params || [],
+                );
+                if (this.configuration.externalResolutionStrategy.cacheSyncing === true) {
+                    this.cache.update(constructorType, instance);
+                }
+            } else {
+                instance = createInstance(constructorType, true, options as any, ancestry, this);
+            }
         }
 
-        // If an external resolution strategy has been set, delegate all responsibility to it
-        if (this.configuration.externalResolutionStrategy != null) {
-            cacheInstance = this.configuration.externalResolutionStrategy.resolver(
-                constructorType,
-                (options || {}).params || [],
-            );
-            if (this.configuration.externalResolutionStrategy.cacheSyncing === true) {
-                this.cache.update(constructorType, cacheInstance);
-            }
-            return cacheInstance;
-        } else {
-            return createInstance(constructorType, true, options as any, ancestry, this);
+        // Measuring time taken
+        const end = Date.now();
+
+        // Capture metrics on this types usage
+        if (this.configuration.trackMetrics) {
+            this._metrics.update(constructorType, undefined, end - start);
         }
+
+        return instance;
     }
 
     /**
@@ -243,7 +268,7 @@ export class Injector implements IInjector {
      * construct it without doing the work externally. (no introspection required).
      */
     public static create(): Injector {
-        return new Injector(new InstanceCache(), new Configuration(), new InjectionTokensCache());
+        return new Injector(new InstanceCache(), new Configuration(), new InjectionTokensCache(), new Metrics());
     }
 
     /**
@@ -262,6 +287,7 @@ export class Injector implements IInjector {
         this.tokenCache.clear();
         this.children = new Map<string, Injector>();
         this.registrations.clear();
+        this._metrics.clear();
     }
 
     private registerStrategy(type: any, strategy: string | undefined): void {
@@ -295,4 +321,4 @@ export class Injector implements IInjector {
 
 globalReference[DI_ROOT_INJECTOR_KEY] =
     globalReference[DI_ROOT_INJECTOR_KEY] ||
-    new Injector(new InstanceCache(), new Configuration(), new InjectionTokensCache());
+    new Injector(new InstanceCache(), new Configuration(), new InjectionTokensCache(), new Metrics());

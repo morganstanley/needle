@@ -6,7 +6,6 @@ export * from './annotations/lazy';
 export * from './core/factory';
 export * from './core/lazy';
 export * from './core/metadata.functions';
-export * from './core/configuration';
 export * from './core/util.functions.partial';
 export * from './core/util.functions';
 export * from './core/injector';
