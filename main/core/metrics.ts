@@ -1,13 +1,11 @@
-import { GLOBAL_METRICS } from 'main/constants/constants';
 import { IMetricRecord, IMetricsProvider } from 'main/contracts/contracts';
-import { globalState } from './globals';
 import { getConstructorTypes } from './metadata.functions';
 
 export class Metrics implements IMetricsProvider {
     public get data() {
         return Array.from(this._metrics).map(([_item, value]) => value);
     }
-    private _metrics = globalState(GLOBAL_METRICS, () => new Map<any, IMetricRecord>());
+    private _metrics = new Map<any, IMetricRecord>();
 
     public clear(): void {
         this._metrics.clear();
@@ -29,6 +27,7 @@ export class Metrics implements IMetricsProvider {
         // First time init lets create a record
         if (!this._metrics.has(type)) {
             this._metrics.set(type, {
+                name: type.name,
                 activated: new Date(),
                 activationTypeOwner: owner || type,
                 creationTimeMs,

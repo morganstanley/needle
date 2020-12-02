@@ -13,9 +13,8 @@ import {
     LazyInstance,
     Strategy,
 } from '../main';
-import { DI_GLOBAL_STATE_STORE, DI_ROOT_INJECTOR_KEY, GLOBAL_CONFIGURATION } from '../main/constants/constants';
+import { DI_ROOT_INJECTOR_KEY } from '../main/constants/constants';
 import { InstanceCache } from '../main/core/cache';
-import { globalState } from '../main/core/globals';
 import { isInjectorLike } from '../main/core/guards';
 import { InjectionTokensCache } from '../main/core/tokens';
 
@@ -142,12 +141,6 @@ class CarManufacturer {
 
 describe('Injector', () => {
     beforeEach(() => {
-        // Delete the global state store on each run
-        (window as any)[DI_GLOBAL_STATE_STORE] = undefined;
-
-        // Use a global config which should override the one used by this injector instance
-        globalState(GLOBAL_CONFIGURATION, () => new Configuration());
-
         (window as any)[DI_ROOT_INJECTOR_KEY] = new Injector(
             new InstanceCache(),
             new Configuration(),
@@ -223,10 +216,10 @@ describe('Injector', () => {
             expect(instance.parent).toBeUndefined();
         });
 
-        it('should return undefined for scope if the root injector', () => {
+        it('should return undefined for name', () => {
             const instance = getInstance();
 
-            expect(instance.scope).toBeUndefined();
+            expect(instance.name).toBeUndefined();
         });
 
         it('should return false for isDestroyed', () => {
@@ -380,7 +373,7 @@ describe('Injector', () => {
 
             const vehicle = new Vehicle('Car');
 
-            instance.registerInstance(Vehicle, vehicle);
+            instance.register(Vehicle).registerInstance(Vehicle, vehicle);
 
             const sameVehicle = instance.get(Vehicle);
 
@@ -394,6 +387,8 @@ describe('Injector', () => {
 
             const vehicle1 = new Vehicle('Car');
             const vehicle2 = new Vehicle('Bike');
+
+            instance.register(Vehicle);
 
             instance.registerInstance(Vehicle, vehicle1);
 
@@ -678,7 +673,7 @@ describe('Injector', () => {
             expect(instance.cache.instanceCount).toBe(1);
         });
 
-        it('should throw an exception if an attempt to resolve a type that is not registered and constructUndecoratedTypes is set to false (default)', () => {
+        it('should throw an exception if an attempt to resolve a type that is not registered', () => {
             const instance = getInstance();
             let exception: any;
 
@@ -692,24 +687,6 @@ describe('Injector', () => {
             expect(exception.message).toBe(
                 `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type and configuration has constructUndecoratedTypes set to false`,
             );
-        });
-
-        it('should NOT throw an exception if an attempt to resolve a type that is not registered and constructUndecoratedTypes is set to true', () => {
-            const instance = getInstance();
-            let exception: any;
-            let child: any;
-
-            // Change the default
-            instance.configuration.constructUndecoratedTypes = true;
-
-            try {
-                child = instance.get(Child);
-            } catch (ex) {
-                exception = ex;
-            }
-
-            expect(exception).toBeUndefined();
-            expect(child).toBeDefined();
         });
 
         it('should service subsequent instances of a type from the cache', () => {
@@ -741,27 +718,7 @@ describe('Injector', () => {
             expect(gp.son.daughter).toBeDefined();
         });
 
-        it('should NOT throw exception if dependency in tree is not marked as injectable and constructUndecoratedTypes = true', () => {
-            const instance = getInstance();
-            let exception: any;
-
-            instance.configuration.constructUndecoratedTypes = true;
-
-            instance
-                .register(GrandParent)
-                // .register(Parent)
-                .register(Child);
-
-            try {
-                instance.get(GrandParent);
-            } catch (ex) {
-                exception = ex;
-            }
-
-            expect(exception).toBeUndefined();
-        });
-
-        it('should throw exception if dependency in tree is not marked as injectable and constructUndecoratedTypes = false', () => {
+        it('should throw exception if dependency in tree is not marked as injectable', () => {
             const instance = getInstance();
             let exception: any;
 
@@ -797,7 +754,7 @@ describe('Injector', () => {
 
             expect(exception).toBeDefined();
             expect(exception.message).toBe(
-                `Cannot construct Type 'NaughtyTurtle' with ancestry 'NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle' as too many levels deep`,
+                `Cannot construct Type 'NaughtyTurtle' with ancestry 'NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle' as max tree depth has been reached`,
             );
         });
 
@@ -805,6 +762,7 @@ describe('Injector', () => {
             it('should resolve the instance from the externalResolutionStrategy', () => {
                 const instance = getInstance();
                 let invoked = false;
+                instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
                     resolver: (_type, ..._args: any[]) => {
@@ -823,6 +781,7 @@ describe('Injector', () => {
             it('should resolve the instance from the externalResolutionStrategy and sync into cache if cacheSyncing = true', () => {
                 const instance = getInstance();
                 let invoked = false;
+                instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
                     resolver: (_type, ..._args: any[]) => {
@@ -842,6 +801,7 @@ describe('Injector', () => {
             it('should resolve the instance from the externalResolutionStrategy first time only and then service from cache if cacheSyncing = true for subsequent requests', () => {
                 const instance = getInstance();
                 let invoked = 0;
+                instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
                     resolver: (_type, ..._args: any[]) => {
@@ -881,6 +841,7 @@ describe('Injector', () => {
             expect(instance.metrics.data[0].lastResolution instanceof Date).toBeTruthy();
             expect(instance.metrics.data[0].resolutionCount).toBe(1);
             expect(instance.metrics.data[0].type).toBe(Child);
+            expect(instance.metrics.data[0].name).toBe('Child');
         });
 
         it('should increment the resolution count on each resolution', () => {
@@ -931,7 +892,9 @@ describe('Injector', () => {
             instance.get(GrandParent);
             instance.metrics.dump();
 
-            expect(instance.metrics.data[0].dependencyCount).toBe(1);
+            const result = instance.metrics.getMetricsForType(GrandParent);
+
+            expect(result!.dependencyCount).toBe(1);
         });
 
         it('should update the last resolution time', done => {
@@ -949,6 +912,34 @@ describe('Injector', () => {
                 );
                 done();
             }, 50);
+        });
+    });
+
+    describe('Scoping', () => {
+        it('should return a new instances when scope created', () => {
+            const instance = getInstance();
+
+            const scoped = instance.createScope('test-scope');
+
+            expect(scoped).toBeDefined();
+            expect(scoped.id).not.toBe(instance.id);
+            expect(scoped.getRegisteredTypes()).toEqual([]);
+            expect(scoped.isRoot()).toBeFalsy();
+            expect(scoped.isScoped).toBeTruthy();
+            expect(scoped.parent).toBeDefined();
+            expect(scoped.parent!.id).toBe(instance.id);
+            expect(scoped.name).toBe('test-scope');
+            expect(scoped.cache.instanceCount).toBe(0);
+        });
+
+        it('should resolve a type if the parent inject has a valid registration.  - Level 1', () => {
+            const instance = getInstance();
+            instance.register(Child);
+
+            const scoped = instance.createScope('test-scope');
+            const child = scoped.get(Child);
+
+            expect(child).toBeDefined();
         });
     });
 });

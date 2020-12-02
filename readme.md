@@ -499,7 +499,7 @@ getRootInjector().configuration.constructUndecoratedTypes = true;
 
 ## Max tree depth
 
-When constructing a tree of dependencies the hierarchy can get very deep, this is especially so if a circular reference is encountered.  Determining if this is the case can be difficult which is where `maxTreeDepth` can help.  Setting this value (`defaults to 100`) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. 
+When constructing a tree of dependencies the hierarchy can get very deep, this is especially so if a circular reference is encountered.  Determining if this is the case can be difficult which is where `maxTreeDepth` can help.  Setting this value (`defaults to 500`) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
