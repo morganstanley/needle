@@ -1,4 +1,3 @@
-import { InjectorIdentifier } from 'main/constants/constants';
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
@@ -57,6 +56,10 @@ export interface ILazyParameterInjectionToken extends IParameterInjectionToken {
  * The Injector configuration contract
  */
 export interface IConfiguration {
+    /**
+     * A flag signalling if types not decoratored with @Injectable should attempt to be constructed by the Injector
+     */
+    constructUndecoratedTypes: boolean;
     /**
      * The maximum depth the injection graph will reach before throwing an error.
      */
@@ -167,14 +170,13 @@ export interface ITokenCache {
  * Base injector interface
  */
 export interface IInjector {
-    readonly id: InjectorIdentifier;
+    readonly id: string;
     readonly cache: ICache;
     readonly configuration: IConfiguration;
     readonly tokenCache: ITokenCache;
     readonly parent?: IInjector;
+    readonly scope?: IScopeConfiguration;
     readonly metrics: IMetrics;
-    readonly name?: string;
-    readonly children: Map<InjectorIdentifier, IInjector>;
 
     /**
      * Registers a type and associated injection config with the the injector
@@ -227,9 +229,8 @@ export interface IInjector {
 
     /**
      * Destroys this instance of the injector as well as all child injectors in the parents hierarchy
-     * @param parent Optional, destroy can be triggered by a parent being destroyed.
      */
-    destroy(parent?: IInjector): void;
+    destroy(): void;
 
     /**
      * Gets an AutoFactory for a given type
@@ -268,22 +269,16 @@ export interface IInjector {
     getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }>;
 
     /**
-     * Gets a scoped injector using the Id or the Name
-     * @param nameOrId The name or the ID of the scope;
-     * @description Will perform a breadth-first search
-     */
-    getScope(nameOrId: string): IInjector | undefined;
-
-    /**
-     * Creates a child scope.
-     * @param name optional name for the scope (Duplicates allowed in the tree)
-     */
-    createScope(name?: string): IInjector;
-
-    /**
      * Resets the injector back to its default state
      */
     reset(): void;
+}
+
+/**
+ * Configuration object which can be used when creating an injection scope
+ */
+export interface IScopeConfiguration {
+    name?: string;
 }
 
 /**
@@ -321,10 +316,6 @@ export interface IExternalResolutionConfiguration {
  * Metric record represents a single types metric information
  */
 export interface IMetricRecord {
-    /**
-     * The name of the given type if available
-     */
-    name: string;
     /**
      * The type whos metrics are being tracked
      */

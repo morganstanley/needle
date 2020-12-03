@@ -1,35 +1,51 @@
+import { GLOBAL_CONFIGURATION } from '../constants/constants';
 import { IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts';
+import { globalState } from './globals';
 
 /**
- * Configuration class used for handling global container settings and behavioral flags
+ * Configurator class used for handling global container settings and behavioral flags
  */
 export class Configuration implements IConfiguration {
+    /**
+     * Gets the value indicating if the injector should attempt to construct types that have metadata but are not decorated with @Injectable
+     */
+    public get constructUndecoratedTypes(): boolean {
+        return this._globalConfig._constructUndecoratedTypes;
+    }
+
+    /**
+     * If set to true, this will signal to the injector to attempt to construct types that have metadata but are not decorated with @Injectable
+     */
+    public set constructUndecoratedTypes(value: boolean) {
+        this._globalConfig._constructUndecoratedTypes = value;
+    }
+
     /**
      * Gets the current max tree depth depth
      */
     public get maxTreeDepth(): number {
-        return this._maxTreeDepth;
+        return this._globalConfig._maxTreeDepth;
     }
 
     /**
      * Sets the limit on how deep the dependency graph tree can go.
      */
     public set maxTreeDepth(value: number) {
-        this._maxTreeDepth = value;
+        this._globalConfig._maxTreeDepth = value;
     }
 
     /**
      * Gets the external type resolver if one has been registered
      */
     public get externalResolutionStrategy(): IExternalResolutionConfiguration | undefined {
-        return this._externalResolutionStrategy;
+        return this._globalConfig._externalResolutionStrategy;
     }
 
     /**
      * Sets the type resolver to an external implementation. Delegates all construction and caching to that container
      */
     public set externalResolutionStrategy(value: IExternalResolutionConfiguration | undefined) {
-        this._externalResolutionStrategy = value;
+        this._globalConfig._externalResolutionStrategy = value;
     }
 
     /**
@@ -37,14 +53,14 @@ export class Configuration implements IConfiguration {
      * @default false
      */
     public get allowDuplicateTokens(): boolean {
-        return this._allowDuplicateTokens;
+        return this._globalConfig._allowDuplicateTokens;
     }
 
     /**
      * Sets the flag to signal to the injector that duplicate tokens are either allowed or restricted
      */
     public set allowDuplicateTokens(value: boolean) {
-        this._allowDuplicateTokens = value;
+        this._globalConfig._allowDuplicateTokens = value;
     }
 
     /**
@@ -52,28 +68,31 @@ export class Configuration implements IConfiguration {
      * @default false
      */
     public get trackMetrics(): boolean {
-        return this._trackMetrics;
+        return this._globalConfig._trackMetrics;
     }
 
     /**
      * Sets the flag to signal if metrics tracking is enabled
      */
     public set trackMetrics(value: boolean) {
-        this._trackMetrics = value;
+        this._globalConfig._trackMetrics = value;
     }
 
     private _maxTreeDepth = 100;
     private _externalResolutionStrategy: IExternalResolutionConfiguration | undefined;
+    private _constructUndecoratedTypes = false;
     private _allowDuplicateTokens = false;
+    private _globalConfig = globalState(GLOBAL_CONFIGURATION, () => this);
     public _trackMetrics = true;
 
     /**
      * Resets the configuration back to its default state
      */
     public reset(): void {
-        this.maxTreeDepth = 500;
+        this.maxTreeDepth = 100;
         this.externalResolutionStrategy = undefined;
         this.allowDuplicateTokens = false;
+        this.constructUndecoratedTypes = false;
         this._trackMetrics = false;
     }
 }

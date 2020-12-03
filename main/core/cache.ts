@@ -1,7 +1,9 @@
+import { GLOBAL_INSTANCE_MAP } from '../constants/constants';
 import { ICache, Newable } from '../contracts/contracts';
+import { globalState } from './globals';
 
 export class InstanceCache implements ICache {
-    private instanceMap = new Map<any, any>();
+    private instanceMap = globalState(GLOBAL_INSTANCE_MAP, () => new Map<any, any>());
 
     public resolve<T extends Newable>(type: T): InstanceType<T> {
         return this.instanceMap.get(type);
