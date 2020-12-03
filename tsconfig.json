@@ -5,7 +5,7 @@
         "lib": [
             "ES5",
             "ES6",
-            "DOM"
+            "DOM",
         ],
         "declaration": true,
         "sourceMap": true,

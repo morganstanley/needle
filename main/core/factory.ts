@@ -20,6 +20,6 @@ export class AutoFactory<T extends Newable> {
      * Create is used to create a new instance of the given type. All constructor params are considered optional and if undefined is passed the container will attempt to resolve the dependencies itself.
      */
     public create(...params: OptionalConstructorParameters<T>): InstanceType<T> {
-        return this.factoryImpl(this.type, false, { params: params as any }, [], this.injector);
+        return this.factoryImpl.bind(this.injector)(this.type, false, { params: params as any }, [], this.injector);
     }
 }
