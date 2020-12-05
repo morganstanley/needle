@@ -308,7 +308,7 @@ export interface IExternalResolutionConfiguration {
     /**
      * The resolver function to be used when instancing types
      */
-    resolver: (type: any, locals?: any) => any;
+    resolver: (type: any, currentInjector: IInjector, locals?: any) => any;
 
     /**
      * Flag that when set to true will sync instances with the injectors cache.

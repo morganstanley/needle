@@ -262,6 +262,12 @@ export class Injector implements IInjector {
         ancestry: any[] = [],
         options?: IConstructionOptions<T>,
     ): InstanceType<T> {
+        if (this._isDestroyed) {
+            throw new Error(
+                `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${this.id}]`,
+            );
+        }
+
         // Measuring time taken
         const start = Date.now();
         let instance: any;
@@ -306,6 +312,7 @@ export class Injector implements IInjector {
                 // If an external resolution strategy has been set, delegate all responsibility to it
                 instance = this.configuration.externalResolutionStrategy.resolver(
                     constructorType,
+                    this, // Pass injector so resolver understands the current context (scope, cache etc)
                     (options || {}).params || [],
                 );
                 if (this.configuration.externalResolutionStrategy.cacheSyncing === true) {

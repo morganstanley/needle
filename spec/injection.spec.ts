@@ -241,6 +241,26 @@ describe('Injector', () => {
 
             expect(instance.isDestroyed()).toBeFalsy();
         });
+
+        it('should throw exception if injector is destroyed and attempt to resolve is made', () => {
+            const instance = getInstance();
+            let message = '';
+
+            instance.register(Child);
+            instance.destroy();
+
+            try {
+                instance.get(Child);
+            } catch (ex) {
+                message = ex.message;
+            }
+
+            expect(
+                message.indexOf(
+                    'Invalid operation, the current injector instance is marked as destroyed. Injector Id: [',
+                ) !== -1,
+            ).toBeTrue();
+        });
     });
 
     describe('Registration', () => {
@@ -776,11 +796,13 @@ describe('Injector', () => {
             it('should resolve the instance from the externalResolutionStrategy', () => {
                 const instance = getInstance();
                 let invoked = false;
+                let injector: IInjector;
                 instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
-                    resolver: (_type, ..._args: any[]) => {
+                    resolver: (_type, currentInjector: IInjector, ..._args: any[]) => {
                         invoked = true;
+                        injector = currentInjector;
                         return new Child();
                     },
                 };
@@ -788,6 +810,8 @@ describe('Injector', () => {
                 const child = instance.get(Child);
 
                 expect(child).toBeDefined();
+                expect(injector!).toBeDefined();
+                expect(injector! === instance).toBeTruthy();
                 expect(invoked).toBeTruthy();
                 expect(instance.cache.instanceCount).toBe(0); // Cache should not be updated by default.
             });
@@ -927,13 +951,59 @@ describe('Injector', () => {
                 done();
             }, 50);
         });
+
+        describe('Scoping', () => {
+            it('should record metrics correctly for each scope', () => {
+                const instance = getInstance();
+
+                instance
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                const scoped = instance
+                    .createScope('test-scope')
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                instance.get(GrandParent);
+                scoped.get(GrandParent);
+
+                const parentMetrics = instance.metrics.getMetricsForType(GrandParent);
+                const scopedMetrics = scoped.metrics.getMetricsForType(GrandParent);
+
+                expect(parentMetrics!.resolutionCount).toBe(1);
+                expect(scopedMetrics!.resolutionCount).toBe(1);
+            });
+
+            it('should record metrics correctly for correct parent scope when instance resolved from parent rather than local', () => {
+                const instance = getInstance();
+
+                instance
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                const scoped = instance.createScope('test-scope');
+
+                instance.get(GrandParent);
+                scoped.get(GrandParent);
+
+                const parentMetrics = instance.metrics.getMetricsForType(GrandParent)!;
+                const scopedMetrics = scoped.metrics.getMetricsForType(GrandParent)!;
+
+                expect(parentMetrics.resolutionCount).toBe(2);
+                expect(scopedMetrics).toBeUndefined();
+            });
+        });
     });
 
     function getRandomInt(min: number, max: number) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
-    describe('Hierarchical Injection', () => {
+    describe('Scoped injection', () => {
         const testCount = 30;
 
         type ITestRun = { depth: number; registrationLevel: number; resolutionLevel: number };
@@ -1067,6 +1137,23 @@ describe('Injector', () => {
                             const child = instance.getScope(`level-${test.resolutionLevel}`)!.getLazy(Child).value;
 
                             expect(child).toBeDefined();
+                        });
+                    });
+                });
+            });
+
+            describe('Destroy', () => {
+                describe('with parent (In middle of tree) where destroy is invoked', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+                            const parent = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scope = parent.getScope(`level-${test.resolutionLevel}`)!;
+                            const destroyed = scope.isDestroyed();
+                            parent.destroy();
+
+                            expect(destroyed).not.toBe(scope.isDestroyed());
+                            expect(scope.isDestroyed()).toBeTrue();
                         });
                     });
                 });
