@@ -104,14 +104,19 @@ export class Injector implements IInjector {
     public getScope(nameOrId: string): IInjector | undefined {
         const childScopes = Array.from(this._children).map(([_id, scope]) => scope);
 
-        const findIndex = childScopes.findIndex(
-            c => c.id === nameOrId || c.name === nameOrId || c.getScope(nameOrId) != null,
-        );
+        const findIndex = childScopes.findIndex(c => c.id === nameOrId || c.name === nameOrId);
+        if (findIndex !== -1) {
+            return childScopes[findIndex];
+        }
 
-        let found: IInjector | undefined = childScopes[findIndex];
-        found = found != null && (found.id === nameOrId || found.name === nameOrId) ? found : found.getScope(name);
-
-        return found || undefined;
+        for (let index = 0; index < childScopes.length; index++) {
+            const child = childScopes[index];
+            const scope = child.getScope(nameOrId);
+            if (scope != null) {
+                return scope;
+            }
+        }
+        return undefined;
     }
 
     /**
@@ -134,7 +139,14 @@ export class Injector implements IInjector {
     /**
      * Registers and instance of a type in the container
      */
-    public registerInstance<T extends Newable>(type: any, instance: InstanceType<T>): this {
+    public registerInstance<T extends Newable>(
+        type: any,
+        instance: InstanceType<T>,
+        config: IInjectionConfiguration = defaultInjectionConfiguration,
+    ): this {
+        // Auto add the registration details
+        this.register(type, config);
+        // Preload the cache
         this.cache.update(type, instance);
         return this;
     }
@@ -368,6 +380,7 @@ export class Injector implements IInjector {
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
     ): InstanceType<T> {
+        // Do our base checks to see if we are exceeding our depth limits
         if (ancestors.length > injector.configuration.maxTreeDepth) {
             throw new Error(
                 `Cannot construct Type '${(type as any).name}' with ancestry '${ancestors
@@ -377,9 +390,41 @@ export class Injector implements IInjector {
         }
 
         let instance: any;
-        // If we have add profiled values for the constructor args use those then resolve the remainder
-        const optional = (options || {}).params || [];
+
+        const overrideParams = (options || {}).params || [];
         const constructorParamTypes = getConstructorTypes(type);
+        // Note this call to construct param values introduces recursive behavior
+        const constructorParamValues = this.getConstructorParamValues<T>(
+            constructorParamTypes,
+            overrideParams,
+            injector,
+            ancestors,
+            type,
+        );
+
+        instance = new type(...constructorParamValues);
+
+        if (updateCache) {
+            injector.cache.update(type, instance);
+        }
+
+        return instance;
+    }
+
+    /**
+     * This method will resolve all the constructor args values taking into account the tokens
+     */
+    private getConstructorParamValues<T extends new (...args: any[]) => any>(
+        constructorParamTypes: any[],
+        overrideParams: Partial<ConstructorParameters<T>> | never[],
+        injector: IInjector,
+        ancestors: any[],
+        type: T,
+    ) {
+        if (constructorParamTypes.length === 0) {
+            return [];
+        }
+
         // These tokens are constructor parameter tokens
         const {
             injectionParamTokens,
@@ -388,10 +433,9 @@ export class Injector implements IInjector {
             lazyParamTokens,
         } = this.getConstructorsParamTokens(injector, type);
 
-        // Now lets loop over the constructor params and resolve the types
-        const constructorParams = constructorParamTypes.map((paramType, index) => {
+        return constructorParamTypes.map((paramType, index) => {
             // Have they provided a value, if they have use it, if its undefined construct using the type
-            const value = optional[index];
+            const value = overrideParams[index];
             if (value != null) {
                 return value;
             }
@@ -436,14 +480,6 @@ export class Injector implements IInjector {
 
             return injector.cache.resolve(paramType) || this.get(paramType, ancestors, undefined);
         });
-
-        instance = new type(...constructorParams);
-
-        if (updateCache) {
-            injector.cache.update(type, instance);
-        }
-
-        return instance;
     }
 
     /**
@@ -471,7 +507,7 @@ export class Injector implements IInjector {
 
         while (currentInjector != null && constructorType == null) {
             constructorType = currentInjector.tokenCache.getTypeForToken(token);
-            currentInjector = injector.parent;
+            currentInjector = currentInjector.parent;
         }
 
         return constructorType;

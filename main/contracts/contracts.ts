@@ -189,7 +189,7 @@ export interface IInjector {
     /**
      * Registers and instance of a type in the container
      */
-    registerInstance<T extends Newable>(type: any, instance: InstanceType<T>): this;
+    registerInstance<T extends Newable>(type: any, instance: InstanceType<T>, config?: IInjectionConfiguration): this;
 
     /**
      * Registers a parameter for factory injection.  This maps to the @Factory annotation
