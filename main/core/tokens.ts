@@ -35,7 +35,6 @@ export class InjectionTokensCache implements ITokenCache {
     public getLazyTokens(type: any): IParameterInjectionToken[] {
         return [...(this.lazyParameterTokens.get(type) || [])];
     }
-
     public getTokensForType(type: any): IInjectionToken[] {
         return [...(this.typeToTokens.get(type) || [])];
     }
