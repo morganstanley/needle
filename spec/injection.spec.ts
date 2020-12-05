@@ -1053,6 +1053,28 @@ describe('Injector', () => {
             expect(child).toBeDefined();
         });
 
+        it('should resolve a scope based on its name an Id', () => {
+            const instance = getInstance();
+            instance.register(Child);
+
+            const scope = instance.createScope('test-scope');
+            const namedScope = instance.getScope('test-scope');
+            const idScope = instance.getScope(scope.id);
+            expect(namedScope).toBeDefined();
+            expect(idScope).toBeDefined();
+            expect(idScope === namedScope).toBeTrue();
+        });
+
+        it('should return undefined if scope is not found', () => {
+            const instance = getInstance();
+            instance.register(Child);
+
+            instance.createScope('test-scope');
+            const noMatchScope = instance.getScope('NO_MATCH');
+
+            expect(noMatchScope).toBeUndefined();
+        });
+
         describe('Ancestry', () => {
             describe('Resolution', () => {
                 describe('Resolve instance from ancestor', () => {

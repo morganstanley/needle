@@ -123,7 +123,7 @@ export class Injector implements IInjector {
      * Creates a child scope.
      * @param name optional name for the scope (Duplicates allowed in the tree)
      */
-    public createScope(name?: string): IInjector {
+    public createScope(name: string): IInjector {
         const child = this.create(this, name);
         this._children.set(child.id, child);
         return child;
