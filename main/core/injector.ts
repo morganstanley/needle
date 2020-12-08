@@ -121,7 +121,7 @@ export class Injector implements IInjector {
 
     /**
      * Creates a child scope.
-     * @param name optional name for the scope (Duplicates allowed in the tree)
+     * @param name optional name for the scope (Duplicates allowed in the tree but not in child collection)
      */
     public createScope(name: string): IInjector {
         const child = this.create(this, name);
@@ -283,32 +283,24 @@ export class Injector implements IInjector {
 
         ancestry.push(constructorType);
 
-        // Injector type is never registered
-        if (constructorType.typeId !== INJECTOR_TYPE_ID) {
-            // Lets see if the type has an associated registration. If root and answer is no then bail
-            const registration = this._registrations.get(constructorType);
-            if (registration == null && this.isRoot()) {
-                throw new Error(
-                    `Cannot construct Type '${constructorType.name}' with ancestry '${ancestry
-                        .map(ancestor => ancestor.name)
-                        .join(
-                            ' -> ',
-                        )}' the type is either not decorated with @Injectable or injector.register was not called for the type and configuration has constructUndecoratedTypes set to false`,
-                );
-                // Now if we are scoped the registration maybe inherited so lets ask our parent to resolve it for us.
-            } else if (registration == null && this.isScoped()) {
-                return this.parent!.get(typeOrToken, ancestry, options);
-            }
-        }
-
-        // Lets check the cache and see if we have an instance ready to service
-        instance = this.cache.resolve(constructorType);
+        // If injector type then return `this` if not try and resolve from cache
+        const isInjectorType = constructorType === Injector || constructorType.typeId === INJECTOR_TYPE_ID;
+        instance = isInjectorType ? this : this.cache.resolve(constructorType);
 
         if (instance == null) {
+            // Lets see if the type has an associated registration. If root and answer is no then bail
+            const registration = this._registrations.get(constructorType);
+            // If root then we cannot go further up to look for registration so we can bomb here
+            if (registration == null && this.isRoot()) {
+                this.throwRegistrationNotFound(constructorType, ancestry);
+                // Now if we are scoped the registration maybe inherited so lets ask our parent to resolve it for us.
+            } else if (registration == null && this.isScoped() && this.parent) {
+                // Note we return here as we want to stop metric being created for this scope
+                return this.parent.get(typeOrToken, ancestry, options);
+            }
+
             // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
-            if (constructorType.typeId === INJECTOR_TYPE_ID && instance == null) {
-                instance = this.getInjectorInstance(constructorType);
-            } else if (this.configuration.externalResolutionStrategy != null) {
+            if (this.configuration.externalResolutionStrategy != null) {
                 // If an external resolution strategy has been set, delegate all responsibility to it
                 instance = this.configuration.externalResolutionStrategy.resolver(
                     constructorType,
@@ -359,25 +351,14 @@ export class Injector implements IInjector {
         this.metrics.clear();
     }
 
-    /**
-     * Handles resolving instances of Injector within an injection graph.
-     * @param constructorType The type being requested
-     * @see TODO to restrict number of versions of a injector to 1 version only.
-     */
-    private getInjectorInstance(constructorType: any): any {
-        let instance: any;
-        // Does the instance being requested share the same prototype as our current injector instance (Or it has no create function)
-        if (constructorType === Injector || (constructorType !== Injector && constructorType.create === undefined)) {
-            instance = this;
-            this.cache.update(constructorType, instance);
-        } else {
-            /* If we are here then we have multiple injector versions in play.
-             * we check to see if the type has the static create method.  If
-             * we find it we can instance it using that method. */
-            instance = constructorType.create();
-            this.cache.update(constructorType, instance);
-        }
-        return instance;
+    private throwRegistrationNotFound(constructorType: any, ancestry: any[]) {
+        throw new Error(
+            `Cannot construct Type '${constructorType.name}' with ancestry '${ancestry
+                .map(ancestor => ancestor.name)
+                .join(
+                    ' -> ',
+                )}' the type is either not decorated with @Injectable or injector.register was not called for the type and configuration has constructUndecoratedTypes set to false`,
+        );
     }
 
     private createInstance<T extends new (...args: any[]) => any>(
