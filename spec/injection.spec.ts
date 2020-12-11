@@ -1,4 +1,5 @@
 /* INTERNALS */
+import { IInjector } from 'main/contracts/contracts';
 import { Configuration } from 'main/core/configuration';
 import { Metrics } from 'main/core/metrics';
 /* INTERNALS */
@@ -13,9 +14,8 @@ import {
     LazyInstance,
     Strategy,
 } from '../main';
-import { DI_GLOBAL_STATE_STORE, DI_ROOT_INJECTOR_KEY, GLOBAL_CONFIGURATION } from '../main/constants/constants';
+import { DI_ROOT_INJECTOR_KEY } from '../main/constants/constants';
 import { InstanceCache } from '../main/core/cache';
-import { globalState } from '../main/core/globals';
 import { isInjectorLike } from '../main/core/guards';
 import { InjectionTokensCache } from '../main/core/tokens';
 
@@ -142,12 +142,6 @@ class CarManufacturer {
 
 describe('Injector', () => {
     beforeEach(() => {
-        // Delete the global state store on each run
-        (window as any)[DI_GLOBAL_STATE_STORE] = undefined;
-
-        // Use a global config which should override the one used by this injector instance
-        globalState(GLOBAL_CONFIGURATION, () => new Configuration());
-
         (window as any)[DI_ROOT_INJECTOR_KEY] = new Injector(
             new InstanceCache(),
             new Configuration(),
@@ -156,10 +150,23 @@ describe('Injector', () => {
         );
     });
 
-    const getInstance = (resetInjector = true) => {
+    const createScopes = (injector: IInjector, depth: number) => {
+        for (let index = 1; index <= depth; index++) {
+            injector = injector.createScope(`level-${index}`);
+        }
+    };
+
+    const getInstance = (resetInjector = true, scopes = 0) => {
         if (resetInjector) {
             getRootInjector().reset();
         }
+
+        const injector = getRootInjector();
+
+        if (scopes > 0) {
+            createScopes(injector, scopes);
+        }
+
         return getRootInjector();
     };
 
@@ -223,16 +230,36 @@ describe('Injector', () => {
             expect(instance.parent).toBeUndefined();
         });
 
-        it('should return undefined for scope if the root injector', () => {
+        it('should return undefined for name', () => {
             const instance = getInstance();
 
-            expect(instance.scope).toBeUndefined();
+            expect(instance.name).toBeUndefined();
         });
 
         it('should return false for isDestroyed', () => {
             const instance = getInstance();
 
             expect(instance.isDestroyed()).toBeFalsy();
+        });
+
+        it('should throw exception if injector is destroyed and attempt to resolve is made', () => {
+            const instance = getInstance();
+            let message = '';
+
+            instance.register(Child);
+            instance.destroy();
+
+            try {
+                instance.get(Child);
+            } catch (ex) {
+                message = ex.message;
+            }
+
+            expect(
+                message.indexOf(
+                    'Invalid operation, the current injector instance is marked as destroyed. Injector Id: [',
+                ) !== -1,
+            ).toBeTrue();
         });
     });
 
@@ -380,7 +407,7 @@ describe('Injector', () => {
 
             const vehicle = new Vehicle('Car');
 
-            instance.registerInstance(Vehicle, vehicle);
+            instance.register(Vehicle).registerInstance(Vehicle, vehicle);
 
             const sameVehicle = instance.get(Vehicle);
 
@@ -394,6 +421,8 @@ describe('Injector', () => {
 
             const vehicle1 = new Vehicle('Car');
             const vehicle2 = new Vehicle('Bike');
+
+            instance.register(Vehicle);
 
             instance.registerInstance(Vehicle, vehicle1);
 
@@ -678,7 +707,7 @@ describe('Injector', () => {
             expect(instance.cache.instanceCount).toBe(1);
         });
 
-        it('should throw an exception if an attempt to resolve a type that is not registered and constructUndecoratedTypes is set to false (default)', () => {
+        it('should throw an exception if an attempt to resolve a type that is not registered', () => {
             const instance = getInstance();
             let exception: any;
 
@@ -692,24 +721,6 @@ describe('Injector', () => {
             expect(exception.message).toBe(
                 `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type and configuration has constructUndecoratedTypes set to false`,
             );
-        });
-
-        it('should NOT throw an exception if an attempt to resolve a type that is not registered and constructUndecoratedTypes is set to true', () => {
-            const instance = getInstance();
-            let exception: any;
-            let child: any;
-
-            // Change the default
-            instance.configuration.constructUndecoratedTypes = true;
-
-            try {
-                child = instance.get(Child);
-            } catch (ex) {
-                exception = ex;
-            }
-
-            expect(exception).toBeUndefined();
-            expect(child).toBeDefined();
         });
 
         it('should service subsequent instances of a type from the cache', () => {
@@ -741,27 +752,7 @@ describe('Injector', () => {
             expect(gp.son.daughter).toBeDefined();
         });
 
-        it('should NOT throw exception if dependency in tree is not marked as injectable and constructUndecoratedTypes = true', () => {
-            const instance = getInstance();
-            let exception: any;
-
-            instance.configuration.constructUndecoratedTypes = true;
-
-            instance
-                .register(GrandParent)
-                // .register(Parent)
-                .register(Child);
-
-            try {
-                instance.get(GrandParent);
-            } catch (ex) {
-                exception = ex;
-            }
-
-            expect(exception).toBeUndefined();
-        });
-
-        it('should throw exception if dependency in tree is not marked as injectable and constructUndecoratedTypes = false', () => {
+        it('should throw exception if dependency in tree is not marked as injectable', () => {
             const instance = getInstance();
             let exception: any;
 
@@ -797,7 +788,7 @@ describe('Injector', () => {
 
             expect(exception).toBeDefined();
             expect(exception.message).toBe(
-                `Cannot construct Type 'NaughtyTurtle' with ancestry 'NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle' as too many levels deep`,
+                `Cannot construct Type 'NaughtyTurtle' with ancestry 'NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle -> NaughtyTurtle' as max tree depth has been reached`,
             );
         });
 
@@ -805,10 +796,13 @@ describe('Injector', () => {
             it('should resolve the instance from the externalResolutionStrategy', () => {
                 const instance = getInstance();
                 let invoked = false;
+                let injector: IInjector;
+                instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
-                    resolver: (_type, ..._args: any[]) => {
+                    resolver: (_type, currentInjector: IInjector, ..._args: any[]) => {
                         invoked = true;
+                        injector = currentInjector;
                         return new Child();
                     },
                 };
@@ -816,6 +810,8 @@ describe('Injector', () => {
                 const child = instance.get(Child);
 
                 expect(child).toBeDefined();
+                expect(injector!).toBeDefined();
+                expect(injector! === instance).toBeTruthy();
                 expect(invoked).toBeTruthy();
                 expect(instance.cache.instanceCount).toBe(0); // Cache should not be updated by default.
             });
@@ -823,6 +819,7 @@ describe('Injector', () => {
             it('should resolve the instance from the externalResolutionStrategy and sync into cache if cacheSyncing = true', () => {
                 const instance = getInstance();
                 let invoked = false;
+                instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
                     resolver: (_type, ..._args: any[]) => {
@@ -842,6 +839,7 @@ describe('Injector', () => {
             it('should resolve the instance from the externalResolutionStrategy first time only and then service from cache if cacheSyncing = true for subsequent requests', () => {
                 const instance = getInstance();
                 let invoked = 0;
+                instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
                     resolver: (_type, ..._args: any[]) => {
@@ -881,6 +879,7 @@ describe('Injector', () => {
             expect(instance.metrics.data[0].lastResolution instanceof Date).toBeTruthy();
             expect(instance.metrics.data[0].resolutionCount).toBe(1);
             expect(instance.metrics.data[0].type).toBe(Child);
+            expect(instance.metrics.data[0].name).toBe('Child');
         });
 
         it('should increment the resolution count on each resolution', () => {
@@ -931,7 +930,9 @@ describe('Injector', () => {
             instance.get(GrandParent);
             instance.metrics.dump();
 
-            expect(instance.metrics.data[0].dependencyCount).toBe(1);
+            const result = instance.metrics.getMetricsForType(GrandParent);
+
+            expect(result!.dependencyCount).toBe(1);
         });
 
         it('should update the last resolution time', done => {
@@ -949,6 +950,374 @@ describe('Injector', () => {
                 );
                 done();
             }, 50);
+        });
+
+        describe('Scoping', () => {
+            it('should record metrics correctly for each scope', () => {
+                const instance = getInstance();
+
+                instance
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                const scoped = instance
+                    .createScope('test-scope')
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                instance.get(GrandParent);
+                scoped.get(GrandParent);
+
+                const parentMetrics = instance.metrics.getMetricsForType(GrandParent);
+                const scopedMetrics = scoped.metrics.getMetricsForType(GrandParent);
+
+                expect(parentMetrics!.resolutionCount).toBe(1);
+                expect(scopedMetrics!.resolutionCount).toBe(1);
+            });
+
+            it('should record metrics correctly for correct parent scope when instance resolved from parent rather than local', () => {
+                const instance = getInstance();
+
+                instance
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                const scoped = instance.createScope('test-scope');
+
+                instance.get(GrandParent);
+                scoped.get(GrandParent);
+
+                const parentMetrics = instance.metrics.getMetricsForType(GrandParent)!;
+                const scopedMetrics = scoped.metrics.getMetricsForType(GrandParent)!;
+
+                expect(parentMetrics.resolutionCount).toBe(2);
+                expect(scopedMetrics).toBeUndefined();
+            });
+        });
+    });
+
+    function getRandomInt(min: number, max: number) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
+    describe('Scoped injection', () => {
+        const testCount = 30;
+
+        type ITestRun = { depth: number; registrationLevel: number; resolutionLevel: number };
+
+        const generateTestExecutionData = (depthOfTree = 30) => {
+            const testData = new Array<ITestRun>();
+
+            while (testData.length < testCount) {
+                const depth = getRandomInt(1, depthOfTree);
+                const registrationLevel = getRandomInt(1, depth);
+                const resolutionLevel = getRandomInt(registrationLevel, depth);
+
+                if (registrationLevel !== resolutionLevel) {
+                    testData.push({ depth, registrationLevel, resolutionLevel });
+                }
+            }
+
+            return testData;
+        };
+
+        const getTestInfoAsText = (test: ITestRun) =>
+            `Tree depth: [${test.depth}], Registration: [${test.registrationLevel}], Scope: [${test.resolutionLevel}] `;
+
+        it('should return a new instances when scope created', () => {
+            const instance = getInstance();
+
+            const scoped = instance.createScope('test-scope');
+
+            expect(scoped).toBeDefined();
+            expect(scoped.id).not.toBe(instance.id);
+            expect(scoped.getRegisteredTypes()).toEqual([]);
+            expect(scoped.isRoot()).toBeFalsy();
+            expect(scoped.isScoped).toBeTruthy();
+            expect(scoped.parent).toBeDefined();
+            expect(scoped.parent!.id).toBe(instance.id);
+            expect(scoped.name).toBe('test-scope');
+            expect(scoped.cache.instanceCount).toBe(0);
+        });
+
+        it('should resolve a type if the parent injector has a valid registration.', () => {
+            const instance = getInstance();
+            instance.register(Child);
+
+            const scoped = instance.createScope('test-scope');
+            const child = scoped.get(Child);
+
+            expect(child).toBeDefined();
+        });
+
+        it('should resolve a scope based on its name an Id', () => {
+            const instance = getInstance();
+            instance.register(Child);
+
+            const scope = instance.createScope('test-scope');
+            const namedScope = instance.getScope('test-scope');
+            const idScope = instance.getScope(scope.id);
+            expect(namedScope).toBeDefined();
+            expect(idScope).toBeDefined();
+            expect(idScope === namedScope).toBeTrue();
+        });
+
+        it('should return undefined if scope is not found', () => {
+            const instance = getInstance();
+            instance.register(Child);
+
+            instance.createScope('test-scope');
+            const noMatchScope = instance.getScope('NO_MATCH');
+
+            expect(noMatchScope).toBeUndefined();
+        });
+
+        describe('Ancestry', () => {
+            describe('Resolution', () => {
+                describe('Resolve instance from ancestor', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            instance.getScope(`level-${test.registrationLevel}`)!.register(Child);
+
+                            const child = instance.getScope(`level-${test.resolutionLevel}`)!.get(Child);
+
+                            expect(child).toBeDefined();
+                        });
+                    });
+                });
+
+                describe('Resolve instance from ancestor using token', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve instance using ancestors registration - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            instance.getScope(`level-${test.registrationLevel}`)!.register(Child, {
+                                tokens: ['ancestor-token'],
+                            });
+
+                            const child = instance.getScope(`level-${test.resolutionLevel}`)!.get('ancestor-token');
+
+                            expect(child).toBeDefined();
+                        });
+                    });
+                });
+
+                describe('Resolve strategy from ancestor', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve strategies using ancestors registration - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            const injector = instance.getScope(`level-${test.registrationLevel}`)!;
+                            injector.register(StrategyOwner, {}).register(Strategy1, {
+                                strategy: 'my-test-strategy',
+                            });
+
+                            // Lets dynamically setup a @Strategy annotation for first parameter in StrategyOwner's constructor
+                            Strategy('my-test-strategy')(StrategyOwner, 'strategies', 0);
+
+                            const owner = instance.getScope(`level-${test.resolutionLevel}`)!.get(StrategyOwner);
+
+                            expect(owner.workStrategies.length).toBe(1);
+                            expect(owner.workStrategies[0] instanceof Strategy1).toBeTruthy();
+                        });
+                    });
+                });
+
+                describe('Resolve factory from ancestor', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve factory using ancestors registration - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            instance.getScope(`level-${test.registrationLevel}`)!.register(Child);
+
+                            const child = instance
+                                .getScope(`level-${test.resolutionLevel}`)!
+                                .getFactory(Child)
+                                .create();
+
+                            expect(child).toBeDefined();
+                        });
+                    });
+                });
+
+                describe('Resolve lazy from ancestor', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve lazy.value using ancestors registration - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            instance.getScope(`level-${test.registrationLevel}`)!.register(Child);
+
+                            const child = instance.getScope(`level-${test.resolutionLevel}`)!.getLazy(Child).value;
+
+                            expect(child).toBeDefined();
+                        });
+                    });
+                });
+            });
+
+            describe('Destroy', () => {
+                describe('with parent (In middle of tree) where destroy is invoked', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+                            const parent = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scope = parent.getScope(`level-${test.resolutionLevel}`)!;
+                            const destroyed = scope.isDestroyed();
+                            parent.destroy();
+
+                            expect(destroyed).not.toBe(scope.isDestroyed());
+                            expect(scope.isDestroyed()).toBeTrue();
+                        });
+                    });
+                });
+            });
+
+            describe('Overriding', () => {
+                describe('with register.instance() override in a scope', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`should resolve the instance from the local scope ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            const ancestralInjector = instance
+                                .getScope(`level-${test.registrationLevel}`)!
+                                .register(Child);
+
+                            const child = ancestralInjector.get(Child);
+
+                            const scoped = instance.getScope(`level-${test.resolutionLevel}`)!;
+                            scoped.registerInstance(Child, new Child());
+                            const scopedChild = scoped.get(Child);
+
+                            expect(child === scopedChild).toBeFalsy();
+                        });
+                    });
+                });
+
+                describe('with register.strategies override in a scope', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`should resolve a different set of strategies ignoring those already resolved in the parent scopes - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            const injector = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scoped = instance.getScope(`level-${test.resolutionLevel}`)!;
+
+                            injector.register(Strategy1, {
+                                strategy: 'my-test-strategy',
+                            });
+
+                            scoped.register(Strategy1, {
+                                strategy: 'my-test-strategy',
+                            });
+
+                            const ancestorStrategies = injector.getStrategies('my-test-strategy');
+                            const scopedStrategies = scoped.getStrategies('my-test-strategy');
+
+                            expect(ancestorStrategies.length).toBe(1);
+                            expect(scopedStrategies.length).toBe(1);
+                            expect(scopedStrategies[0] === ancestorStrategies[0]).toBeFalsy();
+                        });
+                    });
+                });
+
+                describe('with register.tokens override in a scope', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`should resolve the instance from local scope using a token ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            const injector = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scoped = instance.getScope(`level-${test.resolutionLevel}`)!;
+
+                            injector.register(Child, {
+                                tokens: ['child-instance'],
+                            });
+
+                            scoped.register(Child, {
+                                tokens: ['child-instance'],
+                            });
+
+                            const ancestorChild = injector.get('child-instance');
+                            const scopeChild = scoped.getStrategies('child-instance');
+
+                            expect(ancestorChild).toBeDefined();
+                            expect(scopeChild).toBeDefined();
+                            expect(ancestorChild).not.toBe(scopeChild);
+                        });
+                    });
+                });
+
+                describe('with type registered in local scope and registrar.getLazy invoked', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve an instance from the local scope ignoring parent scopes - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            const injector = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scoped = instance.getScope(`level-${test.resolutionLevel}`)!;
+
+                            injector.register(Child);
+
+                            scoped.register(Child);
+
+                            const ancestorChild = injector.getLazy(Child).value;
+                            const scopeChildLazy = scoped.getLazy(Child);
+
+                            expect(scopeChildLazy.hasValue).toBeFalse();
+                            expect(scopeChildLazy.value).toBeDefined();
+                            expect(scopeChildLazy.value).not.toBe(ancestorChild);
+                        });
+                    });
+                });
+
+                describe('with type registered in local scope with scoped dependency and registrar.getFactory invoked', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve an new instance with each instance having a scoped shared dependency - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            const injector = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scoped = instance.getScope(`level-${test.resolutionLevel}`)!;
+
+                            injector.register(Parent).register(Child);
+
+                            scoped.register(Parent).register(Child);
+
+                            const parentFactory = injector.getFactory(Parent);
+                            const scopedFactory = scoped.getFactory(Parent);
+
+                            const parentInstance1 = parentFactory.create();
+                            const parentInstance2 = parentFactory.create();
+                            const scopedInstance1 = scopedFactory.create();
+                            const scopedInstance2 = scopedFactory.create();
+
+                            expect(parentInstance1).toBeDefined();
+                            expect(parentInstance2).toBeDefined();
+                            expect(scopedInstance1).toBeDefined();
+                            expect(scopedInstance2).toBeDefined();
+                            expect(scopedInstance1 === scopedInstance2).toBeFalse();
+                            expect(scopedInstance1 === parentInstance1).toBeFalse();
+                            expect(scopedInstance1.daughter === parentInstance1.daughter).toBeFalse();
+                            expect(scopedInstance1.daughter === scopedInstance2.daughter).toBeTrue();
+                        });
+                    });
+                });
+            });
         });
     });
 });

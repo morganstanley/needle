@@ -5,35 +5,20 @@ import {
     IParameterInjectionToken,
     ITokenCache,
 } from '../contracts/contracts';
-import { globalState } from './globals';
 import { isConstructorParameterToken } from './guards';
 
 /**
  * The injection token cache is used to store all uses of the @Inject annotation.
  */
 export class InjectionTokensCache implements ITokenCache {
-    private injectParameterTokens = globalState(
-        'GLOBAL_INJECTION_PARAMETER_TOKENS',
-        () => new Map<any, IParameterInjectionToken[]>(),
-    );
-    private strategyParameterTokens = globalState(
-        'GLOBAL_INJECTION_STRATEGY_TOKENS',
-        () => new Map<any, IParameterInjectionToken[]>(),
-    );
-    private factoryParameterTokens = globalState(
-        'GLOBAL_INJECTION_FACTORY_TOKENS',
-        () => new Map<any, IParameterInjectionToken[]>(),
-    );
-
-    private lazyParameterTokens = globalState(
-        'GLOBAL_INJECTION_LAZY_TOKENS',
-        () => new Map<any, IParameterInjectionToken[]>(),
-    );
-
-    // DH: managing two maps here for fast reverse lookup.  Need to improve
-    private typeToTokens = globalState('GLOBAL_TYPE_TO_TOKENS', () => new Map<any, IInjectionToken[]>());
-    private tokensToTypes = globalState('GLOBAL_TOKENS_TO_TYPES', () => new Map<string, any[]>());
-    private strategyConsumers = globalState('GLOBAL_STRATEGY_CONSUMERS', () => new Map<string, any[]>());
+    private injectParameterTokens = new Map<any, IParameterInjectionToken[]>();
+    private strategyParameterTokens = new Map<any, IParameterInjectionToken[]>();
+    private factoryParameterTokens = new Map<any, IParameterInjectionToken[]>();
+    private lazyParameterTokens = new Map<any, IParameterInjectionToken[]>();
+    // Fast reverse lookups.  Need to improve
+    private typeToTokens = new Map<any, IInjectionToken[]>();
+    private tokensToTypes = new Map<string, any[]>();
+    private strategyConsumers = new Map<string, any[]>();
 
     public getInjectTokens(type: any): IParameterInjectionToken[] {
         return [...(this.injectParameterTokens.get(type) || [])];
