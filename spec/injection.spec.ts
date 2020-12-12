@@ -14,7 +14,7 @@ import {
     LazyInstance,
     Strategy,
 } from '../main';
-import { DI_ROOT_INJECTOR_KEY } from '../main/constants/constants';
+import { DI_ROOT_INJECTOR_KEY, NULL_VALUE, UNDEFINED_VALUE } from '../main/constants/constants';
 import { InstanceCache } from '../main/core/cache';
 import { isInjectorLike } from '../main/core/guards';
 import { InjectionTokensCache } from '../main/core/tokens';
@@ -572,6 +572,32 @@ describe('Injector', () => {
             expect(carFactory).toBeDefined();
             expect(car).toBeDefined();
             expect(car.engine).toBeDefined();
+        });
+
+        it('should resolve a undefined if explicitly passed', () => {
+            const instance = getInstance();
+
+            instance.register(Car).register(Engine);
+
+            const carFactory = instance.getFactory(Car);
+            const car = carFactory.create(UNDEFINED_VALUE);
+
+            expect(carFactory).toBeDefined();
+            expect(car).toBeDefined();
+            expect(car.engine).toBeUndefined();
+        });
+
+        it('should resolve a null value if explicitly passed', () => {
+            const instance = getInstance();
+
+            instance.register(Car).register(Engine);
+
+            const carFactory = instance.getFactory(Car);
+            const car = carFactory.create(NULL_VALUE);
+
+            expect(carFactory).toBeDefined();
+            expect(car).toBeDefined();
+            expect(car.engine).toBeNull();
         });
 
         it('should return a new instance of a car on each create request', () => {

@@ -3,7 +3,13 @@ import { Factory } from '../annotations/factory';
 import { Inject } from '../annotations/inject';
 import { Lazy } from '../annotations/lazy';
 import { Strategy } from '../annotations/strategy';
-import { DI_ROOT_INJECTOR_KEY, INJECTOR_TYPE_ID, InjectorIdentifier } from '../constants/constants';
+import {
+    DI_ROOT_INJECTOR_KEY,
+    INJECTOR_TYPE_ID,
+    InjectorIdentifier,
+    NULL_VALUE,
+    UNDEFINED_VALUE,
+} from '../constants/constants';
 import { defaultInjectionConfiguration } from '../constants/defaults';
 import {
     ICache,
@@ -422,9 +428,14 @@ export class Injector implements IInjector {
         } = this.getConstructorsParamTokens(injector, type);
 
         return constructorParamTypes.map((paramType, index) => {
-            // Have they provided a value, if they have use it, if its undefined construct using the type
+            // Have they provided a value, if they have use it, if its undefined (Not explicit NULL_VALUE or UNDEFINED_VALUE) construct using the type
             const value = overrideParams[index];
             if (value != null) {
+                if (value === UNDEFINED_VALUE) {
+                    return undefined;
+                } else if (value === NULL_VALUE) {
+                    return null;
+                }
                 return value;
             }
 
