@@ -1,3 +1,4 @@
+import { StringOrSymbol } from '../contracts/contracts';
 import { getRootInjector } from '../core/util.functions';
 
 /**
@@ -6,7 +7,7 @@ import { getRootInjector } from '../core/util.functions';
  * @Injectable()
  * class Foo(@Inject('my-token') foo: Foo) {}
  */
-export function Inject(token: string) {
+export function Inject(token: StringOrSymbol) {
     // the original decorator
     function inject(target: any, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
@@ -14,7 +15,7 @@ export function Inject(token: string) {
             owner: target,
             property,
             index,
-            tokenType: 'singleton',
+            injectionType: 'singleton',
         });
     }
 

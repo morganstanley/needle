@@ -1,10 +1,13 @@
-import { InjectorIdentifier } from 'main/constants/constants';
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
+export type InjectorIdentifier = string;
+
+export type StringOrSymbol = string | symbol;
+
 export type InstanceFactory = () => InstanceType<any>;
 
-export type TokenType = 'singleton' | 'multiple' | 'factory' | 'lazy';
+export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy';
 
 export type Newable = new (...args: any[]) => any;
 
@@ -26,16 +29,16 @@ export type OptionalConstructorParameters<T extends new (...args: any) => any> =
  * Injection token interface
  */
 export interface IInjectionToken {
-    token: string;
+    token: StringOrSymbol;
     owner: any;
-    tokenType: TokenType;
+    injectionType: InjectionType;
 }
 
 /**
  * Injection token parameter metadata.
  */
 export interface IParameterInjectionToken extends IInjectionToken {
-    property: string | symbol;
+    property: StringOrSymbol;
     index: number;
 }
 
@@ -133,17 +136,17 @@ export interface ITokenCache {
      * Gets a list of types registered against this token
      * @param token
      */
-    getTypesForToken(token: string): any[];
+    getTypesForToken(token: StringOrSymbol): any[];
     /**
      * Gets a list of types which are consumers of the given strategy key
      * @param token
      */
-    getStrategyConsumers(token: string): any[];
+    getStrategyConsumers(token: StringOrSymbol): any[];
     /**
      * Gets the type associated to this token.  Note, if there are many it will return the last one registered
      * @param token
      */
-    getTypeForToken(token: string): any | undefined;
+    getTypeForToken(token: StringOrSymbol): any | undefined;
 
     /**
      * Register either constructor parameter token or Type injection token
@@ -204,12 +207,12 @@ export interface IInjector {
     /**
      * Registers a parameter for token injection.  This maps to the @Inject annotation
      */
-    registerParamForTokenInjection(token: string, ownerType: any, index: number): this;
+    registerParamForTokenInjection(token: StringOrSymbol, ownerType: any, index: number): this;
 
     /**
      * Registers a parameter for strategy injection.  This maps to the @Strategy annotation
      */
-    registerParamForStrategyInjection(strategy: string, ownerType: any, index: number): this;
+    registerParamForStrategyInjection(strategy: StringOrSymbol, ownerType: any, index: number): this;
     /**
      * Determine if this is the root injector
      */
@@ -247,7 +250,7 @@ export interface IInjector {
      * Gets an instance of a given type
      */
     get<T extends Newable>(
-        typeOrToken: T | string,
+        typeOrToken: T | StringOrSymbol,
         ancestry?: any[],
         options?: IConstructionOptions<T>,
     ): InstanceType<T>;
@@ -260,7 +263,7 @@ export interface IInjector {
     /**
      * Returns an Array of strategy types for the given strategy token
      */
-    getStrategies<T = unknown>(strategy: string): Array<T>;
+    getStrategies<T = unknown>(strategy: StringOrSymbol): Array<T>;
 
     /**
      * Returns an array of all the types registered in the container with associated constructor dependencies
@@ -293,12 +296,12 @@ export interface IInjectionConfiguration {
     /**
      * A list of tokens that this injectable can be resolved by using the @Inject("token") annotation
      */
-    tokens?: Array<string> | undefined;
+    tokens?: Array<StringOrSymbol> | undefined;
 
     /**
      * The strategy property works in conjunction with the @Strategy("key") annotation and signals that an array of items can be injected under this key
      */
-    strategy?: string;
+    strategy?: StringOrSymbol;
 }
 
 /**

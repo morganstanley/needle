@@ -611,16 +611,6 @@ level2.isDestroyed() //True;
 
 # Global configuration
 
-## Construct Undecorated Types
-
-When constructing a tree of dependencies you may encounter types in that tree that have no registrations associated to them. In this case you can set the configuration to `constructUndecoratedTypes`.  By default this value is set to `false` changing it to true will avoid an error that would normally be thrown. 
-
-```typescript
-import { getRootInjector } from '@morgan-stanley/needle';
-
-getRootInjector().configuration.constructUndecoratedTypes = true;
-```
-
 ## Max tree depth
 
 When constructing a tree of dependencies the hierarchy can get very deep, this is especially so if a circular reference is encountered.  Determining if this is the case can be difficult which is where `maxTreeDepth` can help.  Setting this value (`defaults to 500`) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. 

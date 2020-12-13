@@ -296,7 +296,7 @@ describe('Injector', () => {
     });
 
     describe('Tokens', () => {
-        it('should resolve an instance of the type by token', () => {
+        it('should resolve an instance of the type by token (string)', () => {
             const instance = getInstance();
 
             instance.register(Child, {
@@ -308,7 +308,21 @@ describe('Injector', () => {
             expect(child).toBeDefined();
         });
 
-        it('should resolve the correct instance based on the token defined in the @Inject annotation', () => {
+        it('should resolve an instance of the type by token (symbol)', () => {
+            const instance = getInstance();
+
+            const symbol = Symbol.for('child');
+
+            instance.register(Child, {
+                tokens: [symbol],
+            });
+
+            const child = instance.get<typeof Child>(symbol);
+
+            expect(child).toBeDefined();
+        });
+
+        it('should resolve the correct instance based on the token defined in the @Inject annotation (string)', () => {
             const instance = getInstance();
 
             instance
@@ -323,16 +337,35 @@ describe('Injector', () => {
             expect(geographyTeacher.student instanceof GeographyStudent).toBeTruthy();
         });
 
+        it('should resolve the correct instance based on the token defined in the @Inject annotation (symbol)', () => {
+            const instance = getInstance();
+
+            const symbol = Symbol.for('geography-student');
+
+            instance
+                .register(GeographyTeacher)
+                .register(GeographyStudent, { tokens: [symbol] })
+                .registerParamForTokenInjection(symbol, GeographyTeacher, 0);
+
+            const geographyTeacher = instance.get(GeographyTeacher);
+
+            expect(geographyTeacher).toBeDefined();
+            expect(geographyTeacher.student).toBeDefined();
+            expect(geographyTeacher.student instanceof GeographyStudent).toBeTruthy();
+        });
+
         it('should resolve an instance of the type using multiple tokens', () => {
             const instance = getInstance();
 
+            const symbol = Symbol.for('daughter');
+
             instance.register(Child, {
-                tokens: ['child', 'son', 'daughter'],
+                tokens: ['child', 'son', symbol],
             });
 
             const child = instance.get<typeof Child>('child');
             const son = instance.get<typeof Child>('son');
-            const daughter = instance.get<typeof Child>('daughter');
+            const daughter = instance.get<typeof Child>(symbol);
 
             expect(child).toBeDefined();
             expect(son).toBeDefined();
@@ -437,7 +470,7 @@ describe('Injector', () => {
     });
 
     describe('Strategies', () => {
-        it('should register the injectable type as a strategy', () => {
+        it('should register the injectable type as a strategy (String token)', () => {
             const instance = getInstance();
 
             instance.register(Strategy1, {
@@ -445,6 +478,20 @@ describe('Injector', () => {
             });
 
             const tokens = instance.tokenCache.getStrategyConsumers('my-test-strategy');
+
+            expect(tokens).toBeDefined();
+            expect(tokens.length).toBe(1);
+        });
+
+        it('should register the injectable type as a strategy (Symbol token)', () => {
+            const instance = getInstance();
+            const strategySymbol = Symbol.for('my-test-strategy');
+
+            instance.register(Strategy1, {
+                strategy: strategySymbol,
+            });
+
+            const tokens = instance.tokenCache.getStrategyConsumers(strategySymbol);
 
             expect(tokens).toBeDefined();
             expect(tokens.length).toBe(1);
@@ -527,7 +574,7 @@ describe('Injector', () => {
             expect(owner.workStrategies[1] instanceof Strategy2).toBeTruthy();
         });
 
-        it('should return multiple strategies when multiple have been registered', () => {
+        it('should return multiple strategies when multiple have been registered (String token)', () => {
             const instance = getInstance();
 
             instance
@@ -539,6 +586,26 @@ describe('Injector', () => {
                 });
 
             const strategies = instance.getStrategies('my-test-strategy');
+
+            expect(strategies).toBeDefined();
+            expect(strategies.length).toBe(2);
+            expect(strategies[0] instanceof Strategy1).toBeTruthy();
+            expect(strategies[1] instanceof Strategy2).toBeTruthy();
+        });
+
+        it('should return multiple strategies when multiple have been registered (Symbol token)', () => {
+            const instance = getInstance();
+            const strategySymbol = Symbol.for('my-test-strategy');
+
+            instance
+                .register(Strategy1, {
+                    strategy: strategySymbol,
+                })
+                .register(Strategy2, {
+                    strategy: strategySymbol,
+                });
+
+            const strategies = instance.getStrategies(strategySymbol);
 
             expect(strategies).toBeDefined();
             expect(strategies.length).toBe(2);
@@ -745,7 +812,7 @@ describe('Injector', () => {
 
             expect(exception).toBeDefined();
             expect(exception.message).toBe(
-                `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type and configuration has constructUndecoratedTypes set to false`,
+                `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type`,
             );
         });
 
@@ -795,7 +862,7 @@ describe('Injector', () => {
 
             expect(exception).toBeDefined();
             expect(exception.message).toBe(
-                `Cannot construct Type 'Parent' with ancestry 'GrandParent -> Parent' the type is either not decorated with @Injectable or injector.register was not called for the type and configuration has constructUndecoratedTypes set to false`,
+                `Cannot construct Type 'Parent' with ancestry 'GrandParent -> Parent' the type is either not decorated with @Injectable or injector.register was not called for the type`,
             );
         });
 
@@ -1030,7 +1097,7 @@ describe('Injector', () => {
     }
 
     describe('Scoped injection', () => {
-        const testCount = 30;
+        const testCount = 10;
 
         type ITestRun = { depth: number; registrationLevel: number; resolutionLevel: number };
 
@@ -1232,7 +1299,7 @@ describe('Injector', () => {
 
                 describe('with register.strategies override in a scope', () => {
                     generateTestExecutionData().forEach(test => {
-                        it(`should resolve a different set of strategies ignoring those already resolved in the parent scopes - ${getTestInfoAsText(
+                        it(`should resolve a different set of strategies ignoring those already resolved in the parent scopes (string token)- ${getTestInfoAsText(
                             test,
                         )}`, () => {
                             const instance = getInstance(true, test.depth);
@@ -1260,11 +1327,10 @@ describe('Injector', () => {
 
                 describe('with register.tokens override in a scope', () => {
                     generateTestExecutionData().forEach(test => {
-                        it(`should resolve the instance from local scope using a token ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
+                        it(`should resolve the instance from local scope using a String token ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
                             test,
                         )}`, () => {
                             const instance = getInstance(true, test.depth);
-
                             const injector = instance.getScope(`level-${test.registrationLevel}`)!;
                             const scoped = instance.getScope(`level-${test.resolutionLevel}`)!;
 
@@ -1277,7 +1343,33 @@ describe('Injector', () => {
                             });
 
                             const ancestorChild = injector.get('child-instance');
-                            const scopeChild = scoped.getStrategies('child-instance');
+                            const scopeChild = scoped.get('child-instance');
+
+                            expect(ancestorChild).toBeDefined();
+                            expect(scopeChild).toBeDefined();
+                            expect(ancestorChild).not.toBe(scopeChild);
+                        });
+                    });
+
+                    generateTestExecutionData().forEach(test => {
+                        it(`should resolve the instance from local scope using a Symbol token ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
+                            test,
+                        )}`, () => {
+                            const instance = getInstance(true, test.depth);
+                            const injector = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scoped = instance.getScope(`level-${test.resolutionLevel}`)!;
+                            const childSymbol = Symbol.for('child-instance');
+
+                            injector.register(Child, {
+                                tokens: ['child-instance'],
+                            });
+
+                            scoped.register(Child, {
+                                tokens: [childSymbol],
+                            });
+
+                            const ancestorChild = injector.get('child-instance');
+                            const scopeChild = scoped.get(childSymbol);
 
                             expect(ancestorChild).toBeDefined();
                             expect(scopeChild).toBeDefined();

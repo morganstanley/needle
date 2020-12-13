@@ -18,7 +18,7 @@ export function Lazy(lazyTarget: Newable) {
             lazyTarget,
             property,
             index,
-            tokenType: 'lazy',
+            injectionType: 'lazy',
         });
     }
 
