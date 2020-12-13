@@ -352,6 +352,21 @@ const carWithSuperPowerfulEngine = factory.create(new SuperPowerfulEngine());
 
 ```
 
+If you would **not** like the injector to auto resolve the value for engine and you wanted to actually return `null` or `undefined` you can use well known injector values to achieve this.  
+
+```typescript
+
+@Injectable()
+import { NULL_VALUE, UNDEFINED_VALUE} from '@morgan-stanley/needle';
+
+const factory:  AutoFactory<typeof Car> = getRootInjector().getFactory(Car);
+const carWithEmptyEngine = factory.create(UNDEFINED_VALUE, 4);
+const carWithNoEngine = factory.create(NULL_VALUE);
+
+carWithEmptyEngine.engine === undefined //True
+carWithNoEngine.engine === null //True
+```
+
 # Lazy injection
 
 In certain situations, constructing the entire dependency tree can either be expensive or alternatively might introduce side effects you want to avoid.  In those cases `Lazy` injectables can be useful. Lazy injectables provide a placeholder injection type of `LazyInstance<T>` which will only construct the target injectable when its value property is read. 
