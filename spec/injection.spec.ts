@@ -375,6 +375,53 @@ describe('Injector', () => {
             expect(daughter).toBe(son);
         });
 
+        it('should throw an error if we try and register two types sharing the same String token and allowDuplicateTokens=false.', () => {
+            const instance = getInstance();
+
+            instance.configuration.allowDuplicateTokens = false;
+            let message = '';
+
+            instance.register(Child, {
+                tokens: ['child'],
+            });
+
+            try {
+                instance.register(Parent, {
+                    tokens: ['child'],
+                });
+            } catch (ex) {
+                message = ex.message;
+            }
+
+            expect(message).toBe(
+                "Cannot register Type [Parent] with token 'child'. Duplicate token found for the following type [Child]",
+            );
+        });
+
+        it('should throw an error if we try and register two types sharing the same Symbol token and allowDuplicateTokens=false.', () => {
+            const instance = getInstance();
+
+            const symbol = Symbol.for('child');
+            instance.configuration.allowDuplicateTokens = false;
+            let message = '';
+
+            instance.register(Child, {
+                tokens: [symbol],
+            });
+
+            try {
+                instance.register(Parent, {
+                    tokens: [symbol],
+                });
+            } catch (ex) {
+                message = ex.message;
+            }
+
+            expect(message).toBe(
+                "Cannot register Type [Parent] with token 'Symbol(child)'. Duplicate token found for the following type [Child]",
+            );
+        });
+
         it('should resolve an instance of the type using the last registered type against the token when configuration allowDuplicateTokens=true.', () => {
             const instance = getInstance();
 
@@ -410,26 +457,6 @@ describe('Injector', () => {
             expect(exception).toBeDefined();
             expect(exception.message).toBe(
                 `Cannot resolve Type with token 'unknownChild' as no types have been registered against that token value`,
-            );
-        });
-
-        it('should throw an exception if the token has already been registered to another type', () => {
-            const instance = getInstance();
-            let exception: any;
-            try {
-                instance.register(GrandParent, {
-                    tokens: ['duplicateToken'],
-                });
-                instance.register(Parent, {
-                    tokens: ['duplicateToken'],
-                });
-            } catch (ex) {
-                exception = ex;
-            }
-
-            expect(exception).toBeDefined();
-            expect(exception.message).toBe(
-                `Cannot register Type 'Parent' with token duplicateToken. Duplicate token found for the following type 'GrandParent'`,
             );
         });
     });

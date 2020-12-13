@@ -551,7 +551,7 @@ export class Injector implements IInjector {
         return { injectionParamTokens, strategyParamTokens, factoryParamTokens, lazyParamTokens };
     }
 
-    private registerStrategy(type: any, strategy: StringOrSymbol): void {
+    private registerStrategy(type: any, strategy: StringOrSymbol | undefined): void {
         if (isStringOrSymbol(strategy)) {
             const token: IInjectionToken = { token: strategy, owner: type, injectionType: 'multiple' };
             this.tokenCache.register(token);
@@ -566,11 +566,11 @@ export class Injector implements IInjector {
                     const tokenTypes = this.tokenCache.getTypesForToken(t.token);
                     if (tokenTypes.length > 0) {
                         throw new Error(
-                            `Cannot register Type '${
+                            `Cannot register Type [${
                                 (type as any).name
-                            }' with token ${t.token.toString()}. Duplicate token found for the following type '${tokenTypes
+                            }] with token '${t.token.toString()}'. Duplicate token found for the following type [${tokenTypes
                                 .map(tt => tt.name)
-                                .join(' -> ')}'`,
+                                .join(' -> ')}]`,
                         );
                     }
                 }
