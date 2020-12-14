@@ -4,6 +4,7 @@ import {
     IInjector,
     ILazyParameterInjectionToken,
     IParameterInjectionToken,
+    StringOrSymbol,
 } from '../contracts/contracts';
 
 /**
@@ -37,6 +38,14 @@ export function isLazyParameterToken(
     item: IInjectionToken | ILazyParameterInjectionToken,
 ): item is ILazyParameterInjectionToken {
     return isConstructorParameterToken(item) && item.lazyTarget != null;
+}
+
+/**
+ * Determines if the value is a string or symbol
+ * @param item The value being tested
+ */
+export function isStringOrSymbol(item: any): item is StringOrSymbol {
+    return typeof item === 'string' || typeof item === 'symbol';
 }
 
 /**

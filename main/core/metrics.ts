@@ -1,4 +1,4 @@
-import { IMetricRecord, IMetricsProvider } from 'main/contracts/contracts';
+import { IMetricRecord, IMetricsProvider } from '../contracts/contracts';
 import { getConstructorTypes } from './metadata.functions';
 
 export class Metrics implements IMetricsProvider {
