@@ -408,6 +408,8 @@ carWithEmptyEngine.engine === undefined //True
 carWithNoEngine.engine === null //True
 ```
 
+`IMPORTANT`: You can only pass undefined to constructor params which either support injection or default value.  Type safety must be adhered to so `SuperPowerfulEngine` in this case must extend `Engine` type to be valid to the compiler.
+
 # Lazy injection
 
 In certain situations, constructing the entire dependency tree can either be expensive or alternatively might introduce side effects you want to avoid.  In those cases `Lazy` injectables can be useful. Lazy injectables provide a placeholder injection type of `LazyInstance<T>` which will only construct the target injectable when its value property is read. 
@@ -451,7 +453,27 @@ class CarManufacturer {
 }
 ```
 
-`IMPORTANT`: You can only pass undefined to constructor params which either support injection or default value.  Type safety must be adhered to so `SuperPowerfulEngine` in this case must extend `Engine` type to be valid to the compiler.
+# Optional injection
+
+In some environments it will not always be the case that an injectable type has been registered with the injector.  For these scenarios you can leverage the `@Optional` annotation which will allow the injector to resolve `undefined` if no matching registration can be found. 
+
+## Registering an Optional Injectable
+
+All constructor types can be used with optional injection.  There is no special registration required. 
+
+## Resolve an optional injectable
+
+We can use the `@Optional` annotation to signal to the injector that we would like it to resolve `undefined` if no registrations can be found. Below is an example of a constructor for a Car type which supports optional storage.  
+
+```typescript
+@Injectable()
+class Car {
+    constructor(@Optional() private storage?: Storage) {
+        console.log(storage) //Undefined
+    }
+}
+```
+
 
 # Register instance
 

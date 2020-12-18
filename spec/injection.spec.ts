@@ -135,8 +135,10 @@ class CarManufacturer {
 
     constructor(@Factory(Car) private carFactory: AutoFactory<typeof Car>) {}
 
-    public makeCar(): void {
-        this.cars.push(this.carFactory.create());
+    public makeCar(): Car {
+        const car = this.carFactory.create();
+        this.cars.push(car);
+        return car;
     }
 }
 
@@ -807,6 +809,102 @@ describe('Injector', () => {
         });
     });
 
+    describe('Optional', () => {
+        it('should resolve the type instance for parameter decorated with @Optional and has been registered', () => {
+            const instance = getInstance();
+
+            instance
+                .register(GrandParent)
+                .register(Parent)
+                .register(Child)
+                .registerParamForOptionalInjection(Parent, 0);
+
+            const grandParent = instance.get(GrandParent);
+
+            expect(grandParent).toBeDefined();
+            expect(grandParent.son).toBeDefined();
+            expect(grandParent.son.daughter).toBeDefined();
+        });
+
+        it('should resolve undefined when getOptional invoked on injector and no registrations', () => {
+            const instance = getInstance();
+
+            const child = instance.getOptional(Child);
+
+            expect(child).toBeUndefined();
+        });
+
+        it('should resolve instance of type when getOptional invoked on injector has registrations', () => {
+            const instance = getInstance();
+
+            instance.register(Child);
+
+            const child = instance.getOptional(Child);
+
+            expect(child).toBeDefined();
+        });
+
+        it('should throw exception if we try and resolve optional type but its children are not registered', () => {
+            const instance = getInstance();
+            let message = '';
+            instance.register(GrandParent);
+
+            try {
+                instance.getOptional(GrandParent);
+            } catch (ex) {
+                message = ex.message;
+            }
+
+            expect(message).toBe(
+                `Cannot construct Type 'Parent' with ancestry 'GrandParent -> Parent' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
+            );
+        });
+
+        it('should resolve undefined instance for parameter decorated with @Optional and has NOT been registered', () => {
+            const instance = getInstance();
+
+            instance
+                .register(GrandParent)
+                .register(Parent)
+                .registerParamForOptionalInjection(Parent, 0);
+
+            const grandParent = instance.get(GrandParent);
+
+            expect(grandParent).toBeDefined();
+            expect(grandParent.son).toBeDefined();
+            expect(grandParent.son.daughter).toBeUndefined();
+        });
+
+        it('should still inject a Factory<T> when param is marked @Factory & @optional', () => {
+            const instance = getInstance();
+
+            instance
+                .register(Car)
+                .register(Engine)
+                .register(CarManufacturer)
+                .registerParamForFactoryInjection(Car, CarManufacturer, 0);
+
+            const carManufacturer = instance.get(CarManufacturer);
+            const car = carManufacturer.makeCar();
+
+            expect(car).toBeDefined();
+        });
+
+        it('should still inject a Lazy<T> when param is marked @Lazy & @optional', () => {
+            const instance = getInstance();
+
+            instance
+                .register(Engine)
+                .register(Train)
+                .registerParamForLazyInjection(Engine, Train, 0)
+                .registerParamForOptionalInjection(Train, 0);
+
+            const train = instance.get(Train);
+
+            expect(train.engine instanceof LazyInstance).toBeTruthy();
+        });
+    });
+
     describe('Resolution', () => {
         it('should resolve an instance of injector if injector.get invoked with type of Injector', () => {
             const instance = getInstance();
@@ -839,7 +937,7 @@ describe('Injector', () => {
 
             expect(exception).toBeDefined();
             expect(exception.message).toBe(
-                `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type`,
+                `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
             );
         });
 
@@ -889,7 +987,7 @@ describe('Injector', () => {
 
             expect(exception).toBeDefined();
             expect(exception.message).toBe(
-                `Cannot construct Type 'Parent' with ancestry 'GrandParent -> Parent' the type is either not decorated with @Injectable or injector.register was not called for the type`,
+                `Cannot construct Type 'Parent' with ancestry 'GrandParent -> Parent' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
             );
         });
 
