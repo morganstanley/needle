@@ -12,6 +12,7 @@ import {
     Injector,
     Lazy,
     LazyInstance,
+    Optional,
     Strategy,
 } from '../main';
 import { DI_ROOT_INJECTOR_KEY, NULL_VALUE, UNDEFINED_VALUE } from '../main/constants/constants';
@@ -107,7 +108,7 @@ class Engine {}
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class Car extends Vehicle {
-    constructor(public engine: Engine) {
+    constructor(@Optional() public engine: Engine) {
         super('Car');
     }
 }

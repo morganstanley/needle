@@ -474,6 +474,11 @@ class Car {
 }
 ```
 
+You can also resolve an optional injectable using the `getOptional` method on the injector api.  
+
+```typescript
+const car = injector.getOptional(Car) //Undefined
+```
 
 # Register instance
 
