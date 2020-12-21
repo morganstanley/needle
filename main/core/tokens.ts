@@ -16,6 +16,7 @@ export class InjectionTokensCache implements ITokenCache {
     private strategyParameterTokens = new Map<any, IParameterInjectionToken[]>();
     private factoryParameterTokens = new Map<any, IParameterInjectionToken[]>();
     private lazyParameterTokens = new Map<any, IParameterInjectionToken[]>();
+    private optionalParameterTokens = new Map<any, IParameterInjectionToken[]>();
     // Fast reverse lookups.  Need to improve
     private typeToTokens = new Map<any, IInjectionToken[]>();
     private tokensToTypes = new Map<StringOrSymbol, any[]>();
@@ -36,6 +37,11 @@ export class InjectionTokensCache implements ITokenCache {
     public getLazyTokens(type: any): IParameterInjectionToken[] {
         return [...(this.lazyParameterTokens.get(type) || [])];
     }
+
+    public getOptionalTokens(type: any): IParameterInjectionToken[] {
+        return [...(this.optionalParameterTokens.get(type) || [])];
+    }
+
     public getTokensForType(type: any): IInjectionToken[] {
         return [...(this.typeToTokens.get(type) || [])];
     }
@@ -77,6 +83,7 @@ export class InjectionTokensCache implements ITokenCache {
         this.strategyConsumers.clear();
         this.factoryParameterTokens.clear();
         this.lazyParameterTokens.clear();
+        this.optionalParameterTokens.clear();
     }
 
     /**
@@ -108,6 +115,8 @@ export class InjectionTokensCache implements ITokenCache {
             this.factoryParameterTokens.set(metadata.owner, [...this.getFactoryTokens(metadata.owner), metadata]);
         } else if (metadata.injectionType === 'lazy') {
             this.lazyParameterTokens.set(metadata.owner, [...this.getLazyTokens(metadata.owner), metadata]);
+        } else if (metadata.injectionType === 'optional') {
+            this.optionalParameterTokens.set(metadata.owner, [...this.getOptionalTokens(metadata.owner), metadata]);
         }
     }
 }

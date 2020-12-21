@@ -3,6 +3,7 @@ export * from './annotations/injectable';
 export * from './annotations/strategy';
 export * from './annotations/factory';
 export * from './annotations/lazy';
+export * from './annotations/optional';
 export * from './core/factory';
 export * from './core/lazy';
 export * from './core/metadata.functions';

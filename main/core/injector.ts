@@ -2,6 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { Factory } from '../annotations/factory';
 import { Inject } from '../annotations/inject';
 import { Lazy } from '../annotations/lazy';
+import { Optional } from '../annotations/optional';
 import { Strategy } from '../annotations/strategy';
 import { DI_ROOT_INJECTOR_KEY, INJECTOR_TYPE_ID, NULL_VALUE, UNDEFINED_VALUE } from '../constants/constants';
 import { defaultInjectionConfiguration } from '../constants/defaults';
@@ -28,6 +29,14 @@ import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
 import { Metrics } from './metrics';
 import { InjectionTokensCache } from './tokens';
+
+/**
+ * This interface extends the constructor options to allow internal behavior to profiled when constructing injectables
+ */
+export interface IConstructionOptionsInternal<T extends Newable, TParams = Partial<ConstructorParameters<T>>>
+    extends IConstructionOptions<T, TParams> {
+    mode?: 'standard' | 'allow-unregistered';
+}
 
 /**
  * Injector type used for registering types for injection
@@ -170,6 +179,14 @@ export class Injector implements IInjector {
     }
 
     /**
+     * Registers a parameter for Optional injection. This maps to the @Optional annotation
+     */
+    public registerParamForOptionalInjection(ownerType: any, index: number): this {
+        Optional()(ownerType, undefined, index);
+        return this;
+    }
+
+    /**
      * Registers a parameter for token injection.  This maps to the @Inject annotation
      */
     public registerParamForTokenInjection(token: string, ownerType: any, index: number): this {
@@ -257,13 +274,53 @@ export class Injector implements IInjector {
     }
 
     /**
-     * Gets an instance of a given type
+     * Resolves a type and optional returns undefined if no registrations present
      */
+    public getOptional<T extends Newable>(type: T): InstanceType<T> | undefined {
+        return this.getImpl(type, [], { mode: 'allow-unregistered' });
+    }
+
     public get<T extends Newable>(
         typeOrToken: T | StringOrSymbol,
         ancestry: any[] = [],
         options?: IConstructionOptions<T>,
     ): InstanceType<T> {
+        return this.getImpl(typeOrToken, ancestry, options) as InstanceType<T>;
+    }
+
+    /**
+     * Returns an Array of the all types registered in the container
+     */
+    public getRegisteredTypes(): Array<any> {
+        return Array.from(this._registrations.keys());
+    }
+
+    /**
+     * Returns an array of all the types registered in the container with associated constructor dependencies
+     */
+    public getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }> {
+        return this.getRegisteredTypes().map(t => ({ provide: t, deps: getConstructorTypes(t) }));
+    }
+
+    /**
+     * Resets the injector back to its default state
+     */
+    public reset() {
+        this.cache.clear();
+        this.tokenCache.clear();
+        this.children.clear();
+        this._registrations.clear();
+        this.metrics.clear();
+    }
+
+    /**
+     * Gets an instance of a given type
+     */
+    private getImpl<T extends Newable>(
+        typeOrToken: T | StringOrSymbol,
+        ancestry: any[] = [],
+        options?: IConstructionOptionsInternal<T>,
+    ): InstanceType<T> | undefined {
         if (this._isDestroyed) {
             throw new Error(
                 `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${this.id}]`,
@@ -295,25 +352,30 @@ export class Injector implements IInjector {
         instance = isInjectorType ? this : injector.cache.resolve(constructorType);
 
         if (instance == null) {
-            // If we have no registration for this type then throw error.
+            const allowOptional = options != null && options.mode === 'allow-unregistered';
+            const hasRegistration = injector._registrations.get(constructorType) != null;
+
+            // If we have no registration for this type then throw error. (note @optional will allow this to pass)
             // (Possible if no injector was found and current one has no registration locally)
-            if (injector._registrations.get(constructorType) == null) {
+            if (!hasRegistration && !allowOptional) {
                 this.throwRegistrationNotFound(constructorType, ancestry);
             }
 
-            // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
-            if (this.configuration.externalResolutionStrategy != null) {
-                // If an external resolution strategy has been set, delegate all responsibility to it
-                instance = this.configuration.externalResolutionStrategy.resolver(
-                    constructorType,
-                    injector, // Pass injector so resolver understands the current context (scope, cache etc)
-                    (options || {}).params || [],
-                );
-                if (this.configuration.externalResolutionStrategy.cacheSyncing === true) {
-                    injector.cache.update(constructorType, instance);
+            if (!allowOptional || hasRegistration) {
+                // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
+                if (this.configuration.externalResolutionStrategy != null) {
+                    // If an external resolution strategy has been set, delegate all responsibility to it
+                    instance = this.configuration.externalResolutionStrategy.resolver(
+                        constructorType,
+                        injector, // Pass injector so resolver understands the current context (scope, cache etc)
+                        (options || {}).params || [],
+                    );
+                    if (this.configuration.externalResolutionStrategy.cacheSyncing === true) {
+                        injector.cache.update(constructorType, instance);
+                    }
+                } else {
+                    instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
                 }
-            } else {
-                instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
             }
         }
 
@@ -328,45 +390,20 @@ export class Injector implements IInjector {
         return instance;
     }
 
-    /**
-     * Returns an Array of the all types registered in the container
-     */
-    public getRegisteredTypes(): Array<any> {
-        return Array.from(this._registrations.keys());
-    }
-
-    /**
-     * Returns an array of all the types registered in the container with associated constructor dependencies
-     */
-    public getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }> {
-        return this.getRegisteredTypes().map(t => ({ provide: t, deps: getConstructorTypes(t) }));
-    }
-
-    /**
-     * Resets the injector back to its default state
-     */
-    public reset() {
-        this.cache.clear();
-        this.tokenCache.clear();
-        this.children.clear();
-        this._registrations.clear();
-        this.metrics.clear();
-    }
-
     private throwRegistrationNotFound(constructorType: any, ancestry: any[]) {
         throw new Error(
             `Cannot construct Type '${constructorType.name}' with ancestry '${ancestry
                 .map(ancestor => ancestor.name)
                 .join(
                     ' -> ',
-                )}' the type is either not decorated with @Injectable or injector.register was not called for the type`,
+                )}' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
         );
     }
 
     private createInstance<T extends new (...args: any[]) => any>(
         type: T,
         updateCache: boolean = false,
-        options?: IConstructionOptions<T>,
+        options?: IConstructionOptionsInternal<T>,
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
     ): InstanceType<T> {
@@ -402,6 +439,79 @@ export class Injector implements IInjector {
     }
 
     /**
+     * Handles resolving the value for a given override value
+     * @param value
+     */
+    private getOverrideValue(value: any): any {
+        if (value === UNDEFINED_VALUE) {
+            return undefined;
+        } else if (value === NULL_VALUE) {
+            return null;
+        }
+        return value;
+    }
+
+    /**
+     * Resolves the strategies instances for the given strategy token
+     * @param injector - Scope to resolve from
+     * @param paramTokens List of strategy tokens
+     * @param ancestors
+     * @param index constructor index position
+     */
+    private tryGetStrategyParam(
+        injector: IInjector,
+        paramTokens: IParameterInjectionToken[],
+        ancestors: any[],
+        index: number,
+    ): any[] | undefined {
+        const strategyToken = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (strategyToken != null) {
+            const strategies = this.getStrategiesTypes(injector, strategyToken).map(([t]) =>
+                injector.get(t, ancestors),
+            );
+            return strategies;
+        }
+        return undefined;
+    }
+
+    /**
+     * Attempts to resolve factory for given param
+     * @param injector - Scope to resolve from
+     * @param paramTokens List of factory tokens
+     * @param index constructor index position
+     */
+    private tryGetFactoryParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
+        const factoryToken = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (factoryToken != null && isFactoryParameterToken(factoryToken)) {
+            return new AutoFactory(
+                factoryToken.factoryTarget,
+                injector,
+                // Need to ensure the this pointer is not lost (consider autobind (spread throwing errors :/))
+                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e),
+            );
+        }
+        return undefined;
+    }
+
+    /**
+     * Resolves an lazy injectable for a given param
+     * @param injector - Scope to resolve from
+     * @param paramTokens - The lazy injection tokens
+     * @param index constructor index position
+     */
+    private tryGetLazyParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
+        const lazyToken = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (lazyToken != null && isLazyParameterToken(lazyToken)) {
+            return new LazyInstance(() => injector.get(lazyToken.lazyTarget));
+        }
+        return undefined;
+    }
+
+    private isOptionalParam(paramTokens: IParameterInjectionToken[], index: number): boolean {
+        return paramTokens.findIndex(ip => ip.index === index) !== -1;
+    }
+
+    /**
      * This method will resolve all the constructor args values taking into account the tokens
      */
     private getConstructorParamValues<T extends new (...args: any[]) => any>(
@@ -421,6 +531,7 @@ export class Injector implements IInjector {
             strategyParamTokens,
             factoryParamTokens,
             lazyParamTokens,
+            optionalParamTokens,
         } = this.getConstructorsParamTokens(injector, type);
 
         return constructorParamTypes.map((paramType, index) => {
@@ -429,54 +540,52 @@ export class Injector implements IInjector {
             // Have they provided a value, if they have use it, if its undefined (Not explicit NULL_VALUE or UNDEFINED_VALUE) construct using the type
             const value = overrideParams[index];
             if (value != null) {
-                if (value === UNDEFINED_VALUE) {
-                    return undefined;
-                } else if (value === NULL_VALUE) {
-                    return null;
-                }
-                return value;
+                return this.getOverrideValue(value);
             }
 
-            const token = injectionParamTokens[injectionParamTokens.findIndex(ip => ip.index === index)];
-            if (token != null) {
-                paramType = paramInjector._tokenCache.getTypeForToken(token.token);
-            }
             // Handle @Strategy
-            const strategyToken = strategyParamTokens[strategyParamTokens.findIndex(ip => ip.index === index)];
-            if (strategyToken != null) {
-                const strategies = this.getStrategiesTypes(injector, strategyToken).map(([t]) =>
-                    injector.get(t, ancestors),
-                );
+            const strategies = this.tryGetStrategyParam(injector, strategyParamTokens, ancestors, index);
+            if (strategies != null) {
                 return strategies;
             }
 
             // Handle @Factory
-            const factoryToken = factoryParamTokens[factoryParamTokens.findIndex(ip => ip.index === index)];
-            if (factoryToken != null && isFactoryParameterToken(factoryToken)) {
-                return new AutoFactory(
-                    factoryToken.factoryTarget,
-                    paramInjector,
-                    // Need to ensure the this pointer is not lost (consider autobind (spread throwing errors :/))
-                    (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e),
-                );
+            const factory = this.tryGetFactoryParam(paramInjector, factoryParamTokens, index);
+            if (factory) {
+                return factory;
             }
 
             // Handle @Lazy
-            const lazyToken = lazyParamTokens[lazyParamTokens.findIndex(ip => ip.index === index)];
-            if (lazyToken != null && isLazyParameterToken(lazyToken)) {
-                return new LazyInstance(() => paramInjector.get(lazyToken.lazyTarget));
+            const lazy = this.tryGetLazyParam(paramInjector, lazyParamTokens, index);
+            if (lazy) {
+                return lazy;
             }
 
-            if (paramType == null) {
-                throw new Error(
-                    `Cannot construct class '${(type as any).name}' with ancestry '${ancestors
-                        .map(ancestor => ancestor.name)
-                        .join(' -> ')}' as constructor param is ${paramType}`,
-                );
-            }
+            // If we have an @Inject annotation we will attempt to substitute the param type using the annotations token
+            paramType = this.tryGetParamTypeFromToken(injectionParamTokens, index, paramType, paramInjector);
+            const optional = this.isOptionalParam(optionalParamTokens, index);
 
-            return paramInjector.cache.resolve(paramType) || paramInjector.get(paramType, ancestors, undefined);
+            const instance =
+                paramInjector.cache.resolve(paramType) ||
+                paramInjector.getImpl(paramType, ancestors, {
+                    mode: optional ? 'allow-unregistered' : 'standard',
+                });
+
+            return instance;
         });
+    }
+
+    private tryGetParamTypeFromToken(
+        paramTokens: IParameterInjectionToken[],
+        index: number,
+        defaultType: any,
+        paramInjector: Injector,
+    ) {
+        const token = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (token != null) {
+            defaultType = paramInjector._tokenCache.getTypeForToken(token.token);
+        }
+        return defaultType;
     }
 
     /**
@@ -525,6 +634,7 @@ export class Injector implements IInjector {
         let strategyParamTokens = new Array<IParameterInjectionToken>();
         let factoryParamTokens = new Array<IParameterInjectionToken>();
         let lazyParamTokens = new Array<IParameterInjectionToken>();
+        let optionalParamTokens = new Array<IParameterInjectionToken>();
         let emptyTokens = true;
 
         /*
@@ -534,6 +644,8 @@ export class Injector implements IInjector {
         while (injector != null && emptyTokens) {
             injectionParamTokens =
                 injectionParamTokens.length === 0 ? injector.tokenCache.getInjectTokens(type) : injectionParamTokens;
+            optionalParamTokens =
+                optionalParamTokens.length === 0 ? injector.tokenCache.getOptionalTokens(type) : optionalParamTokens;
             strategyParamTokens =
                 strategyParamTokens.length === 0 ? injector.tokenCache.getStrategyTokens(type) : strategyParamTokens;
             factoryParamTokens =
@@ -548,7 +660,7 @@ export class Injector implements IInjector {
                 lazyParamTokens.length === 0;
         }
 
-        return { injectionParamTokens, strategyParamTokens, factoryParamTokens, lazyParamTokens };
+        return { injectionParamTokens, strategyParamTokens, factoryParamTokens, lazyParamTokens, optionalParamTokens };
     }
 
     private registerStrategy(type: any, strategy: StringOrSymbol | undefined): void {

@@ -7,7 +7,7 @@ export type StringOrSymbol = string | symbol;
 
 export type InstanceFactory = () => InstanceType<any>;
 
-export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy';
+export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy' | 'optional';
 
 export type Newable = new (...args: any[]) => any;
 
@@ -15,6 +15,9 @@ export type Newable = new (...args: any[]) => any;
  * Constructor options allows passing of partial params to injector for construction
  */
 export interface IConstructionOptions<T extends Newable, TParams = Partial<ConstructorParameters<T>>> {
+    /**
+     * Param values to use when constructing the type
+     */
     params?: TParams;
 }
 
@@ -129,6 +132,11 @@ export interface ITokenCache {
      */
     getLazyTokens(type: any): IParameterInjectionToken[];
     /**
+     * Get a list of associated lazy parameter tokens for the given constructor of a type
+     * @param type
+     */
+    getOptionalTokens(type: any): IParameterInjectionToken[];
+    /**
      * Gets a list of tokens this type has be registered against
      */
     getTokensForType(type: any): IInjectionToken[];
@@ -195,22 +203,27 @@ export interface IInjector {
     registerInstance<T extends Newable>(type: any, instance: InstanceType<T>, config?: IInjectionConfiguration): this;
 
     /**
-     * Registers a parameter for factory injection.  This maps to the @Factory annotation
+     * Registers a parameter for factory injection. This maps to the @Factory annotation
      */
     registerParamForFactoryInjection(type: any, ownerType: any, index: number): this;
 
     /**
-     * Registers a parameter for lazy injection.  This maps to the @Lazy annotation
+     * Registers a parameter for lazy injection. This maps to the @Lazy annotation
      */
     registerParamForLazyInjection(type: any, ownerType: any, index: number): this;
 
     /**
-     * Registers a parameter for token injection.  This maps to the @Inject annotation
+     * Registers a parameter for optional injection. This maps to the @Optional annotation
+     */
+    registerParamForOptionalInjection(ownerType: any, index: number): this;
+
+    /**
+     * Registers a parameter for token injection. This maps to the @Inject annotation
      */
     registerParamForTokenInjection(token: StringOrSymbol, ownerType: any, index: number): this;
 
     /**
-     * Registers a parameter for strategy injection.  This maps to the @Strategy annotation
+     * Registers a parameter for strategy injection. This maps to the @Strategy annotation
      */
     registerParamForStrategyInjection(strategy: StringOrSymbol, ownerType: any, index: number): this;
     /**
@@ -254,6 +267,11 @@ export interface IInjector {
         ancestry?: any[],
         options?: IConstructionOptions<T>,
     ): InstanceType<T>;
+
+    /***
+     * Gets an instance of a type or returns undefined if no registration
+     */
+    getOptional<T extends Newable>(type: T): InstanceType<T> | undefined;
 
     /**
      * Returns an Array of the all types registered in the container
