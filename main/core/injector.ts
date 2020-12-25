@@ -4,7 +4,13 @@ import { Inject } from '../annotations/inject';
 import { Lazy } from '../annotations/lazy';
 import { Optional } from '../annotations/optional';
 import { Strategy } from '../annotations/strategy';
-import { DI_ROOT_INJECTOR_KEY, INJECTOR_TYPE_ID, NULL_VALUE, UNDEFINED_VALUE } from '../constants/constants';
+import {
+    DI_ROOT_INJECTOR_KEY,
+    INJECTOR_TYPE_ID,
+    NULL_VALUE,
+    TYPE_NOT_FOUND,
+    UNDEFINED_VALUE,
+} from '../constants/constants';
 import { defaultInjectionConfiguration } from '../constants/defaults';
 import {
     ICache,
@@ -35,7 +41,7 @@ import { InjectionTokensCache } from './tokens';
  */
 export interface IConstructionOptionsInternal<T extends Newable, TParams = Partial<ConstructorParameters<T>>>
     extends IConstructionOptions<T, TParams> {
-    mode?: 'standard' | 'allow-unregistered';
+    mode?: 'standard' | 'optional';
 }
 
 /**
@@ -277,7 +283,7 @@ export class Injector implements IInjector {
      * Resolves a type and optional returns undefined if no registrations present
      */
     public getOptional<T extends Newable>(type: T): InstanceType<T> | undefined {
-        return this.getImpl(type, [], { mode: 'allow-unregistered' });
+        return this.getImpl(type, [], { mode: 'optional' });
     }
 
     public get<T extends Newable>(
@@ -347,30 +353,41 @@ export class Injector implements IInjector {
 
         ancestry.push(constructorType);
 
+        // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
         // If injector type then return `this` if not try and resolve from cache
         const isInjectorType = constructorType === Injector || constructorType.typeId === INJECTOR_TYPE_ID;
         instance = isInjectorType ? this : injector.cache.resolve(constructorType);
 
+        // Not in cache so lets try and construct it
         if (instance == null) {
-            const allowOptional = options != null && options.mode === 'allow-unregistered';
-            const hasRegistration = injector._registrations.get(constructorType) != null;
+            const allowOptional = options != null && options.mode === 'optional';
+            const registration = injector._registrations.get(constructorType);
+            const externalResolutionStrategy = this.configuration.externalResolutionStrategy;
 
             // If we have no registration for this type then throw error. (note @optional will allow this to pass)
             // (Possible if no injector was found and current one has no registration locally)
-            if (!hasRegistration && !allowOptional) {
+            if (!registration && !allowOptional && !externalResolutionStrategy) {
                 this.throwRegistrationNotFound(constructorType, ancestry);
             }
 
-            if (!allowOptional || hasRegistration) {
-                // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
-                if (this.configuration.externalResolutionStrategy != null) {
-                    // If an external resolution strategy has been set, delegate all responsibility to it
-                    instance = this.configuration.externalResolutionStrategy.resolver(
+            if (!allowOptional || registration || externalResolutionStrategy) {
+                if (externalResolutionStrategy) {
+                    // If an external resolution strategy has been set, attempt to resolve the instance from there first.
+                    instance = externalResolutionStrategy.resolver(
                         constructorType,
                         injector, // Pass injector so resolver understands the current context (scope, cache etc)
                         (options || {}).params || [],
                     );
-                    if (this.configuration.externalResolutionStrategy.cacheSyncing === true) {
+
+                    // Fallback to trying to resolve from our injector
+                    if (instance === TYPE_NOT_FOUND) {
+                        if (registration || allowOptional) {
+                            instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
+                        } else {
+                            this.throwRegistrationNotFound(constructorType, ancestry);
+                        }
+                    } else if (externalResolutionStrategy.cacheSyncing === true) {
+                        // Sync cache if required
                         injector.cache.update(constructorType, instance);
                     }
                 } else {
@@ -568,7 +585,7 @@ export class Injector implements IInjector {
             const instance =
                 paramInjector.cache.resolve(paramType) ||
                 paramInjector.getImpl(paramType, ancestors, {
-                    mode: optional ? 'allow-unregistered' : 'standard',
+                    mode: optional ? 'optional' : 'standard',
                 });
 
             return instance;

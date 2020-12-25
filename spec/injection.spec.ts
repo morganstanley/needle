@@ -15,7 +15,7 @@ import {
     Optional,
     Strategy,
 } from '../main';
-import { DI_ROOT_INJECTOR_KEY, NULL_VALUE, UNDEFINED_VALUE } from '../main/constants/constants';
+import { DI_ROOT_INJECTOR_KEY, NULL_VALUE, TYPE_NOT_FOUND, UNDEFINED_VALUE } from '../main/constants/constants';
 import { InstanceCache } from '../main/core/cache';
 import { isInjectorLike } from '../main/core/guards';
 import { InjectionTokensCache } from '../main/core/tokens';
@@ -1016,7 +1016,6 @@ describe('Injector', () => {
                 const instance = getInstance();
                 let invoked = false;
                 let injector: IInjector;
-                instance.register(Child);
 
                 instance.configuration.externalResolutionStrategy = {
                     resolver: (_type, currentInjector: IInjector, ..._args: any[]) => {
@@ -1032,6 +1031,50 @@ describe('Injector', () => {
                 expect(injector!).toBeDefined();
                 expect(injector! === instance).toBeTruthy();
                 expect(invoked).toBeTruthy();
+                expect(instance.cache.instanceCount).toBe(0); // Cache should not be updated by default.
+            });
+
+            it('should fallback to our injector if the external resolver returns NOT_FOUND and it was correctly registered with the Injector', () => {
+                const instance = getInstance();
+                let invoked = false;
+                instance.register(Child);
+
+                instance.configuration.externalResolutionStrategy = {
+                    resolver: (_type, _currentInjector: IInjector, ..._args: any[]) => {
+                        invoked = true;
+                        return TYPE_NOT_FOUND;
+                    },
+                };
+
+                const child = instance.get(Child);
+
+                expect(child).toBeDefined();
+                expect(invoked).toBeTruthy();
+                expect(instance.cache.instanceCount).toBe(1); // Cache should not be updated by default.
+            });
+
+            it('should throw exception if fallback to our injector and no registration found', () => {
+                const instance = getInstance();
+                let invoked = false;
+                let message = '';
+
+                instance.configuration.externalResolutionStrategy = {
+                    resolver: (_type, _currentInjector: IInjector, ..._args: any[]) => {
+                        invoked = true;
+                        return TYPE_NOT_FOUND;
+                    },
+                };
+
+                try {
+                    instance.get(Child);
+                } catch (ex) {
+                    message = ex.message;
+                }
+
+                expect(invoked).toBeTruthy();
+                expect(message).toBe(
+                    `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
+                );
                 expect(instance.cache.instanceCount).toBe(0); // Cache should not be updated by default.
             });
 
