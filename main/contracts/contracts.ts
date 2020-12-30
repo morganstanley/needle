@@ -452,7 +452,7 @@ export interface IConstructionInterceptor<TTarget extends Newable = any> {
     /**
      * The type targeted for interception
      */
-    target: TTarget;
+    readonly target: TTarget;
 
     /**
      * Invoked before the type is instanced but after its constructor arguments have been resolved

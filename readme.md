@@ -687,7 +687,7 @@ To create an interceptor is simple, we simply implement an interface called `ICo
 
 ```typescript
 export class EngineInterceptor implements IConstructionInterceptor<typeof Engine> {
-    public target: typeof Engine = Engine;
+    public readonly target: typeof Engine = Engine;
     public beforeCreate(context: IInjectionContext<typeof Engine>): void {
         console.log(context);
     }
