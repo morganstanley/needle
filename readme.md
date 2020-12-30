@@ -677,6 +677,45 @@ level1.isDestroyed() //True;
 level2.isDestroyed() //True;
 ```
 
+# Interception
+
+Needle provides support for interception of construction using `interceptors`.  Interceptors provide the ability for developers to hook into a types construction both immediately before and after a type is instanced.  This technique is useful when you need to configure an instance before that instance is injected into downstream consumers. For example, if we had a Car type which injected an Engine, we may wish to call the engine.tune() function before giving to the car instance.  Interceptors are considered global inside of needle.  Therefore if you create multiple scopes each instance being constructed will pass through the same set of interceptors.  
+
+## Creating an interceptor
+
+To create an interceptor is simple, we simply implement an interface called `IConstructionInterceptor` in our class.  The interface is generic and there we can provide the Type that we wish to target as a generic param.  Below is an example interceptor which implements the interface for the Engine type.  
+
+```typescript
+export class EngineInterceptor implements IConstructionInterceptor<typeof Engine> {
+    public target: typeof Engine = Engine;
+    public beforeCreate(context: IInjectionContext<typeof Engine>): void {
+        console.log(context);
+    }
+    public afterCreate(instance: Engine, context: IInjectionContext<typeof Engine>): void {
+        console.log(instance);
+        console.log(context);
+    }
+}
+```
+
+The interface requires we implement 3 members
+
+* `target` -  The type we wish to intercept
+* `beforeCreate` - A method that will be invoked directly before the type instanced and after all its constructor args are resolved. 
+* `afterCreate` -  A method that will be invoked immediately after the target type was instanced.  
+
+Each method call will receive an `injection context` object which provides information about the context of injection. This includes information such as the injector instance resolving the type, the configuration used during construction and an array of constructor args.
+
+## Registering an interceptor
+
+The easiest way to register an interceptor is to simply decorate your class with `@Interceptor()`.  This will automatically register your interceptor with the root injector.  However if you want to use the injector API you can also do as follows.  
+
+```typescript
+injector.registerInterceptor(new EngineInterceptor());
+```
+
+Note, regardless of the scope of the injector this will always register the interceptor in the root injector. You should use either the decorator or the injector API but not both for a given interceptor.  
+
 # Global configuration
 
 ## Max tree depth

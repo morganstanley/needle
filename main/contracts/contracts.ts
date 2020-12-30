@@ -188,6 +188,12 @@ export interface IInjector {
     readonly children: Map<InjectorIdentifier, IInjector>;
 
     /**
+     * Registers an interceptor with the root injector
+     * @param interceptor
+     */
+    registerInterceptor(interceptor: IConstructionInterceptor): this;
+
+    /**
      * Registers a type and associated injection config with the the injector
      */
     register(type: any, config?: IInjectionConfiguration): this;
@@ -277,6 +283,12 @@ export interface IInjector {
      * Returns an Array of the all types registered in the container
      */
     getRegisteredTypes(): Array<any>;
+
+    /**
+     * Resolves an registration for a given type if present
+     * @param type
+     */
+    getRegistrationForType(type: any): IInjectionConfiguration | undefined;
 
     /**
      * Returns an Array of strategy types for the given strategy token
@@ -408,4 +420,50 @@ export interface IMetricsProvider extends IMetrics {
      * @param costMs Cost in milliseconds to construct the type
      */
     update(type: any, owner: any, costMs: number): void;
+}
+
+/**
+ * Provides injection context used at the point of creation
+ */
+export interface IInjectionContext<TType extends Newable = any> {
+    /**
+     * The type being constructed
+     */
+    readonly type: TType;
+    /**
+     * The injector this instance is associated too
+     */
+    readonly injector: IInjector;
+    /**
+     * The configuration used during construction
+     */
+    readonly configuration: IInjectionConfiguration;
+    /**
+     * Constructor arguments used for construction
+     */
+    readonly constructorArgs: ConstructorParameters<TType>;
+}
+
+/**
+ * Base constructor injector interceptor interface
+ * @description Constructor Interceptors only fire when cache missed
+ */
+export interface IConstructionInterceptor<TTarget extends Newable = any> {
+    /**
+     * The type targeted for interception
+     */
+    target: TTarget;
+
+    /**
+     * Invoked before the type is instanced but after its constructor arguments have been resolved
+     * @param context Context at point of construction
+     */
+    beforeCreate(context: IInjectionContext<TTarget>): void;
+
+    /**
+     * Invoked directly after the type has been instanced
+     * @param instance The instance of the given type
+     * @param context Context at point of construction
+     */
+    afterCreate(instance: InstanceType<TTarget>, context: IInjectionContext<TTarget>): void;
 }
