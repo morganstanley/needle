@@ -701,14 +701,18 @@ getRootInjector().configuration.trackMetrics = false;
 
 ## External Resolution Strategy
 
-In certain environments you will want to delegate the type construction to an external DI container. The `externalResolutionStrategy` is what makes this possible. When you define this strategy all construction will be delegated and the local type construction provided by this library will be ignored. 
+In certain environments you will want to delegate type construction to an external DI container or custom constructor function. The `externalResolutionStrategy` is what makes this possible. When you define this strategy all construction will be delegated to that strategy and the internal type resolution strategy will be ignored.  If however you want to adopt a fallback strategy, first checking your external resolver then falling back to this injector you can achieve this by returning a special value `TYPE_NOT_FOUND` which will signal to needle that it should now attempt to resolve the type as the external one couldn't.  This mechanism allows developers to completely control type construction so that they can inject their own pipelines into the process.    
 
 ```typescript
-import { getRootInjector, IInjector } from '@morgan-stanley/needle';
+import { getRootInjector, IInjector, TYPE_NOT_FOUND } from '@morgan-stanley/needle';
 
 const dummyStrategy: IExternalResolutionConfiguration = {
     resolver: (type: any, currentInjector: IInjector, locals?: any[]) => {
-        return new type();
+        if(type === MyCustomType){
+            return new MyCustomType();
+        } else {
+            return TYPE_NOT_FOUND;
+        }
     }
     cacheSyncing: true;
 }
