@@ -1729,6 +1729,15 @@ describe('Injector', () => {
     });
 
     describe('Interception', () => {
+        it('should create the interceptor upon registration when registered with @Interceptor', () => {
+            const instance = getInstance();
+
+            Interceptor()(EngineInterceptor);
+
+            expect(instance.cache.instanceCount).toBe(1);
+            expect(instance.cache.resolve(EngineInterceptor)).toBeDefined();
+        });
+
         it('should call the correct interception methods if interceptor registered', () => {
             const instance = getInstance();
             const interceptor = new EngineInterceptor();

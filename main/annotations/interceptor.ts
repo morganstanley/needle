@@ -1,3 +1,4 @@
+import { NewableConstructorInterceptor } from '../contracts/contracts';
 import { getRootInjector } from '../core/util.functions';
 
 /**
@@ -7,7 +8,9 @@ import { getRootInjector } from '../core/util.functions';
  * class ConstructorInterceptor{}
  */
 export function Interceptor() {
-    return (interceptor: any) => {
-        getRootInjector().registerInterceptor(interceptor);
+    return (interceptor: NewableConstructorInterceptor) => {
+        getRootInjector()
+            .register(interceptor)
+            .registerInterceptor(getRootInjector().get(interceptor));
     };
 }

@@ -11,6 +11,8 @@ export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy' | 'opt
 
 export type Newable = new (...args: any[]) => any;
 
+export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
+
 /**
  * Constructor options allows passing of partial params to injector for construction
  */

@@ -708,13 +708,18 @@ Each method call will receive an `injection context` object which provides infor
 
 ## Registering an interceptor
 
-The easiest way to register an interceptor is to simply decorate your class with `@Interceptor()`.  This will automatically register your interceptor with the root injector.  However if you want to use the injector API you can also do as follows.  
+There are two ways to register an interceptor in the system, you can either decorate your class with `@Interceptor()`.  The decorator approach essentially makes you interceptor an injectable so that you can inject other dependencies into it.  The other approach is to use the injector API and provide an instance manually. **Note**: Decorated interceptors will be constructed at point of registration.
 
 ```typescript
+//Decorated
+@Interceptor()
+class EngineInterceptor{}
+
+//Explicit
 injector.registerInterceptor(new EngineInterceptor());
 ```
 
-Note, regardless of the scope of the injector this will always register the interceptor in the root injector. You should use either the decorator or the injector API but not both for a given interceptor.  
+**Note**, regardless of the scope of the injector all interceptors will be registered with the the root injector. 
 
 # Global configuration
 
