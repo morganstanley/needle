@@ -15,6 +15,7 @@ import { defaultInjectionConfiguration } from '../constants/defaults';
 import {
     ICache,
     IConfiguration,
+    IConstructionInterceptor,
     IConstructionOptions,
     IInjectionConfiguration,
     IInjectionToken,
@@ -77,6 +78,7 @@ export class Injector implements IInjector {
     public static readonly typeId = INJECTOR_TYPE_ID;
     private _isDestroyed = false;
     private _registrations: Map<any, IInjectionConfiguration>;
+    private _interceptors: Map<any, IConstructionInterceptor[]>;
     public readonly _children = new Map<InjectorIdentifier, Injector>();
     public readonly id = uuid();
     public readonly cache: ICache;
@@ -101,6 +103,27 @@ export class Injector implements IInjector {
         this.parent = _parent;
         this.metrics = this._metrics;
         this._registrations = new Map<any, IInjectionConfiguration>();
+        this._interceptors = new Map<any, IConstructionInterceptor[]>();
+    }
+
+    /**
+     * Registers an interceptor with the root injector
+     * @param interceptor
+     */
+    public registerInterceptor(interceptor: IConstructionInterceptor<any>): this {
+        const target = interceptor.target;
+        let interceptors = this.getInterceptorsForType(interceptor.target);
+        if (interceptors == null) {
+            interceptors = [];
+            this.getRootInjector()._interceptors.set(target, interceptors);
+        }
+
+        // Avoid duplicate instances being registered
+        if (interceptors.indexOf(interceptor) === -1) {
+            interceptors.push(interceptor);
+        }
+
+        return this;
     }
 
     /**
@@ -317,6 +340,26 @@ export class Injector implements IInjector {
         this.children.clear();
         this._registrations.clear();
         this.metrics.clear();
+        this._interceptors.clear();
+    }
+
+    public getInterceptorsForType(type: any): IConstructionInterceptor[] | undefined {
+        return this.getRootInjector()._interceptors.get(type);
+    }
+
+    public getRegistrationForType(type: any): IInjectionConfiguration | undefined {
+        return this._registrations.get(type);
+    }
+
+    /**
+     * To avoid circular import we can use this function to get the root injector
+     */
+    private getRootInjector(): Injector {
+        let currentInjector: Injector = this;
+        while (currentInjector.isRoot() === false) {
+            currentInjector = currentInjector.parent! as Injector;
+        }
+        return currentInjector;
     }
 
     /**
@@ -361,7 +404,7 @@ export class Injector implements IInjector {
         // Not in cache so lets try and construct it
         if (instance == null) {
             const allowOptional = options != null && options.mode === 'optional';
-            const registration = injector._registrations.get(constructorType);
+            const registration = injector.getRegistrationForType(constructorType);
             const externalResolutionStrategy = this.configuration.externalResolutionStrategy;
 
             // If we have no registration for this type then throw error. (note @optional will allow this to pass)
@@ -381,7 +424,7 @@ export class Injector implements IInjector {
 
                     // Fallback to trying to resolve from our injector
                     if (instance === TYPE_NOT_FOUND) {
-                        if (registration || allowOptional) {
+                        if (registration) {
                             instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
                         } else {
                             this.throwRegistrationNotFound(constructorType, ancestry);
@@ -446,7 +489,24 @@ export class Injector implements IInjector {
             type,
         );
 
+        // Construct our interceptor contexts (If we have some registered)
+        const interceptorContexts = (this.getInterceptorsForType(type) || [])
+            .filter(interceptor => interceptor.target === type)
+            .map(interceptor => ({
+                interceptor,
+                configuration: injector.getRegistrationForType(type)!,
+                constructorArgs: constructorParamValues,
+                injector,
+                type,
+            }));
+
+        // Trigger before interceptors
+        interceptorContexts.forEach(context => context.interceptor.beforeCreate(context));
+
         instance = new type(...constructorParamValues);
+
+        // Trigger after interceptors
+        interceptorContexts.forEach(context => context.interceptor.afterCreate(instance, context));
 
         if (updateCache) {
             injector.cache.update(type, instance);
@@ -504,7 +564,7 @@ export class Injector implements IInjector {
                 factoryToken.factoryTarget,
                 injector,
                 // Need to ensure the this pointer is not lost (consider autobind (spread throwing errors :/))
-                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e),
+                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e), // :)
             );
         }
         return undefined;

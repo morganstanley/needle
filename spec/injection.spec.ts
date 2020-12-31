@@ -1,5 +1,5 @@
 /* INTERNALS */
-import { IInjector } from 'main/contracts/contracts';
+import { IConstructionInterceptor, IInjectionContext, IInjector } from 'main/contracts/contracts';
 import { Configuration } from 'main/core/configuration';
 import { Metrics } from 'main/core/metrics';
 /* INTERNALS */
@@ -10,6 +10,7 @@ import {
     Inject,
     Injectable,
     Injector,
+    Interceptor,
     Lazy,
     LazyInstance,
     Optional,
@@ -140,6 +141,21 @@ class CarManufacturer {
         const car = this.carFactory.create();
         this.cars.push(car);
         return car;
+    }
+}
+
+// tslint:disable-next-line:max-classes-per-file
+@Interceptor()
+export class EngineInterceptor implements IConstructionInterceptor<typeof Engine> {
+    public beforeInvocation = new Array<IInjectionContext<typeof Engine>>();
+    public afterInvocation = new Array<{ instance: Engine; context: IInjectionContext<typeof Engine> }>();
+
+    public target: typeof Engine = Engine;
+    public beforeCreate(context: IInjectionContext<typeof Engine>): void {
+        this.beforeInvocation.push(context);
+    }
+    public afterCreate(instance: Engine, context: IInjectionContext<typeof Engine>): void {
+        this.afterInvocation.push({ instance, context });
     }
 }
 
@@ -1265,7 +1281,7 @@ describe('Injector', () => {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
-    describe('Scoped injection', () => {
+    describe('Depth Tests', () => {
         const testCount = 10;
 
         type ITestRun = { depth: number; registrationLevel: number; resolutionLevel: number };
@@ -1443,6 +1459,110 @@ describe('Injector', () => {
                 });
             });
 
+            describe('Interception', () => {
+                describe('with interceptor registered in parent and type resolved from scope', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should intercept the construction - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+                            const parent = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scope = parent.getScope(`level-${test.resolutionLevel}`)!;
+                            const interceptor = new EngineInterceptor();
+
+                            parent.registerInterceptor(interceptor);
+                            parent.register(Engine);
+                            const registration = parent.getRegistrationForType(Engine);
+
+                            const engine = scope.get(Engine);
+
+                            expect(engine).toBeDefined();
+                            expect(interceptor.beforeInvocation.length).toBe(1);
+                            expect(interceptor.beforeInvocation[0]).toBeDefined();
+                            expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);
+                            expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+                            expect(interceptor.beforeInvocation[0].injector).toBe(parent);
+                            expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+                            expect(interceptor.afterInvocation.length).toBe(1);
+                            expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+                            expect(interceptor.afterInvocation[0].context).toBeDefined();
+                            expect(interceptor.afterInvocation[0].context.configuration).toBe(registration!);
+                            expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+                            expect(interceptor.afterInvocation[0].context.injector).toBe(parent);
+                            expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
+                        });
+                    });
+                });
+
+                describe('with interceptor registered in scope and type resolved from parent', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should intercept the construction - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+                            const parent = instance.getScope(`level-${test.registrationLevel}`)!;
+                            const scope = parent.getScope(`level-${test.resolutionLevel}`)!;
+                            const interceptor = new EngineInterceptor();
+
+                            scope.registerInterceptor(interceptor);
+                            parent.register(Engine);
+                            const registration = parent.getRegistrationForType(Engine);
+
+                            const engine = scope.get(Engine);
+
+                            expect(engine).toBeDefined();
+                            expect(interceptor.beforeInvocation.length).toBe(1);
+                            expect(interceptor.beforeInvocation[0]).toBeDefined();
+                            expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);
+                            expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+                            expect(interceptor.beforeInvocation[0].injector).toBe(parent);
+                            expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+                            expect(interceptor.afterInvocation.length).toBe(1);
+                            expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+                            expect(interceptor.afterInvocation[0].context).toBeDefined();
+                            expect(interceptor.afterInvocation[0].context.configuration).toBe(registration!);
+                            expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+                            expect(interceptor.afterInvocation[0].context.injector).toBe(parent);
+                            expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
+                        });
+                    });
+                });
+
+                describe('with interceptor registered directly in root and type resolved from parent and scope', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should intercept the construction only once - ${getTestInfoAsText(test)}`, () => {
+                            const root = getInstance(true, test.depth);
+                            const parent = root.getScope(`level-${test.registrationLevel}`)!;
+                            const scope = parent.getScope(`level-${test.resolutionLevel}`)!;
+                            const interceptor = new EngineInterceptor();
+
+                            root.registerInterceptor(interceptor);
+                            parent.register(Engine);
+                            const registration = parent.getRegistrationForType(Engine);
+
+                            const engine = scope.get(Engine);
+                            const engine2 = scope.get(Engine);
+
+                            expect(engine).toBeDefined();
+                            expect(engine2).toBeDefined();
+                            expect(engine2 === engine).toBeTruthy();
+                            expect(interceptor.beforeInvocation.length).toBe(1);
+                            expect(interceptor.beforeInvocation[0]).toBeDefined();
+                            expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);
+                            expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+                            expect(interceptor.beforeInvocation[0].injector).toBe(parent);
+                            expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+                            expect(interceptor.afterInvocation.length).toBe(1);
+                            expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+                            expect(interceptor.afterInvocation[0].context).toBeDefined();
+                            expect(interceptor.afterInvocation[0].context.configuration).toBe(registration!);
+                            expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+                            expect(interceptor.afterInvocation[0].context.injector).toBe(parent);
+                            expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
+                        });
+                    });
+                });
+            });
+
             describe('Overriding', () => {
                 describe('with register.instance() override in a scope', () => {
                     generateTestExecutionData().forEach(test => {
@@ -1604,6 +1724,156 @@ describe('Injector', () => {
                         });
                     });
                 });
+            });
+        });
+    });
+
+    describe('Interception', () => {
+        it('should create the interceptor upon registration when registered with @Interceptor', () => {
+            const instance = getInstance();
+
+            Interceptor()(EngineInterceptor);
+
+            expect(instance.cache.instanceCount).toBe(1);
+            expect(instance.cache.resolve(EngineInterceptor)).toBeDefined();
+        });
+
+        it('should call the correct interception methods if interceptor registered', () => {
+            const instance = getInstance();
+            const interceptor = new EngineInterceptor();
+
+            instance.register(Engine).registerInterceptor(interceptor);
+
+            instance.get(Engine);
+
+            expect(interceptor.beforeInvocation.length).toBe(1);
+            expect(interceptor.beforeInvocation[0]).toBeDefined();
+            expect(interceptor.beforeInvocation[0].configuration).toBe(instance.getRegistrationForType(Engine)!);
+            expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+            expect(interceptor.beforeInvocation[0].injector).toBe(instance);
+            expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+            expect(interceptor.afterInvocation.length).toBe(1);
+            expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+            expect(interceptor.afterInvocation[0].context).toBeDefined();
+            expect(interceptor.afterInvocation[0].context.configuration).toBe(instance.getRegistrationForType(Engine)!);
+            expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+            expect(interceptor.afterInvocation[0].context.injector).toBe(instance);
+            expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
+        });
+
+        it('should intercept creation if interceptor registered in root but Type resolved from scope', () => {
+            const instance = getInstance();
+            const interceptor = new EngineInterceptor();
+
+            instance.registerInterceptor(interceptor);
+            const scoped = instance.createScope('scoped').register(Engine);
+
+            scoped.get(Engine);
+            const registration = scoped.getRegistrationForType(Engine);
+
+            expect(interceptor.beforeInvocation.length).toBe(1);
+            expect(interceptor.beforeInvocation[0]).toBeDefined();
+            expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);
+            expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+            expect(interceptor.beforeInvocation[0].injector).toBe(scoped);
+            expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+            expect(interceptor.afterInvocation.length).toBe(1);
+            expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+            expect(interceptor.afterInvocation[0].context).toBeDefined();
+            expect(interceptor.afterInvocation[0].context.configuration).toBe(registration!);
+            expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+            expect(interceptor.afterInvocation[0].context.injector).toBe(scoped);
+            expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
+        });
+
+        it('should always register interceptors in root even if registered via a scope', () => {
+            const root = getInstance();
+            const interceptor = new EngineInterceptor();
+
+            root.register(Engine)
+                .createScope('scoped')
+                .registerInterceptor(interceptor);
+
+            root.get(Engine);
+            const registration = root.getRegistrationForType(Engine);
+
+            expect(interceptor.beforeInvocation.length).toBe(1);
+            expect(interceptor.beforeInvocation[0]).toBeDefined();
+            expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);
+            expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+            expect(interceptor.beforeInvocation[0].injector).toBe(root);
+            expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+            expect(interceptor.afterInvocation.length).toBe(1);
+            expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+            expect(interceptor.afterInvocation[0].context).toBeDefined();
+            expect(interceptor.afterInvocation[0].context.configuration).toBe(registration!);
+            expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+            expect(interceptor.afterInvocation[0].context.injector).toBe(root);
+            expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
+        });
+
+        it('should register an interceptor instance only one time in the system', () => {
+            const root = getInstance();
+            const interceptor = new EngineInterceptor();
+
+            root.register(Engine)
+                .registerInterceptor(interceptor)
+                .createScope('scoped')
+                .registerInterceptor(interceptor)
+                .registerInterceptor(interceptor);
+
+            root.get(Engine);
+            const registration = root.getRegistrationForType(Engine);
+
+            expect(interceptor.beforeInvocation.length).toBe(1);
+            expect(interceptor.beforeInvocation[0]).toBeDefined();
+            expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);
+            expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+            expect(interceptor.beforeInvocation[0].injector).toBe(root);
+            expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+            expect(interceptor.afterInvocation.length).toBe(1);
+            expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+            expect(interceptor.afterInvocation[0].context).toBeDefined();
+            expect(interceptor.afterInvocation[0].context.configuration).toBe(registration!);
+            expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+            expect(interceptor.afterInvocation[0].context.injector).toBe(root);
+            expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
+        });
+
+        it('should register duplicate type instances for interception', () => {
+            const root = getInstance();
+            const interceptor1 = new EngineInterceptor();
+            const interceptor2 = new EngineInterceptor();
+            const interceptor3 = new EngineInterceptor();
+
+            root.register(Engine)
+                .registerInterceptor(interceptor1)
+                .createScope('scoped')
+                .registerInterceptor(interceptor2)
+                .registerInterceptor(interceptor3);
+
+            root.get(Engine);
+            const registration = root.getRegistrationForType(Engine);
+
+            [interceptor1, interceptor2, interceptor3].forEach(interceptor => {
+                expect(interceptor.beforeInvocation.length).toBe(1);
+                expect(interceptor.beforeInvocation[0]).toBeDefined();
+                expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);
+                expect(interceptor.beforeInvocation[0].constructorArgs).toEqual([]);
+                expect(interceptor.beforeInvocation[0].injector).toBe(root);
+                expect(interceptor.beforeInvocation[0].type).toBe(Engine);
+
+                expect(interceptor.afterInvocation.length).toBe(1);
+                expect(interceptor.afterInvocation[0].instance instanceof Engine).toBeTruthy();
+                expect(interceptor.afterInvocation[0].context).toBeDefined();
+                expect(interceptor.afterInvocation[0].context.configuration).toBe(registration!);
+                expect(interceptor.afterInvocation[0].context.constructorArgs).toEqual([]);
+                expect(interceptor.afterInvocation[0].context.injector).toBe(root);
+                expect(interceptor.afterInvocation[0].context.type).toBe(Engine);
             });
         });
     });
