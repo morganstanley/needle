@@ -42,7 +42,14 @@ The library depends on TypeScript's support for decorators. Therefore you must e
 
 # Polyfills
 
-This library requires modern browsers supporting `Maps` or an appropriate polyfill. It also makes use of a `reflect-metadata` polyfill for performing runtime introspection.  You can install the reflect-metadata polyfill with 
+This library will work with modern browsers and JavaScript run-times without the need for polyfills, however if targeting older browsers like IE11 you will need to provide a polyfill for the following types. 
+
+* Map - [Read about the Map type here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
+* Symbol - [Read about the Symbol type here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
+
+**Note** Symbol support is optional and only required if you intend to use Symbols for your token registrations.  
+
+This library also makes use of the `reflect-metadata` [API](https://rbuckton.github.io/reflect-metadata/) for performing runtime introspection. Most browsers will not support this therefore you must install this yourself. 
 
 ```typescript
 npm install reflect-metadata
@@ -109,7 +116,7 @@ console.log(thing1 === thing2) //True
 
 # Tokens
 
-Tokens allow us to provide a marker to the injector whereby the type we are going to be injecting either cannot be imported or we wish to use an interface instead.  Every injectable in the system can be registered with either zero or more tokens.  A single type can register itself against multiple tokens.  
+Tokens allow us to provide a marker to the injector whereby the type we are going to be injecting either cannot be imported or we wish to use an interface instead.  Every injectable in the system can be registered with either zero or more tokens.  A single type can register itself against multiple tokens.  Tokens can be defined using a `string` or `symbol`
 
 ## Registering with tokens
 
@@ -142,9 +149,27 @@ import { Injectable } from '@morgan-stanley/needle';
 })
 export class GeographyStudent extends Student {}
 ```
+
+## Registering Symbols for tokens
+
+Using strings as tokens for most teams is perfectly acceptable, however often in large code bases it is possible to run into naming collisions.  In order to resolve this issue you can instead adopt `Symbols` instead to define your tokens.  Below is an example of two registrations where the Symbol names overlap but will not pollute each other when resolutions are made as Symbols are unique. 
+
+```typescript
+import { getRootInjector } from '@morgan-stanley/needle';
+
+const pricingSymbol1 = Symbol.for('pricing');
+const pricingSymbol2 = Symbol.for('pricing');
+
+getRootInjector().configuration.allowDuplicateTokens = false;
+
+getRootInjector()
+    .register(PricingServiceV1, { tokens: [pricingSymbol1] })
+    .register(PricingServiceV2, { tokens: [pricingSymbol2] }); //No exception thrown as Symbols are unique
+```
+
 ## Resolving by token
 
-To resolve a type by token we can make use of the `@Inject` annotation. In the constructor of a given injectable we can mark one of the parameters with `@Inject` providing a token which we wish to resolve. Note, the parameter type does not need to match the type of the injected value.  This is what allows us to use either interfaces or a super type as a replacement for the real type. 
+To resolve a type by token we can make use of the `@Inject` annotation. In the constructor of a given injectable we can mark one of the parameters with `@Inject` providing a token which we wish to resolve. Note, the parameter type does not need to match the type of the injected value.  This is what allows us to use either interfaces or a sub type as a replacement for the real type. 
 
 ```typescript
 @Injectable()
@@ -245,6 +270,8 @@ Strategies allow us to register multiple type providers against a given strategy
 
 Creating strategies can be achieved using the `@Injectable` annotation or the API. Both approaches make use of the `strategy` property on the injectable config. 
 
+## Registering strategies
+
 ```typescript
 import { Injectable } from '@morgan-stanley/needle';
 
@@ -277,6 +304,20 @@ getRootInjector()
 
 ```
 
+To avoid naming conflicts that can occur with strings, you can also use `symbols` for your strategy names.  Below is an example of this using the registration API.
+
+```typescript
+import { getRootInjector } from '@morgan-stanley/needle';
+const strategySymbol = Symbol.for('work-strategies');
+
+getRootInjector()
+    .register(Strategy1, {
+        strategy: strategySymbol,
+    })
+    .register(Strategy2, {
+        strategy: strategySymbol,
+    });
+```
 ## Resolving strategies
 
 When it comes to injecting lists of strategies we can use the `@Strategy` annotation to mark that we expect an array of strategies.  You can register consumers of strategies using this annotation or the API.  
@@ -352,6 +393,23 @@ const carWithSuperPowerfulEngine = factory.create(new SuperPowerfulEngine());
 
 ```
 
+If you would **not** like the injector to auto resolve the value for engine and you wanted to actually return `null` or `undefined` you can use well known injector values to achieve this.  
+
+```typescript
+
+@Injectable()
+import { NULL_VALUE, UNDEFINED_VALUE} from '@morgan-stanley/needle';
+
+const factory:  AutoFactory<typeof Car> = getRootInjector().getFactory(Car);
+const carWithEmptyEngine = factory.create(UNDEFINED_VALUE, 4);
+const carWithNoEngine = factory.create(NULL_VALUE);
+
+carWithEmptyEngine.engine === undefined //True
+carWithNoEngine.engine === null //True
+```
+
+`IMPORTANT`: You can only pass undefined to constructor params which either support injection or default value.  Type safety must be adhered to so `SuperPowerfulEngine` in this case must extend `Engine` type to be valid to the compiler.
+
 # Lazy injection
 
 In certain situations, constructing the entire dependency tree can either be expensive or alternatively might introduce side effects you want to avoid.  In those cases `Lazy` injectables can be useful. Lazy injectables provide a placeholder injection type of `LazyInstance<T>` which will only construct the target injectable when its value property is read. 
@@ -395,7 +453,32 @@ class CarManufacturer {
 }
 ```
 
-`IMPORTANT`: You can only pass undefined to constructor params which either support injection or default value.  Type safety must be adhered to so `SuperPowerfulEngine` in this case must extend `Engine` type to be valid to the compiler.
+# Optional injection
+
+In some environments it will not always be the case that an injectable type has been registered with the injector.  For these scenarios you can leverage the `@Optional` annotation which will allow the injector to resolve `undefined` if no matching registration can be found. 
+
+## Registering an Optional Injectable
+
+All constructor types can be used with optional injection.  There is no special registration required. 
+
+## Resolve an optional injectable
+
+We can use the `@Optional` annotation to signal to the injector that we would like it to resolve `undefined` if no registrations can be found. Below is an example of a constructor for a Car type which supports optional storage.  
+
+```typescript
+@Injectable()
+class Car {
+    constructor(@Optional() private storage?: Storage) {
+        console.log(storage) //Undefined
+    }
+}
+```
+
+You can also resolve an optional injectable using the `getOptional` method on the injector api.  
+
+```typescript
+const car = injector.getOptional(Car) //Undefined
+```
 
 # Register instance
 
@@ -414,21 +497,235 @@ const instance = get(Vehicle);
 console.log(instance === vehicle) // True
 ```
 
-# Global configuration
+# Metrics tracking
 
-## Construct Undecorated Types
+The injector tracks metrics about your injectable types during runtime.  There are a range of different values captured and these are stored in the metrics provider which is accessible via the Injector type.  The data is store as records and the below type shows the information captured.  
 
-When constructing a tree of dependencies you may encounter types in that tree that have no registrations associated to them. In this case you can set the configuration to `constructUndecoratedTypes`.  By default this value is set to `false` changing it to true will avoid an error that would normally be thrown. 
+```typescript
+export interface IMetricRecord {
+    /**
+     * The type who's metrics are being tracked
+     */
+    type: any;
+    /**
+     * First activation time
+     */
+    activated: Date;
+    /**
+     * What type constructed this type. (Defaults to self if bare resolution)
+     */
+    activationTypeOwner: any;
+    /**
+     * The number of times this type has been resolved
+     */
+    resolutionCount: number;
+    /**
+     * The last time this type resolved
+     */
+    lastResolution: Date;
+    /**
+     * The number of types this type depends on based on constructor signature.
+     */
+    dependencyCount: number;
+    /**
+     * The time it took to construct this type
+     */
+    creationTimeMs: number;
+}
+```
+
+## Reading the metric data
+
+There are a number of ways to read the metric data.  To access via the injector instance simply do the following. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
 
-getRootInjector().configuration.constructUndecoratedTypes = true;
+const metrics = getRootInjector().metrics;
 ```
+
+You can easily `dump` the data to the console using the following.  
+
+```typescript
+getRootInjector().metrics.dump();
+```
+
+You can reset the metrics by calling the `reset` method.
+
+```typescript
+getRootInjector().metrics.reset();
+```
+
+You read the metrics for a specific type by using the `getMetricsForType` method. 
+
+```typescript
+getRootInjector().metrics.getMetricsForType(MyType);
+```
+
+You an read all the metric data by reading the `data` property. 
+
+```typescript
+const records: IMetricRecord[] = getRootInjector().metrics.data;
+```
+
+# Scoped injection
+
+Hierarchical injection (aka Scoped injection) is the ability to create new child injection scopes which descend from our primary root injector.  There are many times when you may require scoped injection, normally they are associated with a given context in our app domains and provide the ability to deviate from the global registrations defined in the root injector. 
+
+Scoped injectors inherit their ancestors registrations by default, and then can override those with their own or add additional registrations as required.  
+
+Scoped injectors can also be created from other scopes, therefore allowing you to build complex hierarchies which can model your domain accurately.  
+
+## Creating a scope
+
+To create a new injection scope we can call the `createScope` method from any `Injector` instance. When we create the new scope we must provide a name for the new scope. 
+
+```typescript
+const scopedInjector = getRootInjector().createScope('my-scoped-injector');
+
+const amIScoped = scopedInjector.isScoped(); //True
+```
+
+## Scope Resolution
+
+By default scoped injectors inherit their parents registrations. Any updates to the parent scopes registrations automatically flow to the child scopes. 
+
+Therefore if a parent has defined a registration and we try and resolve that type from our scoped injector, then the type instance will be provided without error. 
+
+This is true no matter how deep the scope hierarchy is, as the resolution process walks up the tree until a valid registration is found.  Example below. 
+
+```typescript
+const rootInjector = getRootInjector();
+
+//Single registration
+rootInjector.register(Child);
+
+//Create 2 levels of scope
+const level2Injector = rootInjector
+    .createScope('level-1')
+    .createScope('level-2');
+
+//Instance of child (Serviced from root injector)
+const child = level2Injector.get(Child);
+```
+
+## Scope overrides
+
+The key reason to create a new scope is in order to provide overrides for a particular context in your applications.  During the resolution process for a given type, the injector will first look towards its local registrations and if it finds a match will use that over any parent registrations.  Therefore you can easily replace registrations from the hierarchy with your own and create instances localized to your scope and all child scopes within it.  
+
+```typescript
+const rootInjector = getRootInjector();
+
+//Single registration
+rootInjector.register(Child);
+
+//Create 2 levels of scope
+const level2Injector = rootInjector
+    .createScope('level-1')
+    .createScope('level-2');
+
+//Create our scoped registrations
+level2Injector
+    .register(Child) //override root registration
+    .registerInstance(Teacher, new Teacher('History'))
+
+const child1 = rootInjector.get(Child);
+const child2 = level2Injector.get(Child);
+const teacher = level2Injector.get(Teacher);
+
+child1 === child2 // False
+
+rootInjector.get(Teacher); //Fails as no registration in parent scopes
+```
+
+As a scoped injector is no different to the root injector, the full registration API is available. Therefore you can create registrations of any kind.  
+
+## Finding a scope
+
+If you want to resolve a scope you can do this either using the `id` or `name` of the scope.  Below is an example.  
+
+```typescript
+const rootInjector = getRootInjector();
+
+const level2Injector = rootInjector.createScope('level-1')
+
+rootInjector.getScope(level2Injector.id);
+rootInjector.getScope('level-1');
+```
+
+## Scope disposal
+
+As scoped injectors sit in a tree they can be disposed of easily by calling dispose either on the scope directly or a parent scope. 
+
+```typescript
+const rootInjector = getRootInjector();
+
+//Single registration
+rootInjector.register(Child);
+
+//Create 2 levels of scope
+const level2Injector = rootInjector
+    .createScope('level-1')
+    .createScope('level-2');
+
+const level1 = rootInjector.getScope('level-1');
+const level2 = rootInjector.getScope('level-2');
+
+level1.destroy();
+
+level1.isDestroyed() //True;
+level2.isDestroyed() //True;
+```
+
+# Interception
+
+Needle provides support for interception of construction using `interceptors`.  Interceptors provide the ability for developers to hook into a types construction both immediately before and after a type is instanced.  This technique is useful when you need to configure an instance before that instance is injected into downstream consumers. For example, if we had a Car type which injected an Engine, we may wish to call the engine.tune() function before giving to the car instance.  Interceptors are considered global inside of needle.  Therefore if you create multiple scopes each instance being constructed will pass through the same set of interceptors.  
+
+## Creating an interceptor
+
+To create an interceptor is simple, we simply implement an interface called `IConstructionInterceptor` in our class.  The interface is generic and there we can provide the Type that we wish to target as a generic param.  Below is an example interceptor which implements the interface for the Engine type.  
+
+```typescript
+export class EngineInterceptor implements IConstructionInterceptor<typeof Engine> {
+    public readonly target: typeof Engine = Engine;
+    public beforeCreate(context: IInjectionContext<typeof Engine>): void {
+        console.log(context);
+    }
+    public afterCreate(instance: Engine, context: IInjectionContext<typeof Engine>): void {
+        console.log(instance);
+        console.log(context);
+    }
+}
+```
+
+The interface requires we implement 3 members
+
+* `target` -  The type we wish to intercept
+* `beforeCreate` - A method that will be invoked directly before the type instanced and after all its constructor args are resolved. 
+* `afterCreate` -  A method that will be invoked immediately after the target type was instanced.  
+
+Each method call will receive an `injection context` object which provides information about the context of injection. This includes information such as the injector instance resolving the type, the configuration used during construction and an array of constructor args.
+
+## Registering an interceptor
+
+There are two ways to register an interceptor in the system, you can either decorate your class with `@Interceptor()`.  The decorator approach essentially makes you interceptor an injectable so that you can inject other dependencies into it.  The other approach is to use the injector API and provide an instance manually. **Note**: Decorated interceptors will be constructed at point of registration.
+
+```typescript
+//Decorated
+@Interceptor()
+class EngineInterceptor{}
+
+//Explicit
+injector.registerInterceptor(new EngineInterceptor());
+```
+
+**Note**, regardless of the scope of the injector all interceptors will be registered with the the root injector. 
+
+# Global configuration
 
 ## Max tree depth
 
-When constructing a tree of dependencies the hierarchy can get very deep, this is especially so if a circular reference is encountered.  Determining if this is the case can be difficult which is where `maxTreeDepth` can help.  Setting this value (`defaults to 100`) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. 
+When constructing a tree of dependencies the hierarchy can get very deep, this is especially so if a circular reference is encountered.  Determining if this is the case can be difficult which is where `maxTreeDepth` can help.  Setting this value (`defaults to 500`) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
@@ -436,16 +733,30 @@ import { getRootInjector } from '@morgan-stanley/needle';
 getRootInjector().configuration.maxTreeDepth = 1000;
 ```
 
-## External Resolution Strategy
+## Track metrics
 
-In certain environments you will want to delegate the type construction to an external DI container. The `externalResolutionStrategy` is what makes this possible. When you define this strategy all construction will be delegated and the local type construction provided by this library will be ignored. 
+By default the injector will track common metric information about types in the system.  This includes information such as first activation time, number of resolutions, cost of construction etc.  You can disable metrics tracking by setting the `trackMetrics` flag to false.  
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
 
+getRootInjector().configuration.trackMetrics = false;
+```
+
+## External Resolution Strategy
+
+In certain environments you will want to delegate type construction to an external DI container or custom constructor function. The `externalResolutionStrategy` is what makes this possible. When you define this strategy all construction will be delegated to that strategy and the internal type resolution strategy will be ignored.  If however you want to adopt a fallback strategy, first checking your external resolver then falling back to this injector you can achieve this by returning a special value `TYPE_NOT_FOUND` which will signal to needle that it should now attempt to resolve the type as the external one couldn't.  This mechanism allows developers to completely control type construction so that they can inject their own pipelines into the process.    
+
+```typescript
+import { getRootInjector, IInjector, TYPE_NOT_FOUND } from '@morgan-stanley/needle';
+
 const dummyStrategy: IExternalResolutionConfiguration = {
-    resolver: (type: any, locals?: any[]) => {
-        return new type();
+    resolver: (type: any, currentInjector: IInjector, locals?: any[]) => {
+        if(type === MyCustomType){
+            return new MyCustomType();
+        } else {
+            return TYPE_NOT_FOUND;
+        }
     }
     cacheSyncing: true;
 }

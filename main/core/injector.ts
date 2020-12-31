@@ -2,45 +2,129 @@ import { v4 as uuid } from 'uuid';
 import { Factory } from '../annotations/factory';
 import { Inject } from '../annotations/inject';
 import { Lazy } from '../annotations/lazy';
+import { Optional } from '../annotations/optional';
 import { Strategy } from '../annotations/strategy';
-import { DI_ROOT_INJECTOR_KEY, GLOBAL_REGISTRATION_MAP, INJECTOR_TYPE_ID } from '../constants/constants';
+import {
+    DI_ROOT_INJECTOR_KEY,
+    INJECTOR_TYPE_ID,
+    NULL_VALUE,
+    TYPE_NOT_FOUND,
+    UNDEFINED_VALUE,
+} from '../constants/constants';
 import { defaultInjectionConfiguration } from '../constants/defaults';
 import {
+    ICache,
+    IConfiguration,
+    IConstructionInterceptor,
     IConstructionOptions,
     IInjectionConfiguration,
     IInjectionToken,
     IInjector,
-    IScopeConfiguration,
+    IMetrics,
+    InjectorIdentifier,
+    IParameterInjectionToken,
+    ITokenCache,
     Newable,
+    StringOrSymbol,
 } from '../contracts/contracts';
-import { createInstance } from '../internal/construction';
 import { InstanceCache } from './cache';
 import { Configuration } from './configuration';
 import { AutoFactory } from './factory';
-import { getGlobal, globalState } from './globals';
+import { getGlobal } from './globals';
+import { isFactoryParameterToken, isLazyParameterToken, isStringOrSymbol } from './guards';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
+import { Metrics } from './metrics';
 import { InjectionTokensCache } from './tokens';
 
-const globalReference = getGlobal();
+/**
+ * This interface extends the constructor options to allow internal behavior to profiled when constructing injectables
+ */
+export interface IConstructionOptionsInternal<T extends Newable, TParams = Partial<ConstructorParameters<T>>>
+    extends IConstructionOptions<T, TParams> {
+    mode?: 'standard' | 'optional';
+}
 
 /**
  * Injector type used for registering types for injection
  */
 export class Injector implements IInjector {
+    /**
+     * Creates a new map from our internal child maps
+     */
+    public get children(): Map<InjectorIdentifier, IInjector> {
+        return new Map(this._children);
+    }
+
+    /**
+     * @internal Create a new injector instance for this type (Could change in the future for different versions)
+     * @description When multiple versions of the injector are in play, this function ensures we can
+     * construct it without doing the work externally. (no introspection required).
+     */
+    public static create(
+        parent?: IInjector,
+        name?: string,
+        configuration: Configuration = new Configuration(),
+    ): Injector {
+        return new Injector(
+            new InstanceCache(),
+            configuration,
+            new InjectionTokensCache(),
+            new Metrics(),
+            parent,
+            name,
+        );
+    }
     public static readonly typeId = INJECTOR_TYPE_ID;
     private _isDestroyed = false;
-    private registrations = globalState(GLOBAL_REGISTRATION_MAP, () => new Map<any, IInjectionConfiguration>());
-    private children = new Map<string, Injector>();
+    private _registrations: Map<any, IInjectionConfiguration>;
+    private _interceptors: Map<any, IConstructionInterceptor[]>;
+    public readonly _children = new Map<InjectorIdentifier, Injector>();
     public readonly id = uuid();
+    public readonly cache: ICache;
+    public readonly tokenCache: ITokenCache;
+    public readonly configuration: IConfiguration;
+    public readonly parent?: IInjector;
+    public readonly metrics: IMetrics;
+    public readonly name?: string;
 
     constructor(
-        public readonly cache: InstanceCache,
-        public readonly configuration: Configuration,
-        public readonly tokenCache: InjectionTokensCache,
-        public readonly parent?: Injector,
-        public readonly scope?: IScopeConfiguration,
-    ) {}
+        readonly _cache: InstanceCache,
+        readonly _configuration: Configuration,
+        readonly _tokenCache: InjectionTokensCache,
+        readonly _metrics: Metrics,
+        readonly _parent?: IInjector,
+        readonly _name?: string,
+    ) {
+        this.name = _name;
+        this.cache = _cache;
+        this.configuration = _configuration;
+        this.tokenCache = _tokenCache;
+        this.parent = _parent;
+        this.metrics = this._metrics;
+        this._registrations = new Map<any, IInjectionConfiguration>();
+        this._interceptors = new Map<any, IConstructionInterceptor[]>();
+    }
+
+    /**
+     * Registers an interceptor with the root injector
+     * @param interceptor
+     */
+    public registerInterceptor(interceptor: IConstructionInterceptor<any>): this {
+        const target = interceptor.target;
+        let interceptors = this.getInterceptorsForType(interceptor.target);
+        if (interceptors == null) {
+            interceptors = [];
+            this.getRootInjector()._interceptors.set(target, interceptors);
+        }
+
+        // Avoid duplicate instances being registered
+        if (interceptors.indexOf(interceptor) === -1) {
+            interceptors.push(interceptor);
+        }
+
+        return this;
+    }
 
     /**
      * Registers a type and associated injection config with the the injector
@@ -48,21 +132,61 @@ export class Injector implements IInjector {
     public register(type: any, config: IInjectionConfiguration = defaultInjectionConfiguration): this {
         this.registerTokens(type, config.tokens);
         this.registerStrategy(type, config.strategy);
-        this.registrations.set(type, config);
+        this._registrations.set(type, config);
         return this;
+    }
+
+    /**
+     * Gets a scoped injector using the Id or the Name
+     * @param nameOrId The name or the ID of the scope;
+     * @description Will perform a breadth-first search
+     */
+    public getScope(nameOrId: string): IInjector | undefined {
+        const childScopes = Array.from(this._children).map(([_id, scope]) => scope);
+
+        const findIndex = childScopes.findIndex(c => c.id === nameOrId || c.name === nameOrId);
+        if (findIndex !== -1) {
+            return childScopes[findIndex];
+        }
+
+        for (let index = 0; index < childScopes.length; index++) {
+            const child = childScopes[index];
+            const scope = child.getScope(nameOrId);
+            if (scope != null) {
+                return scope;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Creates a child scope.
+     * @param name optional name for the scope (Duplicates allowed in the tree but not in child collection)
+     */
+    public createScope(name: string): IInjector {
+        const child = this.create(this, name);
+        this._children.set(child.id, child);
+        return child;
     }
 
     /**
      * Get the list of registration
      */
     public getRegistrations(): Map<any, IInjectionConfiguration> {
-        return new Map(this.registrations);
+        return new Map(this._registrations);
     }
 
     /**
      * Registers and instance of a type in the container
      */
-    public registerInstance<T extends Newable>(type: any, instance: InstanceType<T>): this {
+    public registerInstance<T extends Newable>(
+        type: any,
+        instance: InstanceType<T>,
+        config: IInjectionConfiguration = defaultInjectionConfiguration,
+    ): this {
+        // Auto add the registration details
+        this.register(type, config);
+        // Preload the cache
         this.cache.update(type, instance);
         return this;
     }
@@ -80,6 +204,14 @@ export class Injector implements IInjector {
      */
     public registerParamForLazyInjection(type: any, ownerType: any, index: number): this {
         Lazy(type)(ownerType, undefined, index);
+        return this;
+    }
+
+    /**
+     * Registers a parameter for Optional injection. This maps to the @Optional annotation
+     */
+    public registerParamForOptionalInjection(ownerType: any, index: number): this {
+        Optional()(ownerType, undefined, index);
         return this;
     }
 
@@ -123,15 +255,19 @@ export class Injector implements IInjector {
     /**
      * Destroys this instance of the injector as well as all child injectors in the parents hierarchy
      */
-    public destroy(): void {
-        // Clear down our registrations and all our children
-        this.registrations.clear();
-        this.children.forEach(c => c.destroy());
+    public destroy(parent?: IInjector): void {
+        // Destroy our branch of the tree.
+        this.children.forEach(c => c.destroy(this));
 
-        // Remove ourselves from the parent scope if not root.
-        if (this.parent != null) {
+        // We only remove ourselves from the parent if this instance had its destroy invoked not via its parent injector
+        if (parent == null && this.parent != null) {
             this.parent.children.delete(this.id);
         }
+
+        // Clear out all the local data (registrations, cache etc)
+        this.reset();
+
+        // Mark as destroyed
         this._isDestroyed = true;
     }
 
@@ -155,7 +291,7 @@ export class Injector implements IInjector {
      * @param type
      */
     public getFactory<T extends Newable>(type: T): AutoFactory<T> {
-        return new AutoFactory(type, this, createInstance);
+        return new AutoFactory(type, this, this.createInstance);
     }
 
     /**
@@ -167,83 +303,25 @@ export class Injector implements IInjector {
     }
 
     /**
-     * Gets an instance of a given type
+     * Resolves a type and optional returns undefined if no registrations present
      */
+    public getOptional<T extends Newable>(type: T): InstanceType<T> | undefined {
+        return this.getImpl(type, [], { mode: 'optional' });
+    }
+
     public get<T extends Newable>(
-        typeOrToken: T | string,
+        typeOrToken: T | StringOrSymbol,
         ancestry: any[] = [],
         options?: IConstructionOptions<T>,
     ): InstanceType<T> {
-        const constructorType: any =
-            typeof typeOrToken === 'string' ? this.tokenCache.getTypeForToken(typeOrToken) : typeOrToken;
-
-        if (constructorType === undefined) {
-            throw new Error(
-                `Cannot resolve Type with token '${typeOrToken}' as no types have been registered against that token value`,
-            );
-        }
-
-        // We use a special ID to determine a type could be an injector type
-        const isInjectorType = constructorType.typeId === Injector.typeId;
-
-        // Support resolving Injector as injectable if found in the dependency tree
-        if (isInjectorType) {
-            // Do we have a pre-cached instance?
-            const instance = this.cache.resolve(constructorType);
-            if (instance == null) {
-                // Does the instance being requested share the same prototype as our current injector instance
-                if (constructorType === Injector) {
-                    this.cache.update(constructorType, this);
-                } else {
-                    /* If we are here then we have multiple injector versions in play.
-                     * we check to see if the type has the static create method.  If
-                     * we find it we can instance it using that method. */
-                    if (constructorType.create) {
-                        this.cache.update(constructorType, constructorType.create());
-                    } else {
-                        /* We have no create method so best we can do is service this type with the current injector
-                         * NOTE: I cannot see how we would reach here. It is more as a fallback in some very unusual
-                         * circumstance */
-                        this.cache.update(constructorType, this);
-                    }
-                }
-            }
-        }
-
-        let cacheInstance = this.cache.resolve(constructorType);
-        if (cacheInstance != null) {
-            return cacheInstance;
-        }
-
-        // If an external resolution strategy has been set, delegate all responsibility to it
-        if (this.configuration.externalResolutionStrategy != null) {
-            cacheInstance = this.configuration.externalResolutionStrategy.resolver(
-                constructorType,
-                (options || {}).params || [],
-            );
-            if (this.configuration.externalResolutionStrategy.cacheSyncing === true) {
-                this.cache.update(constructorType, cacheInstance);
-            }
-            return cacheInstance;
-        } else {
-            return createInstance(constructorType, true, options as any, ancestry, this);
-        }
+        return this.getImpl(typeOrToken, ancestry, options) as InstanceType<T>;
     }
 
     /**
      * Returns an Array of the all types registered in the container
      */
     public getRegisteredTypes(): Array<any> {
-        return Array.from(this.registrations.keys());
-    }
-
-    /**
-     * @internal Create a new injector instance for this type (Could change in the future for different versions)
-     * @description When multiple versions of the injector are in play, this function ensures we can
-     * construct it without doing the work externally. (no introspection required).
-     */
-    public static create(): Injector {
-        return new Injector(new InstanceCache(), new Configuration(), new InjectionTokensCache());
+        return Array.from(this._registrations.keys());
     }
 
     /**
@@ -257,33 +335,431 @@ export class Injector implements IInjector {
      * Resets the injector back to its default state
      */
     public reset() {
-        this._isDestroyed = false;
         this.cache.clear();
         this.tokenCache.clear();
-        this.children = new Map<string, Injector>();
-        this.registrations.clear();
+        this.children.clear();
+        this._registrations.clear();
+        this.metrics.clear();
+        this._interceptors.clear();
     }
 
-    private registerStrategy(type: any, strategy: string | undefined): void {
-        if (strategy != null && strategy.length > 0) {
-            const token: IInjectionToken = { token: strategy, owner: type, tokenType: 'multiple' };
+    public getInterceptorsForType(type: any): IConstructionInterceptor[] | undefined {
+        return this.getRootInjector()._interceptors.get(type);
+    }
+
+    public getRegistrationForType(type: any): IInjectionConfiguration | undefined {
+        return this._registrations.get(type);
+    }
+
+    /**
+     * To avoid circular import we can use this function to get the root injector
+     */
+    private getRootInjector(): Injector {
+        let currentInjector: Injector = this;
+        while (currentInjector.isRoot() === false) {
+            currentInjector = currentInjector.parent! as Injector;
+        }
+        return currentInjector;
+    }
+
+    /**
+     * Gets an instance of a given type
+     */
+    private getImpl<T extends Newable>(
+        typeOrToken: T | StringOrSymbol,
+        ancestry: any[] = [],
+        options?: IConstructionOptionsInternal<T>,
+    ): InstanceType<T> | undefined {
+        if (this._isDestroyed) {
+            throw new Error(
+                `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${this.id}]`,
+            );
+        }
+
+        // Measuring time taken
+        const start = Date.now();
+        let instance: any;
+
+        const NOT_FOUND = isStringOrSymbol(typeOrToken)
+            ? `Cannot resolve Type with token '${typeOrToken.toString()}' as no types have been registered against that token value`
+            : `Cannot resolve Type '${typeOrToken.name}' as no types have been registered against any injectors`;
+
+        const injector = this.getInjectorForTypeOrToken(this, typeOrToken);
+
+        const constructorType: any = isStringOrSymbol(typeOrToken)
+            ? injector.tokenCache.getTypeForToken(typeOrToken)
+            : typeOrToken;
+
+        if (constructorType === undefined) {
+            throw new Error(NOT_FOUND);
+        }
+
+        ancestry.push(constructorType);
+
+        // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
+        // If injector type then return `this` if not try and resolve from cache
+        const isInjectorType = constructorType === Injector || constructorType.typeId === INJECTOR_TYPE_ID;
+        instance = isInjectorType ? this : injector.cache.resolve(constructorType);
+
+        // Not in cache so lets try and construct it
+        if (instance == null) {
+            const allowOptional = options != null && options.mode === 'optional';
+            const registration = injector.getRegistrationForType(constructorType);
+            const externalResolutionStrategy = this.configuration.externalResolutionStrategy;
+
+            // If we have no registration for this type then throw error. (note @optional will allow this to pass)
+            // (Possible if no injector was found and current one has no registration locally)
+            if (!registration && !allowOptional && !externalResolutionStrategy) {
+                this.throwRegistrationNotFound(constructorType, ancestry);
+            }
+
+            if (!allowOptional || registration || externalResolutionStrategy) {
+                if (externalResolutionStrategy) {
+                    // If an external resolution strategy has been set, attempt to resolve the instance from there first.
+                    instance = externalResolutionStrategy.resolver(
+                        constructorType,
+                        injector, // Pass injector so resolver understands the current context (scope, cache etc)
+                        (options || {}).params || [],
+                    );
+
+                    // Fallback to trying to resolve from our injector
+                    if (instance === TYPE_NOT_FOUND) {
+                        if (registration) {
+                            instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
+                        } else {
+                            this.throwRegistrationNotFound(constructorType, ancestry);
+                        }
+                    } else if (externalResolutionStrategy.cacheSyncing === true) {
+                        // Sync cache if required
+                        injector.cache.update(constructorType, instance);
+                    }
+                } else {
+                    instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
+                }
+            }
+        }
+
+        // Measuring time taken
+        const end = Date.now();
+
+        // Capture metrics on this types usage
+        if (this.configuration.trackMetrics) {
+            injector._metrics.update(constructorType, undefined, end - start);
+        }
+
+        return instance;
+    }
+
+    private throwRegistrationNotFound(constructorType: any, ancestry: any[]) {
+        throw new Error(
+            `Cannot construct Type '${constructorType.name}' with ancestry '${ancestry
+                .map(ancestor => ancestor.name)
+                .join(
+                    ' -> ',
+                )}' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
+        );
+    }
+
+    private createInstance<T extends new (...args: any[]) => any>(
+        type: T,
+        updateCache: boolean = false,
+        options?: IConstructionOptionsInternal<T>,
+        ancestors: any[] = [],
+        injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
+    ): InstanceType<T> {
+        // Do our base checks to see if we are exceeding our depth limits
+        if (ancestors.length > injector.configuration.maxTreeDepth) {
+            throw new Error(
+                `Cannot construct Type '${(type as any).name}' with ancestry '${ancestors
+                    .map(ancestor => ancestor.name)
+                    .join(' -> ')}' as max tree depth has been reached`,
+            );
+        }
+
+        let instance: any;
+
+        const overrideParams = (options || {}).params || [];
+        const constructorParamTypes = getConstructorTypes(type);
+        // Note this call to construct param values introduces recursive behavior
+        const constructorParamValues = this.getConstructorParamValues<T>(
+            constructorParamTypes,
+            overrideParams,
+            injector,
+            ancestors,
+            type,
+        );
+
+        // Construct our interceptor contexts (If we have some registered)
+        const interceptorContexts = (this.getInterceptorsForType(type) || [])
+            .filter(interceptor => interceptor.target === type)
+            .map(interceptor => ({
+                interceptor,
+                configuration: injector.getRegistrationForType(type)!,
+                constructorArgs: constructorParamValues,
+                injector,
+                type,
+            }));
+
+        // Trigger before interceptors
+        interceptorContexts.forEach(context => context.interceptor.beforeCreate(context));
+
+        instance = new type(...constructorParamValues);
+
+        // Trigger after interceptors
+        interceptorContexts.forEach(context => context.interceptor.afterCreate(instance, context));
+
+        if (updateCache) {
+            injector.cache.update(type, instance);
+        }
+
+        return instance;
+    }
+
+    /**
+     * Handles resolving the value for a given override value
+     * @param value
+     */
+    private getOverrideValue(value: any): any {
+        if (value === UNDEFINED_VALUE) {
+            return undefined;
+        } else if (value === NULL_VALUE) {
+            return null;
+        }
+        return value;
+    }
+
+    /**
+     * Resolves the strategies instances for the given strategy token
+     * @param injector - Scope to resolve from
+     * @param paramTokens List of strategy tokens
+     * @param ancestors
+     * @param index constructor index position
+     */
+    private tryGetStrategyParam(
+        injector: IInjector,
+        paramTokens: IParameterInjectionToken[],
+        ancestors: any[],
+        index: number,
+    ): any[] | undefined {
+        const strategyToken = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (strategyToken != null) {
+            const strategies = this.getStrategiesTypes(injector, strategyToken).map(([t]) =>
+                injector.get(t, ancestors),
+            );
+            return strategies;
+        }
+        return undefined;
+    }
+
+    /**
+     * Attempts to resolve factory for given param
+     * @param injector - Scope to resolve from
+     * @param paramTokens List of factory tokens
+     * @param index constructor index position
+     */
+    private tryGetFactoryParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
+        const factoryToken = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (factoryToken != null && isFactoryParameterToken(factoryToken)) {
+            return new AutoFactory(
+                factoryToken.factoryTarget,
+                injector,
+                // Need to ensure the this pointer is not lost (consider autobind (spread throwing errors :/))
+                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e), // :)
+            );
+        }
+        return undefined;
+    }
+
+    /**
+     * Resolves an lazy injectable for a given param
+     * @param injector - Scope to resolve from
+     * @param paramTokens - The lazy injection tokens
+     * @param index constructor index position
+     */
+    private tryGetLazyParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
+        const lazyToken = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (lazyToken != null && isLazyParameterToken(lazyToken)) {
+            return new LazyInstance(() => injector.get(lazyToken.lazyTarget));
+        }
+        return undefined;
+    }
+
+    private isOptionalParam(paramTokens: IParameterInjectionToken[], index: number): boolean {
+        return paramTokens.findIndex(ip => ip.index === index) !== -1;
+    }
+
+    /**
+     * This method will resolve all the constructor args values taking into account the tokens
+     */
+    private getConstructorParamValues<T extends new (...args: any[]) => any>(
+        constructorParamTypes: any[],
+        overrideParams: Partial<ConstructorParameters<T>> | never[],
+        injector: IInjector,
+        ancestors: any[],
+        type: T,
+    ) {
+        if (constructorParamTypes.length === 0) {
+            return [];
+        }
+
+        // These tokens are constructor parameter tokens
+        const {
+            injectionParamTokens,
+            strategyParamTokens,
+            factoryParamTokens,
+            lazyParamTokens,
+            optionalParamTokens,
+        } = this.getConstructorsParamTokens(injector, type);
+
+        return constructorParamTypes.map((paramType, index) => {
+            const paramInjector = this.getInjectorForTypeOrToken(injector, paramType);
+
+            // Have they provided a value, if they have use it, if its undefined (Not explicit NULL_VALUE or UNDEFINED_VALUE) construct using the type
+            const value = overrideParams[index];
+            if (value != null) {
+                return this.getOverrideValue(value);
+            }
+
+            // Handle @Strategy
+            const strategies = this.tryGetStrategyParam(injector, strategyParamTokens, ancestors, index);
+            if (strategies != null) {
+                return strategies;
+            }
+
+            // Handle @Factory
+            const factory = this.tryGetFactoryParam(paramInjector, factoryParamTokens, index);
+            if (factory) {
+                return factory;
+            }
+
+            // Handle @Lazy
+            const lazy = this.tryGetLazyParam(paramInjector, lazyParamTokens, index);
+            if (lazy) {
+                return lazy;
+            }
+
+            // If we have an @Inject annotation we will attempt to substitute the param type using the annotations token
+            paramType = this.tryGetParamTypeFromToken(injectionParamTokens, index, paramType, paramInjector);
+            const optional = this.isOptionalParam(optionalParamTokens, index);
+
+            const instance =
+                paramInjector.cache.resolve(paramType) ||
+                paramInjector.getImpl(paramType, ancestors, {
+                    mode: optional ? 'optional' : 'standard',
+                });
+
+            return instance;
+        });
+    }
+
+    private tryGetParamTypeFromToken(
+        paramTokens: IParameterInjectionToken[],
+        index: number,
+        defaultType: any,
+        paramInjector: Injector,
+    ) {
+        const token = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
+        if (token != null) {
+            defaultType = paramInjector._tokenCache.getTypeForToken(token.token);
+        }
+        return defaultType;
+    }
+
+    /**
+     * Gets strategy types (but takes hierarchy into account)
+     */
+    private getStrategiesTypes(injector: IInjector, strategyToken: IParameterInjectionToken) {
+        const strategies = [...injector.getRegistrations().entries()].filter(
+            ([_t, config]) => config.strategy === strategyToken.token,
+        );
+
+        return strategies;
+    }
+
+    /**
+     * This method will resolve the closest injector on our tree who can handle construction of this type based on registrations
+     * @param injector
+     * @param tokenOrType
+     */
+    private getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): Injector {
+        const isType = !isStringOrSymbol(tokenOrType);
+        let currentInjector = injector as Injector;
+
+        while (currentInjector != null) {
+            const found = isType
+                ? currentInjector._registrations.get(tokenOrType)
+                : currentInjector._tokenCache.getTypeForToken(tokenOrType);
+
+            if (found != null) {
+                return currentInjector;
+            }
+            currentInjector = currentInjector.parent as Injector;
+        }
+
+        return this;
+    }
+
+    private create(parent?: IInjector, name?: string, configuration: Configuration = this._configuration): Injector {
+        return Injector.create(parent, name, configuration);
+    }
+
+    /**
+     * Gets injection tokens for a given type (but takes hierarchy into account)
+     */
+    private getConstructorsParamTokens(injector: IInjector | undefined, type: any) {
+        let injectionParamTokens = new Array<IParameterInjectionToken>();
+        let strategyParamTokens = new Array<IParameterInjectionToken>();
+        let factoryParamTokens = new Array<IParameterInjectionToken>();
+        let lazyParamTokens = new Array<IParameterInjectionToken>();
+        let optionalParamTokens = new Array<IParameterInjectionToken>();
+        let emptyTokens = true;
+
+        /*
+         * We will start walking up the tree moving to the root injector to see if we can find tokens at
+         * any level.  Note, token found at the lowest level override the parents.
+         */
+        while (injector != null && emptyTokens) {
+            injectionParamTokens =
+                injectionParamTokens.length === 0 ? injector.tokenCache.getInjectTokens(type) : injectionParamTokens;
+            optionalParamTokens =
+                optionalParamTokens.length === 0 ? injector.tokenCache.getOptionalTokens(type) : optionalParamTokens;
+            strategyParamTokens =
+                strategyParamTokens.length === 0 ? injector.tokenCache.getStrategyTokens(type) : strategyParamTokens;
+            factoryParamTokens =
+                factoryParamTokens.length === 0 ? injector.tokenCache.getFactoryTokens(type) : factoryParamTokens;
+            lazyParamTokens = lazyParamTokens.length === 0 ? injector.tokenCache.getLazyTokens(type) : lazyParamTokens;
+
+            injector = injector.parent;
+            emptyTokens =
+                injectionParamTokens.length === 0 ||
+                strategyParamTokens.length === 0 ||
+                factoryParamTokens.length === 0 ||
+                lazyParamTokens.length === 0;
+        }
+
+        return { injectionParamTokens, strategyParamTokens, factoryParamTokens, lazyParamTokens, optionalParamTokens };
+    }
+
+    private registerStrategy(type: any, strategy: StringOrSymbol | undefined): void {
+        if (isStringOrSymbol(strategy)) {
+            const token: IInjectionToken = { token: strategy, owner: type, injectionType: 'multiple' };
             this.tokenCache.register(token);
         }
     }
 
-    private registerTokens(type: any, tokens: string[] = []): void {
+    private registerTokens(type: any, tokens: Array<StringOrSymbol> = []): void {
         tokens
-            .map(token => ({ token, owner: type, tokenType: 'singleton' } as IInjectionToken))
+            .map(token => ({ token, owner: type, injectionType: 'singleton' } as IInjectionToken))
             .forEach(t => {
                 if (!this.configuration.allowDuplicateTokens) {
                     const tokenTypes = this.tokenCache.getTypesForToken(t.token);
                     if (tokenTypes.length > 0) {
                         throw new Error(
-                            `Cannot register Type '${(type as any).name}' with token ${
-                                t.token
-                            }. Duplicate token found for the following type '${tokenTypes
+                            `Cannot register Type [${
+                                (type as any).name
+                            }] with token '${t.token.toString()}'. Duplicate token found for the following type [${tokenTypes
                                 .map(tt => tt.name)
-                                .join(' -> ')}'`,
+                                .join(' -> ')}]`,
                         );
                     }
                 }
@@ -293,6 +769,7 @@ export class Injector implements IInjector {
     }
 }
 
-globalReference[DI_ROOT_INJECTOR_KEY] =
-    globalReference[DI_ROOT_INJECTOR_KEY] ||
-    new Injector(new InstanceCache(), new Configuration(), new InjectionTokensCache());
+// Register the global root injector if not present already
+const globalReference = getGlobal();
+
+globalReference[DI_ROOT_INJECTOR_KEY] = globalReference[DI_ROOT_INJECTOR_KEY] || Injector.create();

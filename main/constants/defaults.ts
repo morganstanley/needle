@@ -1,4 +1,3 @@
-import { IInjectionConfiguration, IScopeConfiguration } from '../contracts/contracts';
+import { IInjectionConfiguration } from '../contracts/contracts';
 
 export const defaultInjectionConfiguration: IInjectionConfiguration = {};
-export const defaultScopeConfiguration: IScopeConfiguration = {};

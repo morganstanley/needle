@@ -18,7 +18,7 @@ export function Factory(factoryTarget: Newable) {
             factoryTarget,
             property,
             index,
-            tokenType: 'factory',
+            injectionType: 'factory',
         });
     }
 
