@@ -6,6 +6,7 @@ import { Metrics } from 'main/core/metrics';
 import {
     AutoFactory,
     Factory,
+    getOptional,
     getRootInjector,
     Inject,
     Injectable,
@@ -847,6 +848,12 @@ describe('Injector', () => {
             const instance = getInstance();
 
             const child = instance.getOptional(Child);
+
+            expect(child).toBeUndefined();
+        });
+
+        it('should resolve undefined when getOptional invoked via pure import and no registrations', () => {
+            const child = getOptional(Child);
 
             expect(child).toBeUndefined();
         });
