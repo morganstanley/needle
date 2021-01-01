@@ -7,10 +7,6 @@
 ![NPM](https://img.shields.io/npm/l/@morgan-stanley/needle)
 ![NPM](https://img.shields.io/badge/types-TypeScript-blue)
 
-# Documentation
-
-Documentation available here: [needle](http://opensource.morganstanley.com/needle/)
-
 # Installation
 
 ```
