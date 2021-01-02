@@ -25,6 +25,14 @@ export function get<T extends Newable>(
 }
 
 /***
+ * Gets an instance of a type or returns undefined if no registration
+ * @param type The type to be resolved
+ */
+export function getOptional<T extends Newable>(type: T): InstanceType<T> | undefined {
+    return getRootInjector().getOptional(type);
+}
+
+/***
  * Gets a function which when invoked will return the injectable instance
  */
 export function getLazy<T extends Newable>(
