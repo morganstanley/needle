@@ -504,10 +504,7 @@ If you want to entirely own the process of constructing a given type you can def
 ```typescript
 @Injectable({
     resolverConfig: {
-         resolver: (_injector, _args) => {
-            invoked = true;
-            return new SuperCar();
-         },
+        resolver: (_injector, _args) =>  new SuperCar(),
         cacheSyncing: true,
     }
 })
@@ -521,10 +518,7 @@ import { getRootInjector } from '@morgan-stanley/needle';
 
 getRootInjector().register(SuperCar, {
     resolverConfig: {
-         resolver: (_injector, _args) => {
-            invoked = true;
-            return new SuperCar();
-         },
+        resolver: (_injector, _args) =>  new SuperCar(),
         cacheSyncing: true,
     }
 });
