@@ -22,7 +22,9 @@ import { InstanceCache } from '../main/core/cache';
 import { isInjectorLike } from '../main/core/guards';
 import { InjectionTokensCache } from '../main/core/tokens';
 
-export abstract class Individual {}
+export abstract class Individual {
+    public id = Math.floor(Math.random() * 100000 + 1);
+}
 
 export abstract class Student extends Individual {}
 
@@ -970,7 +972,7 @@ describe('Injector', () => {
             expect(instance.cache.instanceCount).toBe(1);
         });
 
-        it('should create an instance of the supertype (abstract) using local resolution strategy providing subtype', () => {
+        it('should return an instance of a subtype in place of a super types registration with a local resolver', () => {
             const instance = getInstance();
             let invoked = false;
 
@@ -987,6 +989,7 @@ describe('Injector', () => {
             const individual = instance.get(Individual);
 
             expect(individual).toBeDefined();
+            expect(individual.id).toBeDefined();
             expect(individual instanceof Child).toBeTrue();
             expect(invoked).toBeTrue();
             expect(instance.cache.instanceCount).toBe(1);
