@@ -22,9 +22,9 @@ import { InstanceCache } from '../main/core/cache';
 import { isInjectorLike } from '../main/core/guards';
 import { InjectionTokensCache } from '../main/core/tokens';
 
-export class Person {}
+export abstract class Individual {}
 
-export class Student extends Person {}
+export abstract class Student extends Individual {}
 
 interface IStrategy {}
 
@@ -53,7 +53,7 @@ export class GeographyStudent extends Student {}
 
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
-export class GeographyTeacher extends Person {
+export class GeographyTeacher extends Individual {
     constructor(@Inject('geography-student') public student: Student) {
         super();
     }
@@ -61,7 +61,7 @@ export class GeographyTeacher extends Person {
 
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
-export class HistoryTeacher extends Person {
+export class HistoryTeacher extends Individual {
     constructor(@Inject('history-student') public student: Student) {
         super();
     }
@@ -69,7 +69,7 @@ export class HistoryTeacher extends Person {
 
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
-export class Child extends Person {}
+export class Child extends Individual {}
 
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
@@ -78,14 +78,14 @@ export class AdoptedChild extends Child {}
 @Injectable({
     tokens: ['father', 'mother'],
 })
-export class Parent extends Person {
+export class Parent extends Individual {
     constructor(public daughter: Child) {
         super();
     }
 }
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
-export class GrandParent extends Person {
+export class GrandParent extends Individual {
     constructor(public son: Parent) {
         super();
     }
@@ -946,6 +946,49 @@ describe('Injector', () => {
             const child = instance.get(Child);
 
             expect(child).toBeDefined();
+            expect(instance.cache.instanceCount).toBe(1);
+        });
+
+        it('should create an instance of the type using local resolution strategy', () => {
+            const instance = getInstance();
+            let invoked = false;
+
+            instance.register(Child, {
+                resolution: {
+                    resolver: (_injector, _args) => {
+                        invoked = true;
+                        return new Child();
+                    },
+                    cacheSyncing: true,
+                },
+            });
+
+            const child = instance.get(Child);
+
+            expect(child).toBeDefined();
+            expect(invoked).toBeTrue();
+            expect(instance.cache.instanceCount).toBe(1);
+        });
+
+        it('should create an instance of the supertype (abstract) using local resolution strategy providing subtype', () => {
+            const instance = getInstance();
+            let invoked = false;
+
+            instance.register(Individual, {
+                resolution: {
+                    resolver: (_injector, _args) => {
+                        invoked = true;
+                        return new Child();
+                    },
+                    cacheSyncing: true,
+                },
+            });
+
+            const individual = instance.get(Individual);
+
+            expect(individual).toBeDefined();
+            expect(individual instanceof Child).toBeTrue();
+            expect(invoked).toBeTrue();
             expect(instance.cache.instanceCount).toBe(1);
         });
 

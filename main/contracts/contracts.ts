@@ -13,6 +13,8 @@ export type Newable = new (...args: any[]) => any;
 
 export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
 
+export type AbstractInstanceType<T> = T extends { prototype: infer U } ? U : never;
+
 /**
  * Constructor options allows passing of partial params to injector for construction
  */
@@ -198,7 +200,7 @@ export interface IInjector {
     /**
      * Registers a type and associated injection config with the the injector
      */
-    register(type: any, config?: IInjectionConfiguration): this;
+    register<T>(type: T, config?: IInjectionConfiguration<T>): this;
 
     /**
      * Get the list of registration
@@ -324,7 +326,7 @@ export interface IInjector {
 /**
  * Injection configuration object used for profiling information and behavior about the injectable to the injector
  */
-export interface IInjectionConfiguration {
+export interface IInjectionConfiguration<T = any> {
     /**
      * A list of tokens that this injectable can be resolved by using the @Inject("token") annotation
      */
@@ -334,22 +336,26 @@ export interface IInjectionConfiguration {
      * The strategy property works in conjunction with the @Strategy("key") annotation and signals that an array of items can be injected under this key
      */
     strategy?: StringOrSymbol;
+
+    /**
+     * Optional custom resolution strategy to be used when instancing this type
+     */
+    resolution?: IExternalResolutionConfiguration<T>;
 }
 
 /**
  * Configuration interface used when defining external resolution strategy
  */
-export interface IExternalResolutionConfiguration {
-    /**
-     * The resolver function to be used when instancing types
-     */
-    resolver: (type: any, currentInjector: IInjector, locals?: any) => any;
-
+export interface IExternalResolutionConfiguration<T = any> {
     /**
      * Flag that when set to true will sync instances with the injectors cache.
      * @description By default no cache syncing is done
      */
     cacheSyncing?: boolean;
+    /**
+     * The resolver function to be used when instancing types
+     */
+    resolver(type: T, currentInjector: IInjector, locals?: any): AbstractInstanceType<T>;
 }
 
 /**

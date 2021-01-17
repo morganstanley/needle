@@ -405,7 +405,12 @@ export class Injector implements IInjector {
         if (instance == null) {
             const allowOptional = options != null && options.mode === 'optional';
             const registration = injector.getRegistrationForType(constructorType);
-            const externalResolutionStrategy = this.configuration.externalResolutionStrategy;
+
+            // Are we going to use the types resolution strategy over the external one
+            const externalResolutionStrategy =
+                registration != null && registration.resolution != null
+                    ? registration.resolution
+                    : this.configuration.externalResolutionStrategy;
 
             // If we have no registration for this type then throw error. (note @optional will allow this to pass)
             // (Possible if no injector was found and current one has no registration locally)
