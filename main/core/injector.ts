@@ -139,11 +139,11 @@ export class Injector implements IInjector {
     public register(type: any, config: IInjectionConfiguration = defaultInjectionConfiguration): this {
         // Make a shallow copy
         config = { ...config };
-        const resolution = config.resolution;
+        const resolution = config.resolverConfig;
 
         // The resolution strategy for a type can be either a config or a type.  If a just a type we can auto convert to a config
         if (resolution != null && !isExternalResolutionConfigurationLike(resolution)) {
-            config.resolution = {
+            config.resolverConfig = {
                 resolver: (_type, currentInjector, locals) => currentInjector.get(resolution, [], locals),
                 cacheSyncing: true,
             } as IExternalResolutionConfiguration;
@@ -430,8 +430,8 @@ export class Injector implements IInjector {
 
             // Are we going to use the types resolution strategy over the external one
             const externalResolutionStrategy =
-                registration != null && registration.resolution != null
-                    ? registration.resolution
+                registration != null && registration.resolverConfig != null
+                    ? registration.resolverConfig
                     : this.configuration.externalResolutionStrategy;
 
             // If we have no registration for this type then throw error. (note @optional will allow this to pass)

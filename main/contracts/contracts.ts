@@ -339,9 +339,10 @@ export interface IInjectionConfiguration<T = any> {
     strategy?: StringOrSymbol;
 
     /**
-     * Optional custom resolution strategy to be used when instancing this type
+     * Optional resolver which can be either an external resolution config or a type
+     * @description If a type is provided the injector will attempt to substitute the original type with the new one being registered here.
      */
-    resolution?: IExternalResolutionConfiguration<T> | T;
+    resolverConfig?: IExternalResolutionConfiguration<T> | T;
 }
 
 /**
