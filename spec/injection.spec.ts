@@ -972,7 +972,7 @@ describe('Injector', () => {
             expect(instance.cache.instanceCount).toBe(1);
         });
 
-        it('should return an instance of a subtype in place of a super types registration with a local resolver', () => {
+        it('should return an instance of a subtype in place of a super type using external resolver config', () => {
             const instance = getInstance();
             let invoked = false;
 
@@ -993,6 +993,22 @@ describe('Injector', () => {
             expect(individual instanceof Child).toBeTrue();
             expect(invoked).toBeTrue();
             expect(instance.cache.instanceCount).toBe(1);
+        });
+
+        it('should return an instance of a subtype in place of a super type using just the subtype', () => {
+            const instance = getInstance();
+
+            instance.register(Child).register(Individual, {
+                resolution: Child,
+            });
+
+            const individual = instance.get(Individual);
+
+            expect(individual).toBeDefined();
+            expect(individual.id).toBeDefined();
+            expect(individual instanceof Child).toBeTrue();
+            expect(instance.cache.instanceCount).toBe(2); // Child and the Individual
+            expect(instance.cache.resolve(Individual)).toBe(instance.cache.resolve(Child)); // Same references for Subtype and SuperType in cache
         });
 
         it('should throw an exception if an attempt to resolve a type that is not registered', () => {

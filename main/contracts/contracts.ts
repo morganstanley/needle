@@ -9,7 +9,7 @@ export type InstanceFactory = () => InstanceOfType<any>;
 
 export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy' | 'optional';
 
-export type Newable = new (...args: any[]) => any;
+export type Newable<T = any, T2 extends T = T> = new (...args: any[]) => T2;
 
 export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
 
@@ -341,7 +341,7 @@ export interface IInjectionConfiguration<T = any> {
     /**
      * Optional custom resolution strategy to be used when instancing this type
      */
-    resolution?: IExternalResolutionConfiguration<T>;
+    resolution?: IExternalResolutionConfiguration<T> | T;
 }
 
 /**

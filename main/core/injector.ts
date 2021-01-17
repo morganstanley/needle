@@ -17,6 +17,7 @@ import {
     IConfiguration,
     IConstructionInterceptor,
     IConstructionOptions,
+    IExternalResolutionConfiguration,
     IInjectionConfiguration,
     IInjectionToken,
     IInjector,
@@ -32,7 +33,12 @@ import { InstanceCache } from './cache';
 import { Configuration } from './configuration';
 import { AutoFactory } from './factory';
 import { getGlobal } from './globals';
-import { isFactoryParameterToken, isLazyParameterToken, isStringOrSymbol } from './guards';
+import {
+    isExternalResolutionConfigurationLike,
+    isFactoryParameterToken,
+    isLazyParameterToken,
+    isStringOrSymbol,
+} from './guards';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
 import { Metrics } from './metrics';
@@ -131,6 +137,18 @@ export class Injector implements IInjector {
      * Registers a type and associated injection config with the the injector
      */
     public register(type: any, config: IInjectionConfiguration = defaultInjectionConfiguration): this {
+        // Make a shallow copy
+        config = { ...config };
+        const resolution = config.resolution;
+
+        // The resolution strategy for a type can be either a config or a type.  If a just a type we can auto convert to a config
+        if (resolution != null && !isExternalResolutionConfigurationLike(resolution)) {
+            config.resolution = {
+                resolver: (_type, currentInjector, locals) => currentInjector.get(resolution, [], locals),
+                cacheSyncing: true,
+            } as IExternalResolutionConfiguration;
+        }
+
         this.registerTokens(type, config.tokens);
         this.registerStrategy(type, config.strategy);
         this._registrations.set(type, config);
