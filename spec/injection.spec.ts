@@ -956,7 +956,7 @@ describe('Injector', () => {
             let invoked = false;
 
             instance.register(Child, {
-                resolverConfig: {
+                resolution: {
                     resolver: (_injector, _args) => {
                         invoked = true;
                         return new Child();
@@ -977,7 +977,7 @@ describe('Injector', () => {
             let invoked = false;
 
             instance.register(Individual, {
-                resolverConfig: {
+                resolution: {
                     resolver: (_injector, _args) => {
                         invoked = true;
                         return new Child();
@@ -999,7 +999,7 @@ describe('Injector', () => {
             const instance = getInstance();
 
             instance.register(Child).register(Individual, {
-                resolverConfig: Child,
+                resolution: Child,
             });
 
             const individual = instance.get(Individual);
