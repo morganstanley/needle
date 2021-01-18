@@ -1,5 +1,5 @@
 import { DI_ROOT_INJECTOR_KEY } from '../constants/constants';
-import { IConstructionOptions, IInjector, Newable } from '../contracts/contracts';
+import { IConstructionOptions, IInjector, InstanceOfType, Newable } from '../contracts/contracts';
 import { getGlobal } from './globals';
 
 const globalReference = getGlobal();
@@ -16,11 +16,11 @@ export function getRootInjector(): IInjector {
  * @param ancestry
  * @param options
  */
-export function get<T extends Newable>(
+export function get<T>(
     type: T,
     ancestry: any[] = [],
-    options?: IConstructionOptions<T>,
-): InstanceType<T> {
+    options?: T extends Newable ? IConstructionOptions<T> : never,
+): InstanceOfType<T> {
     return getRootInjector().get(type, ancestry, options);
 }
 
@@ -28,18 +28,18 @@ export function get<T extends Newable>(
  * Gets an instance of a type or returns undefined if no registration
  * @param type The type to be resolved
  */
-export function getOptional<T extends Newable>(type: T): InstanceType<T> | undefined {
+export function getOptional<T extends Newable>(type: T): InstanceOfType<T> | undefined {
     return getRootInjector().getOptional(type);
 }
 
 /***
  * Gets a function which when invoked will return the injectable instance
  */
-export function getLazy<T extends Newable>(
+export function getLazy<T>(
     type: T,
     ancestry: any[] = [],
-    options?: IConstructionOptions<T>,
-): () => InstanceType<T> {
+    options?: T extends Newable ? IConstructionOptions<T> : never,
+): () => InstanceOfType<T> {
     return () => get(type, ancestry, options);
 }
 

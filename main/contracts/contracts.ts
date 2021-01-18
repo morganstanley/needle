@@ -5,13 +5,16 @@ export type InjectorIdentifier = string;
 
 export type StringOrSymbol = string | symbol;
 
-export type InstanceFactory = () => InstanceType<any>;
+export type InstanceFactory = () => InstanceOfType<any>;
 
 export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy' | 'optional';
 
-export type Newable = new (...args: any[]) => any;
+export type Newable<T = any, T2 extends T = T> = new (...args: any[]) => T2;
 
 export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
+
+// More forgiving InstanceType to support instances of an Abstract Type (not Newable)
+export type InstanceOfType<T> = T extends { prototype: infer U } ? U : never;
 
 /**
  * Constructor options allows passing of partial params to injector for construction
@@ -51,14 +54,14 @@ export interface IParameterInjectionToken extends IInjectionToken {
  * Injection factory token parameter metadata.
  */
 export interface IFactoryParameterInjectionToken extends IParameterInjectionToken {
-    factoryTarget: Newable;
+    factoryTarget: unknown;
 }
 
 /**
  * Injection lazy token parameter metadata.
  */
 export interface ILazyParameterInjectionToken extends IParameterInjectionToken {
-    lazyTarget: Newable;
+    lazyTarget: unknown;
 }
 
 /**
@@ -96,7 +99,7 @@ export interface ICache {
      * Gets an instance from the cache based on the constructor type
      * @param type
      */
-    resolve<T extends Newable>(type: T): InstanceType<T>;
+    resolve<T>(type: T): InstanceOfType<T>;
     /**
      * Updates or inserts a record into the instance cache
      * @param type The constructor type
@@ -198,7 +201,7 @@ export interface IInjector {
     /**
      * Registers a type and associated injection config with the the injector
      */
-    register(type: any, config?: IInjectionConfiguration): this;
+    register<T>(type: T, config?: IInjectionConfiguration<T>): this;
 
     /**
      * Get the list of registration
@@ -208,7 +211,7 @@ export interface IInjector {
     /**
      * Registers and instance of a type in the container
      */
-    registerInstance<T extends Newable>(type: any, instance: InstanceType<T>, config?: IInjectionConfiguration): this;
+    registerInstance<T extends Newable>(type: any, instance: InstanceOfType<T>, config?: IInjectionConfiguration): this;
 
     /**
      * Registers a parameter for factory injection. This maps to the @Factory annotation
@@ -265,21 +268,21 @@ export interface IInjector {
      * Gets a Lazy for a given type
      * @param type
      */
-    getLazy<T extends Newable>(type: T): LazyInstance<T>;
+    getLazy<T>(type: T): LazyInstance<T>;
 
     /**
      * Gets an instance of a given type
      */
-    get<T extends Newable>(
+    get<T>(
         typeOrToken: T | StringOrSymbol,
         ancestry?: any[],
-        options?: IConstructionOptions<T>,
-    ): InstanceType<T>;
+        options?: T extends Newable ? IConstructionOptions<T> : never,
+    ): InstanceOfType<T>;
 
     /***
      * Gets an instance of a type or returns undefined if no registration
      */
-    getOptional<T extends Newable>(type: T): InstanceType<T> | undefined;
+    getOptional<T>(type: T): InstanceOfType<T> | undefined;
 
     /**
      * Returns an Array of the all types registered in the container
@@ -324,7 +327,7 @@ export interface IInjector {
 /**
  * Injection configuration object used for profiling information and behavior about the injectable to the injector
  */
-export interface IInjectionConfiguration {
+export interface IInjectionConfiguration<T = any> {
     /**
      * A list of tokens that this injectable can be resolved by using the @Inject("token") annotation
      */
@@ -334,22 +337,27 @@ export interface IInjectionConfiguration {
      * The strategy property works in conjunction with the @Strategy("key") annotation and signals that an array of items can be injected under this key
      */
     strategy?: StringOrSymbol;
+
+    /**
+     * Optional resolution strategy which can be either an external resolution config or a type
+     * @description If a type is provided the injector will attempt to substitute the original type with the new one being registered here.
+     */
+    resolution?: IExternalResolutionConfiguration<T> | T;
 }
 
 /**
  * Configuration interface used when defining external resolution strategy
  */
-export interface IExternalResolutionConfiguration {
-    /**
-     * The resolver function to be used when instancing types
-     */
-    resolver: (type: any, currentInjector: IInjector, locals?: any) => any;
-
+export interface IExternalResolutionConfiguration<T = any> {
     /**
      * Flag that when set to true will sync instances with the injectors cache.
      * @description By default no cache syncing is done
      */
     cacheSyncing?: boolean;
+    /**
+     * The resolver function to be used when instancing types
+     */
+    resolver(type: T, currentInjector: IInjector, locals?: any): InstanceOfType<T>;
 }
 
 /**
@@ -467,5 +475,5 @@ export interface IConstructionInterceptor<TTarget extends Newable = any> {
      * @param instance The instance of the given type
      * @param context Context at point of construction
      */
-    afterCreate(instance: InstanceType<TTarget>, context: IInjectionContext<TTarget>): void;
+    afterCreate(instance: InstanceOfType<TTarget>, context: IInjectionContext<TTarget>): void;
 }

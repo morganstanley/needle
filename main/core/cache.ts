@@ -1,9 +1,9 @@
-import { ICache, Newable } from '../contracts/contracts';
+import { ICache, InstanceOfType } from '../contracts/contracts';
 
 export class InstanceCache implements ICache {
     private instanceMap = new Map<any, any>();
 
-    public resolve<T extends Newable>(type: T): InstanceType<T> {
+    public resolve<T>(type: T): InstanceOfType<T> {
         return this.instanceMap.get(type);
     }
 

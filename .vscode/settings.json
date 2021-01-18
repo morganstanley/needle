@@ -6,5 +6,8 @@
     "editor.detectIndentation": false,
     "typescript.tsdk": "node_modules\\typescript\\lib",
     "tslint.configFile": "tslint.conf.js",
-    "typescript.preferences.importModuleSpecifier": "relative"
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "editor.codeActionsOnSave": {
+        "tslint.autoFixOnSave": true,
+    }
 }

@@ -1,4 +1,5 @@
 import {
+    IExternalResolutionConfiguration,
     IFactoryParameterInjectionToken,
     IInjectionToken,
     IInjector,
@@ -46,6 +47,14 @@ export function isLazyParameterToken(
  */
 export function isStringOrSymbol(item: any): item is StringOrSymbol {
     return typeof item === 'string' || typeof item === 'symbol';
+}
+
+/**
+ * Determines if a given value is an external resolution config
+ * @param item
+ */
+export function isExternalResolutionConfigurationLike(item: any): item is IExternalResolutionConfiguration {
+    return typeof item != null && item.resolver != null && typeof item.resolver === 'function';
 }
 
 /**

@@ -17,11 +17,13 @@ import {
     IConfiguration,
     IConstructionInterceptor,
     IConstructionOptions,
+    IExternalResolutionConfiguration,
     IInjectionConfiguration,
     IInjectionToken,
     IInjector,
     IMetrics,
     InjectorIdentifier,
+    InstanceOfType,
     IParameterInjectionToken,
     ITokenCache,
     Newable,
@@ -31,7 +33,12 @@ import { InstanceCache } from './cache';
 import { Configuration } from './configuration';
 import { AutoFactory } from './factory';
 import { getGlobal } from './globals';
-import { isFactoryParameterToken, isLazyParameterToken, isStringOrSymbol } from './guards';
+import {
+    isExternalResolutionConfigurationLike,
+    isFactoryParameterToken,
+    isLazyParameterToken,
+    isStringOrSymbol,
+} from './guards';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
 import { Metrics } from './metrics';
@@ -130,6 +137,18 @@ export class Injector implements IInjector {
      * Registers a type and associated injection config with the the injector
      */
     public register(type: any, config: IInjectionConfiguration = defaultInjectionConfiguration): this {
+        // Make a shallow copy
+        config = { ...config };
+        const resolution = config.resolution;
+
+        // The resolution strategy for a type can be either a config or a type.  If a just a type we can auto convert to a config
+        if (resolution != null && !isExternalResolutionConfigurationLike(resolution)) {
+            config.resolution = {
+                resolver: (_type, currentInjector, locals) => currentInjector.get(resolution, [], locals),
+                cacheSyncing: true,
+            } as IExternalResolutionConfiguration;
+        }
+
         this.registerTokens(type, config.tokens);
         this.registerStrategy(type, config.strategy);
         this._registrations.set(type, config);
@@ -181,7 +200,7 @@ export class Injector implements IInjector {
      */
     public registerInstance<T extends Newable>(
         type: any,
-        instance: InstanceType<T>,
+        instance: InstanceOfType<T>,
         config: IInjectionConfiguration = defaultInjectionConfiguration,
     ): this {
         // Auto add the registration details
@@ -282,8 +301,9 @@ export class Injector implements IInjector {
 
         const strategies = [...this.getRegistrations().entries()]
             .filter(([_t, config]) => config.strategy === strategy)
-            .map(([t]) => this.get(t, []));
-        return strategies;
+            .map(([t]) => this.get<T>(t, []));
+
+        return (strategies as unknown) as Array<T>;
     }
 
     /**
@@ -298,23 +318,23 @@ export class Injector implements IInjector {
      * Gets an Lazy<T> for a given type
      * @param type
      */
-    public getLazy<T extends Newable>(type: T): LazyInstance<T> {
-        return new LazyInstance(() => this.get(type));
+    public getLazy<T>(type: T): LazyInstance<T> {
+        return new LazyInstance<T>(() => this.get(type));
     }
 
     /**
      * Resolves a type and optional returns undefined if no registrations present
      */
-    public getOptional<T extends Newable>(type: T): InstanceType<T> | undefined {
-        return this.getImpl(type, [], { mode: 'optional' });
+    public getOptional<T>(type: T): InstanceOfType<T> | undefined {
+        return this.getImpl((type as unknown) as Newable, [], { mode: 'optional' });
     }
 
-    public get<T extends Newable>(
+    public get<T>(
         typeOrToken: T | StringOrSymbol,
         ancestry: any[] = [],
-        options?: IConstructionOptions<T>,
-    ): InstanceType<T> {
-        return this.getImpl(typeOrToken, ancestry, options) as InstanceType<T>;
+        options?: T extends Newable ? IConstructionOptions<T> : never,
+    ): InstanceOfType<T> {
+        return this.getImpl(typeOrToken, ancestry, options) as InstanceOfType<T>;
     }
 
     /**
@@ -365,11 +385,11 @@ export class Injector implements IInjector {
     /**
      * Gets an instance of a given type
      */
-    private getImpl<T extends Newable>(
+    private getImpl<T>(
         typeOrToken: T | StringOrSymbol,
         ancestry: any[] = [],
-        options?: IConstructionOptionsInternal<T>,
-    ): InstanceType<T> | undefined {
+        options?: T extends Newable ? IConstructionOptionsInternal<T> : never,
+    ): InstanceOfType<T> | undefined {
         if (this._isDestroyed) {
             throw new Error(
                 `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${this.id}]`,
@@ -382,7 +402,9 @@ export class Injector implements IInjector {
 
         const NOT_FOUND = isStringOrSymbol(typeOrToken)
             ? `Cannot resolve Type with token '${typeOrToken.toString()}' as no types have been registered against that token value`
-            : `Cannot resolve Type '${typeOrToken.name}' as no types have been registered against any injectors`;
+            : `Cannot resolve Type '${
+                  (typeOrToken as any).name
+              }' as no types have been registered against any injectors`;
 
         const injector = this.getInjectorForTypeOrToken(this, typeOrToken);
 
@@ -405,7 +427,12 @@ export class Injector implements IInjector {
         if (instance == null) {
             const allowOptional = options != null && options.mode === 'optional';
             const registration = injector.getRegistrationForType(constructorType);
-            const externalResolutionStrategy = this.configuration.externalResolutionStrategy;
+
+            // Are we going to use the types resolution strategy over the external one
+            const externalResolutionStrategy =
+                registration != null && registration.resolution != null
+                    ? registration.resolution
+                    : this.configuration.externalResolutionStrategy;
 
             // If we have no registration for this type then throw error. (note @optional will allow this to pass)
             // (Possible if no injector was found and current one has no registration locally)
@@ -419,7 +446,7 @@ export class Injector implements IInjector {
                     instance = externalResolutionStrategy.resolver(
                         constructorType,
                         injector, // Pass injector so resolver understands the current context (scope, cache etc)
-                        (options || {}).params || [],
+                        ((options || {}) as any).params || [],
                     );
 
                     // Fallback to trying to resolve from our injector
@@ -561,7 +588,7 @@ export class Injector implements IInjector {
         const factoryToken = paramTokens[paramTokens.findIndex(ip => ip.index === index)];
         if (factoryToken != null && isFactoryParameterToken(factoryToken)) {
             return new AutoFactory(
-                factoryToken.factoryTarget,
+                factoryToken.factoryTarget as Newable,
                 injector,
                 // Need to ensure the this pointer is not lost (consider autobind (spread throwing errors :/))
                 (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e), // :)
