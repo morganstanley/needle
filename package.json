@@ -6,6 +6,16 @@
     "author": "Morgan Stanley",
     "main": "./dist/main/index.js",
     "types": "./dist/main/index.d.ts",
+    "keywords": [
+        "injection",
+        "dependency injection",
+        "IOC",
+        "testability",
+        "container",
+        "universal",
+        "isomorphic",
+        "morgan stanley"
+    ],
     "scripts": {
         "clean": "rimraf dist reports ../build ../install ../packages docs",
         "build": "tsc -p main/tsconfig.json",
