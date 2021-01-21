@@ -1,9 +1,9 @@
 
 # @morgan-stanley/needle
 ![npm](https://img.shields.io/npm/v/@morgan-stanley/needle)
-[![Build Status](https://travis-ci.com/Morgan-Stanley/needle.svg?branch=main)](https://travis-ci.com/Morgan-Stanley/needle?branch=main)
-[![codecov](https://codecov.io/gh/Morgan-Stanley/needle/branch/master/graph/badge.svg)](https://codecov.io/gh/Morgan-Stanley/needle)
-[![Known Vulnerabilities](https://snyk.io/test/github/Morgan-Stanley/needle/badge.svg)](https://snyk.io/test/github/Morgan-Stanley/needle})
+[![Build Status](https://travis-ci.com/MorganStanley/needle.svg?branch=main)](https://travis-ci.com/MorganStanley/needle?branch=main)
+[![codecov](https://codecov.io/gh/MorganStanley/needle/branch/master/graph/badge.svg)](https://codecov.io/gh/MorganStanley/needle)
+[![Known Vulnerabilities](https://snyk.io/test/github/MorganStanley/needle/badge.svg)](https://snyk.io/test/github/MorganStanley/needle})
 ![NPM](https://img.shields.io/npm/l/@morgan-stanley/needle)
 ![NPM](https://img.shields.io/badge/types-TypeScript-blue)
 
