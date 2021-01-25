@@ -1,5 +1,4 @@
 /* INTERNALS */
-import { IConstructionInterceptor, IInjectionContext, IInjector } from 'main/contracts/contracts';
 import { Configuration } from 'main/core/configuration';
 import { Metrics } from 'main/core/metrics';
 /* INTERNALS */
@@ -8,6 +7,9 @@ import {
     Factory,
     getOptional,
     getRootInjector,
+    IConstructionInterceptor,
+    IInjectionContext,
+    IInjector,
     Inject,
     Injectable,
     Injector,
