@@ -71,7 +71,9 @@ export class HistoryTeacher extends Individual {
 
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
-export class Child extends Individual {}
+export class Child extends Individual {
+    public age: number = 7;
+}
 
 // tslint:disable-next-line:max-classes-per-file
 @Injectable()
@@ -776,6 +778,22 @@ describe('Injector', () => {
             const lazy = instance.getLazy(Child);
 
             expect(lazy instanceof LazyInstance).toBeTruthy();
+            expect(lazy.value.id).toBeDefined();
+            expect(lazy.value.age).toBe(7);
+        });
+
+        it('should resolve a lazy when getLazy invoked on an abstract type.', () => {
+            const instance = getInstance();
+
+            instance.register(Child).register(Individual, {
+                resolution: Child,
+            });
+
+            const lazyIndividual = instance.getLazy(Individual);
+
+            expect(lazyIndividual instanceof LazyInstance).toBeTruthy();
+            expect(lazyIndividual.value.id).toBeDefined();
+            expect((lazyIndividual.value as Child).age).toBe(7);
         });
 
         it('should return false when hasValue queried and value has not yet been read', () => {
@@ -1726,8 +1744,8 @@ describe('Injector', () => {
                                 tokens: [childSymbol],
                             });
 
-                            const ancestorChild = injector.get('child-instance');
-                            const scopeChild = scoped.get(childSymbol);
+                            const ancestorChild = injector.get<Child>('child-instance');
+                            const scopeChild = scoped.get<Child>(childSymbol);
 
                             expect(ancestorChild).toBeDefined();
                             expect(scopeChild).toBeDefined();
