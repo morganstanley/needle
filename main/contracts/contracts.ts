@@ -14,7 +14,7 @@ export type Newable<T = any, T2 extends T = T> = new (...args: any[]) => T2;
 export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
 
 // More forgiving InstanceType to support instances of an Abstract Type (not Newable)
-export type InstanceOfType<T> = T extends { prototype: infer U } ? U : never;
+export type InstanceOfType<T> = T extends { prototype: infer U } ? U : T;
 
 /**
  * Constructor options allows passing of partial params to injector for construction
