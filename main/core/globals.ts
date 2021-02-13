@@ -1,4 +1,4 @@
-declare var global: any;
+declare let global: any;
 
 /**
  * @name getGlobal
