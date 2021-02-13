@@ -1,3 +1,5 @@
+const prettierConfig = require('prettier');
+
 module.exports = {
     env: {
         browser: true,
@@ -19,7 +21,7 @@ module.exports = {
     plugins: ['@typescript-eslint'],
     ignorePatterns: ['dist/', 'reports/'],
     rules: {
-        'prettier/prettier': ['error', { endOfLine: 'auto' }],
+        'prettier/prettier': ['error', prettierConfig],
         '@typescript-eslint/explicit-module-boundary-types': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
