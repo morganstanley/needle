@@ -4,9 +4,8 @@ const path = require('path');
 
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
-module.exports = function (config) {
+module.exports = function(config) {
     config.set({
-
         // base path that will be used to resolve all patterns (eg. files, exclude)
         basePath: '',
 
@@ -21,13 +20,13 @@ module.exports = function (config) {
 
         client: {
             clearContext: false, // leave Jasmine Spec Runner output visible in browser
-            args: process.argv  //  store command line args so we can modify tests based on passed args
+            args: process.argv, //  store command line args so we can modify tests based on passed args
         },
 
         junitReporter: {
             outputDir: path.join('reports', 'junit'),
             xmlVersion: 1, // use '1' if reporting to be per SonarQube 6.2 XML format
-            outputFile: "TESTS.xml"
+            outputFile: 'TESTS.xml',
         },
 
         coverageIstanbulReporter: {
@@ -38,17 +37,18 @@ module.exports = function (config) {
                 // all options available at: https://github.com/istanbuljs/istanbul-reports/blob/590e6b0089f67b723a1fdf57bc7ccc080ff189d7/lib/html/index.js#L135-L137
                 html: {
                     // outputs the report in ./coverage/html
-                    subdir: 'html'
-                }
+                    subdir: 'html',
+                },
             },
             thresholds: {
-                global: { // thresholds for all files
+                global: {
+                    // thresholds for all files
                     statements: 85,
                     lines: 85,
                     branches: 85,
-                    functions: 85
-                }
-            }
+                    functions: 85,
+                },
+            },
         },
 
         // web server port
@@ -68,12 +68,12 @@ module.exports = function (config) {
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
         browsers: ['Chrome'],
 
-        customLaunchers: {  
-            ChromeHeadlessNoSandbox: {  
-                base: 'ChromeHeadless',  
-                flags: ['--no-sandbox']  
-             }  
-         },
+        customLaunchers: {
+            ChromeHeadlessNoSandbox: {
+                base: 'ChromeHeadless',
+                flags: ['--no-sandbox'],
+            },
+        },
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
@@ -84,12 +84,12 @@ module.exports = function (config) {
         concurrency: Infinity,
 
         mime: {
-            'text/x-typescript': ['ts', 'tsx']
+            'text/x-typescript': ['ts', 'tsx'],
         },
 
         captureTimeout: 210000,
-        browserDisconnectTolerance: 3, 
+        browserDisconnectTolerance: 3,
         browserDisconnectTimeout: 210000,
         browserNoActivityTimeout: 210000,
-    })
-}
+    });
+};

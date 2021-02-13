@@ -393,6 +393,7 @@ export class Injector implements IInjector {
     private getRootInjector(): Injector {
         let currentInjector: Injector = this;
         while (currentInjector.isRoot() === false) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             currentInjector = currentInjector.parent! as Injector;
         }
         return currentInjector;
@@ -505,7 +506,7 @@ export class Injector implements IInjector {
 
     private createInstance<T extends new (...args: any[]) => any>(
         type: T,
-        updateCache: boolean = false,
+        updateCache = false,
         options?: IConstructionOptionsInternal<T>,
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
@@ -518,8 +519,6 @@ export class Injector implements IInjector {
                     .join(' -> ')}' as max tree depth has been reached`,
             );
         }
-
-        let instance: any;
 
         const overrideParams = (options || {}).params || [];
         const constructorParamTypes = getConstructorTypes(type);
@@ -537,6 +536,7 @@ export class Injector implements IInjector {
             .filter(interceptor => interceptor.target === type)
             .map(interceptor => ({
                 interceptor,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 configuration: injector.getRegistrationForType(type)!,
                 constructorArgs: constructorParamValues,
                 injector,
@@ -546,7 +546,7 @@ export class Injector implements IInjector {
         // Trigger before interceptors
         interceptorContexts.forEach(context => context.interceptor.beforeCreate(context));
 
-        instance = new type(...constructorParamValues);
+        const instance: any = new type(...constructorParamValues);
 
         // Trigger after interceptors
         interceptorContexts.forEach(context => context.interceptor.afterCreate(instance, context));

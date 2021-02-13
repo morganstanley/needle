@@ -1,13 +1,8 @@
 {
     "window.title": "needle ${dirty}${activeEditorShort}${separator}${rootName}${separator}${appName}",
-    "tslint.enable": true,
-    "tslint.autoFixOnSave": true,
     "editor.tabSize": 4,
     "editor.detectIndentation": false,
     "typescript.tsdk": "node_modules\\typescript\\lib",
-    "tslint.configFile": "tslint.conf.js",
     "typescript.preferences.importModuleSpecifier": "relative",
-    "editor.codeActionsOnSave": {
-        "tslint.autoFixOnSave": true,
-    }
+    "editor.codeActionsOnSave": { "source.fixAll.eslint": true }
 }

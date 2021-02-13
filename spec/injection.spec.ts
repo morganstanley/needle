@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-empty-interface */
 /* INTERNALS */
 import { Configuration } from 'main/core/configuration';
 import { Metrics } from 'main/core/metrics';
@@ -43,19 +47,16 @@ export class Strategy1 implements IStrategy {}
 })
 export class Strategy2 implements IStrategy {}
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 export class StrategyOwner {
     constructor(@Strategy('work-strategies') public workStrategies: IStrategy[]) {}
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable({
     tokens: ['geography-student'],
 })
 export class GeographyStudent extends Student {}
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 export class GeographyTeacher extends Individual {
     constructor(@Inject('geography-student') public student: Student) {
@@ -63,7 +64,6 @@ export class GeographyTeacher extends Individual {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 export class HistoryTeacher extends Individual {
     constructor(@Inject('history-student') public student: Student) {
@@ -71,16 +71,14 @@ export class HistoryTeacher extends Individual {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 export class Child extends Individual {
-    public age: number = 7;
+    public age = 7;
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 export class AdoptedChild extends Child {}
-// tslint:disable-next-line:max-classes-per-file
+
 @Injectable({
     tokens: ['father', 'mother'],
 })
@@ -89,7 +87,7 @@ export class Parent extends Individual {
         super();
     }
 }
-// tslint:disable-next-line:max-classes-per-file
+
 @Injectable()
 export class GrandParent extends Individual {
     constructor(public son: Parent) {
@@ -97,23 +95,19 @@ export class GrandParent extends Individual {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class NaughtyTurtle {
     constructor(public child: NaughtyTurtle) {}
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class Vehicle {
     constructor(public type: 'Bike' | 'Car' | 'Bus' | 'Train') {}
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class Engine {}
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class Car extends Vehicle {
     constructor(@Optional() public engine: Engine) {
@@ -121,7 +115,6 @@ class Car extends Vehicle {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class Bus extends Vehicle {
     constructor(public engine: Engine, public capacity: number) {
@@ -129,7 +122,6 @@ class Bus extends Vehicle {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class Train extends Vehicle {
     constructor(@Lazy(Engine) public engine: LazyInstance<typeof Engine>) {
@@ -137,7 +129,6 @@ class Train extends Vehicle {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Injectable()
 class CarManufacturer {
     public cars = new Array<Car>();
@@ -151,7 +142,6 @@ class CarManufacturer {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 @Interceptor()
 export class EngineInterceptor implements IConstructionInterceptor<typeof Engine> {
     public beforeInvocation = new Array<IInjectionContext<typeof Engine>>();
