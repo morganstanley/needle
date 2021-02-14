@@ -36,6 +36,15 @@ export abstract class Student extends Individual {}
 
 interface IStrategy {}
 
+//no metadata test
+export class Pet {
+    public animalType = 'unknown';
+}
+//no metadata test
+export class Owner {
+    constructor(public pet: Pet) {}
+}
+
 @Injectable({
     strategy: 'work-strategies',
 })
@@ -280,6 +289,18 @@ describe('Injector', () => {
     });
 
     describe('Registration', () => {
+        it('should register using explicit metadata', () => {
+            const instance = getInstance();
+
+            const owner = instance
+                .register(Owner, { metadata: [Pet] })
+                .register(Pet)
+                .get(Owner);
+
+            expect(owner).toBeDefined();
+            expect(owner.pet).toBeDefined();
+        });
+
         it('should register a type for injection', () => {
             const instance = getInstance();
 

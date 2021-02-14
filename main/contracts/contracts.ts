@@ -343,6 +343,8 @@ export interface IInjectionConfiguration<T = any> {
      * @description If a type is provided the injector will attempt to substitute the original type with the new one being registered here.
      */
     resolution?: IExternalResolutionConfiguration<T> | T;
+
+    metadata?: any[];
 }
 
 /**

@@ -466,19 +466,26 @@ export class Injector implements IInjector {
                         ((options || {}) as any).params || [],
                     );
 
-                    // Fallback to trying to resolve from our injector
-                    if (instance === TYPE_NOT_FOUND) {
-                        if (registration) {
-                            instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
-                        } else {
-                            this.throwRegistrationNotFound(constructorType, ancestry);
-                        }
-                    } else if (externalResolutionStrategy.cacheSyncing === true) {
+                    if (instance !== TYPE_NOT_FOUND && externalResolutionStrategy.cacheSyncing === true) {
                         // Sync cache if required
                         injector.cache.update(constructorType, instance);
                     }
-                } else {
-                    instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
+                }
+
+                // At this point either we have no external resolution or if we did it didn't want to handle it so we must now try
+                if (instance === TYPE_NOT_FOUND || instance == null) {
+                    if (registration) {
+                        instance = this.createInstance(
+                            constructorType,
+                            true,
+                            options as any,
+                            registration,
+                            ancestry,
+                            injector,
+                        );
+                    } else {
+                        this.throwRegistrationNotFound(constructorType, ancestry);
+                    }
                 }
             }
         }
@@ -508,6 +515,7 @@ export class Injector implements IInjector {
         type: T,
         updateCache = false,
         options?: IConstructionOptionsInternal<T>,
+        registration: IInjectionConfiguration,
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
     ): InstanceType<T> {
