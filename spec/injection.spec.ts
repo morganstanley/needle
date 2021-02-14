@@ -37,12 +37,21 @@ export abstract class Student extends Individual {}
 interface IStrategy {}
 
 //no metadata test
-export class Pet {
+abstract class Pet {
     public animalType = 'unknown';
 }
+
+class Dog extends Pet {
+    public animalType = 'Dog';
+}
+
+class Cat extends Pet {
+    public animalType = 'Cat';
+}
+
 //no metadata test
-export class Owner {
-    constructor(public pet: Pet) {}
+class Owner {
+    constructor(public dog: Dog, public cat: Cat) {}
 }
 
 @Injectable({
@@ -289,18 +298,6 @@ describe('Injector', () => {
     });
 
     describe('Registration', () => {
-        it('should register using explicit metadata', () => {
-            const instance = getInstance();
-
-            const owner = instance
-                .register(Owner, { metadata: [Pet] })
-                .register(Pet)
-                .get(Owner);
-
-            expect(owner).toBeDefined();
-            expect(owner.pet).toBeDefined();
-        });
-
         it('should register a type for injection', () => {
             const instance = getInstance();
 
@@ -1056,6 +1053,34 @@ describe('Injector', () => {
             expect(exception.message).toBe(
                 `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
             );
+        });
+
+        it('should resolve a type that is using explicit metadata', () => {
+            const instance = getInstance();
+
+            const owner = instance
+                .register(Owner, { metadata: [Dog, Cat] })
+                .register(Dog)
+                .register(Cat)
+                .get(Owner);
+
+            expect(owner).toBeDefined();
+            expect(owner.dog).toBeDefined();
+            expect(owner.cat).toBeDefined();
+        });
+
+        it('should return undefined for deps', () => {
+            const instance = getInstance();
+
+            const owner = instance
+                .register(Owner)
+                .register(Dog)
+                .register(Cat)
+                .get(Owner);
+
+            expect(owner).toBeDefined();
+            expect(owner.dog).toBeUndefined();
+            expect(owner.cat).toBeUndefined();
         });
 
         it('should service subsequent instances of a type from the cache', () => {

@@ -65,7 +65,7 @@ function findIndex<T>(data: Array<T>, predicate: (item: T) => boolean): number {
  */
 export interface IConstructionOptionsInternal<T extends Newable, TParams = Partial<ConstructorParameters<T>>>
     extends IConstructionOptions<T, TParams> {
-    mode?: 'standard' | 'optional';
+    mode?: 'standard' | 'optional' | 'factory';
 }
 
 /**
@@ -327,7 +327,7 @@ export class Injector implements IInjector {
      * @param type
      */
     public getFactory<T extends Newable>(type: T): AutoFactory<T> {
-        return new AutoFactory(type, this, this.createInstance);
+        return new AutoFactory(type, this, this.createInstanceFactory);
     }
 
     /**
@@ -478,8 +478,8 @@ export class Injector implements IInjector {
                         instance = this.createInstance(
                             constructorType,
                             true,
-                            options as any,
                             registration,
+                            options as any,
                             ancestry,
                             injector,
                         );
@@ -511,11 +511,27 @@ export class Injector implements IInjector {
         );
     }
 
-    private createInstance<T extends new (...args: any[]) => any>(
+    private createInstanceFactory<T extends Newable>(
         type: T,
         updateCache = false,
         options?: IConstructionOptionsInternal<T>,
+        ancestors: any[] = [],
+        injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
+    ) {
+        const injectorForType = injector.getInjectorForTypeOrToken(injector, type);
+        const registration = injectorForType.getRegistrationForType(type);
+        if (registration == null) {
+            this.throwRegistrationNotFound(type, ancestors);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this.createInstance(type, updateCache, registration!, options, ancestors, injector);
+    }
+
+    private createInstance<T extends new (...args: any[]) => any>(
+        type: T,
+        updateCache = false,
         registration: IInjectionConfiguration,
+        options?: IConstructionOptionsInternal<T>,
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
     ): InstanceType<T> {
@@ -529,7 +545,7 @@ export class Injector implements IInjector {
         }
 
         const overrideParams = (options || {}).params || [];
-        const constructorParamTypes = getConstructorTypes(type);
+        const constructorParamTypes = registration.metadata != null ? registration.metadata : getConstructorTypes(type);
         // Note this call to construct param values introduces recursive behavior
         const constructorParamValues = this.getConstructorParamValues<T>(
             constructorParamTypes,
@@ -615,7 +631,8 @@ export class Injector implements IInjector {
                 factoryToken.factoryTarget as Newable,
                 injector,
                 // Need to ensure the this pointer is not lost (consider autobind (spread throwing errors :/))
-                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e), // :)
+                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) =>
+                    this.createInstanceFactory(s, m, i, l, e), // :)
             );
         }
         return undefined;
@@ -732,7 +749,7 @@ export class Injector implements IInjector {
      * @param injector
      * @param tokenOrType
      */
-    private getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): Injector {
+    public getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): Injector {
         const isType = !isStringOrSymbol(tokenOrType);
         let currentInjector = injector as Injector;
 

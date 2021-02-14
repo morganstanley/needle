@@ -306,6 +306,13 @@ export interface IInjector {
     getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }>;
 
     /**
+     * Resolves the nearest injector in our hierarchy that has a registration for the given type or token
+     * @param injector The starting point injector
+     * @param tokenOrType The type of the token we are looking for
+     */
+    getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): IInjector;
+
+    /**
      * Gets a scoped injector using the Id or the Name
      * @param nameOrId The name or the ID of the scope;
      * @description Will perform a breadth-first search
