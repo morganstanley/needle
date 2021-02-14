@@ -61,7 +61,7 @@ import "reflect-metadata";
 
 ## Decorators vs Registration API
 
-This library performs runtime introspection in order to determine what types it should construct.  To do this the library uses metadata and generally this metadata will be implicitly captured for you if you have enabled TypeScripts `experimentalDecorators` and a class is decorated with any decorator. You do not need to manage it at all.  However, you do not need to use decorators if you do not wish to.  In the case where no decorators applied you will need to manually provider the metadata via the registration API.  **Note** Managing the metadata explicitly can be time consuming so we recommend using the auto generated metadata approach by default. 
+This library performs runtime introspection in order to determine what types it should construct.  To do this the library uses metadata and generally this metadata will be implicitly captured for you if you have enabled TypeScripts `experimentalDecorators` and a class is decorated with any decorator. However, you do not need to use decorators if you do not wish to.  In the case where no decorators are applied you will need to manually provide the metadata via the registration API.  **Note** Managing the metadata explicitly can be time consuming so we **recommend using the auto generated metadata approach by default**. 
 
 ## Creating an injectable type
 
