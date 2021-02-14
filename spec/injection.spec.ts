@@ -1480,6 +1480,24 @@ describe('Injector', () => {
 
         describe('Ancestry', () => {
             describe('Resolution', () => {
+                describe('Resolve instance from ancestor with explicit metadata', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            instance
+                                .getScope(`level-${test.registrationLevel}`)!
+                                .register(Owner, { metadata: [Dog, Cat] })
+                                .register(Dog)
+                                .register(Cat);
+
+                            const owner = instance.getScope(`level-${test.resolutionLevel}`)!.get(Owner);
+
+                            expect(owner).toBeDefined();
+                        });
+                    });
+                });
+
                 describe('Resolve instance from ancestor', () => {
                     generateTestExecutionData().forEach(test => {
                         it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {

@@ -65,7 +65,7 @@ function findIndex<T>(data: Array<T>, predicate: (item: T) => boolean): number {
  */
 export interface IConstructionOptionsInternal<T extends Newable, TParams = Partial<ConstructorParameters<T>>>
     extends IConstructionOptions<T, TParams> {
-    mode?: 'standard' | 'optional' | 'factory';
+    mode?: 'standard' | 'optional';
 }
 
 /**
