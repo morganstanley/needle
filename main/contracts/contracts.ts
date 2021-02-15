@@ -351,6 +351,9 @@ export interface IInjectionConfiguration<T = any> {
      */
     resolution?: IExternalResolutionConfiguration<T> | T;
 
+    /**
+     * You can provide explicit metadata for a type using this property.  Note if you are not leveraging decorators with 'emitDecoratorMetadata' you must provide all metadata for a given type
+     */
     metadata?: any[];
 }
 
