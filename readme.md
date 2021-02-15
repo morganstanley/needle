@@ -875,8 +875,3 @@ platformBrowserDynamic(providers)
     .bootstrapModule(AppModule)
     .catch(err => console.error(err));
 ```
-
-# Decorators vs API
-
-Using the decorators or using the API is really up to the developer.  As you can see you can achieve the same with both approaches.  However some advice when using the API. You may want to have a single registration file which registers all your injectables.  Avoid the urge to do this as it leads to issues when trying to implement semantic injection. Instead keep registrations local to the class implementations. 
-

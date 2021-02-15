@@ -689,6 +689,23 @@ describe('Injector', () => {
             expect(vehicle.type).toBe('Bike');
         });
 
+        it('should throw excception when factory type is not registered and attempt to resolve.', () => {
+            const instance = getInstance();
+            let registrationError: any;
+            const factory = instance.getFactory(Vehicle);
+
+            try {
+                factory.create('Bike');
+            } catch (ex) {
+                registrationError = ex;
+            }
+
+            expect(registrationError).toBeDefined();
+            expect(registrationError.message).toBe(
+                "Cannot construct Type 'Vehicle' with ancestry '' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional",
+            );
+        });
+
         it('should auto resolve parameters for a factory when not supplied by developer', () => {
             const instance = getInstance();
 
