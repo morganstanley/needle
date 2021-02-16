@@ -22,6 +22,7 @@ import {
     LazyInstance,
     Optional,
     Strategy,
+    MetadataParams,
 } from '../main';
 import { DI_ROOT_INJECTOR_KEY, NULL_VALUE, TYPE_NOT_FOUND, UNDEFINED_VALUE } from '../main/constants/constants';
 import { InstanceCache } from '../main/core/cache';
@@ -47,6 +48,7 @@ class Dog extends Pet {
 
 class Cat extends Pet {
     public animalType = 'Cat';
+    public breed = 'Ginger';
 }
 
 //no metadata test

@@ -11,6 +11,16 @@ export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy' | 'opt
 
 export type Newable<T = any, T2 extends T = T> = new (...args: any[]) => T2;
 
+export type Constructor<T> = new (...args: any[]) => T;
+
+export type StaticTypes<T> = {
+    [K in keyof T]: Constructor<T[K]>;
+};
+
+export type MetadataParams<T> = T extends new (...args: infer P) => any ? P : never;
+
+export type MetadataStaticConstructorTypes<T> = StaticTypes<MetadataParams<T>>;
+
 export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
 
 // More forgiving InstanceType to support instances of an Abstract Type (not Newable)
@@ -354,7 +364,7 @@ export interface IInjectionConfiguration<T = any> {
     /**
      * You can provide explicit metadata for a type using this property.  Note if you are not leveraging decorators with 'emitDecoratorMetadata' you must provide all metadata for a given type
      */
-    metadata?: any[];
+    metadata?: MetadataStaticConstructorTypes<T>;
 }
 
 /**
