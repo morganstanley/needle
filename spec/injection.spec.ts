@@ -22,6 +22,7 @@ import {
     LazyInstance,
     Optional,
     Strategy,
+    MetadataParams,
 } from '../main';
 import { DI_ROOT_INJECTOR_KEY, NULL_VALUE, TYPE_NOT_FOUND, UNDEFINED_VALUE } from '../main/constants/constants';
 import { InstanceCache } from '../main/core/cache';
@@ -35,6 +36,25 @@ export abstract class Individual {
 export abstract class Student extends Individual {}
 
 interface IStrategy {}
+
+//no metadata test
+abstract class Pet {
+    public animalType = 'unknown';
+}
+
+class Dog extends Pet {
+    public animalType = 'Dog';
+}
+
+class Cat extends Pet {
+    public animalType = 'Cat';
+    public breed = 'Ginger';
+}
+
+//no metadata test
+class Owner {
+    constructor(public dog: Dog, public cat: Cat) {}
+}
 
 @Injectable({
     strategy: 'work-strategies',
@@ -671,6 +691,23 @@ describe('Injector', () => {
             expect(vehicle.type).toBe('Bike');
         });
 
+        it('should throw excception when factory type is not registered and attempt to resolve.', () => {
+            const instance = getInstance();
+            let registrationError: any;
+            const factory = instance.getFactory(Vehicle);
+
+            try {
+                factory.create('Bike');
+            } catch (ex) {
+                registrationError = ex;
+            }
+
+            expect(registrationError).toBeDefined();
+            expect(registrationError.message).toBe(
+                "Cannot construct Type 'Vehicle' with ancestry '' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional",
+            );
+        });
+
         it('should auto resolve parameters for a factory when not supplied by developer', () => {
             const instance = getInstance();
 
@@ -1035,6 +1072,34 @@ describe('Injector', () => {
             expect(exception.message).toBe(
                 `Cannot construct Type 'Child' with ancestry 'Child' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
             );
+        });
+
+        it('should resolve a type that is using explicit metadata', () => {
+            const instance = getInstance();
+
+            const owner = instance
+                .register(Owner, { metadata: [Dog, Cat] })
+                .register(Dog)
+                .register(Cat)
+                .get(Owner);
+
+            expect(owner).toBeDefined();
+            expect(owner.dog).toBeDefined();
+            expect(owner.cat).toBeDefined();
+        });
+
+        it('should return undefined for deps', () => {
+            const instance = getInstance();
+
+            const owner = instance
+                .register(Owner)
+                .register(Dog)
+                .register(Cat)
+                .get(Owner);
+
+            expect(owner).toBeDefined();
+            expect(owner.dog).toBeUndefined();
+            expect(owner.cat).toBeUndefined();
         });
 
         it('should service subsequent instances of a type from the cache', () => {
@@ -1434,6 +1499,24 @@ describe('Injector', () => {
 
         describe('Ancestry', () => {
             describe('Resolution', () => {
+                describe('Resolve instance from ancestor with explicit metadata', () => {
+                    generateTestExecutionData().forEach(test => {
+                        it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
+                            const instance = getInstance(true, test.depth);
+
+                            instance
+                                .getScope(`level-${test.registrationLevel}`)!
+                                .register(Owner, { metadata: [Dog, Cat] })
+                                .register(Dog)
+                                .register(Cat);
+
+                            const owner = instance.getScope(`level-${test.resolutionLevel}`)!.get(Owner);
+
+                            expect(owner).toBeDefined();
+                        });
+                    });
+                });
+
                 describe('Resolve instance from ancestor', () => {
                     generateTestExecutionData().forEach(test => {
                         it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {

@@ -11,6 +11,16 @@ export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy' | 'opt
 
 export type Newable<T = any, T2 extends T = T> = new (...args: any[]) => T2;
 
+export type Constructor<T> = new (...args: any[]) => T;
+
+export type StaticTypes<T> = {
+    [K in keyof T]: Constructor<T[K]>;
+};
+
+export type MetadataParams<T> = T extends new (...args: infer P) => any ? P : never;
+
+export type MetadataStaticConstructorTypes<T> = StaticTypes<MetadataParams<T>>;
+
 export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
 
 // More forgiving InstanceType to support instances of an Abstract Type (not Newable)
@@ -306,6 +316,13 @@ export interface IInjector {
     getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }>;
 
     /**
+     * Resolves the nearest injector in our hierarchy that has a registration for the given type or token
+     * @param injector The starting point injector
+     * @param tokenOrType The type of the token we are looking for
+     */
+    getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): IInjector;
+
+    /**
      * Gets a scoped injector using the Id or the Name
      * @param nameOrId The name or the ID of the scope;
      * @description Will perform a breadth-first search
@@ -343,6 +360,11 @@ export interface IInjectionConfiguration<T = any> {
      * @description If a type is provided the injector will attempt to substitute the original type with the new one being registered here.
      */
     resolution?: IExternalResolutionConfiguration<T> | T;
+
+    /**
+     * You can provide explicit metadata for a type using this property.  Note if you are not leveraging decorators with 'emitDecoratorMetadata' you must provide all metadata for a given type
+     */
+    metadata?: MetadataStaticConstructorTypes<T>;
 }
 
 /**

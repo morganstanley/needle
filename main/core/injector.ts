@@ -327,7 +327,7 @@ export class Injector implements IInjector {
      * @param type
      */
     public getFactory<T extends Newable>(type: T): AutoFactory<T> {
-        return new AutoFactory(type, this, this.createInstance);
+        return new AutoFactory(type, this, this.createInstanceFactory);
     }
 
     /**
@@ -466,19 +466,26 @@ export class Injector implements IInjector {
                         ((options || {}) as any).params || [],
                     );
 
-                    // Fallback to trying to resolve from our injector
-                    if (instance === TYPE_NOT_FOUND) {
-                        if (registration) {
-                            instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
-                        } else {
-                            this.throwRegistrationNotFound(constructorType, ancestry);
-                        }
-                    } else if (externalResolutionStrategy.cacheSyncing === true) {
+                    if (instance !== TYPE_NOT_FOUND && externalResolutionStrategy.cacheSyncing === true) {
                         // Sync cache if required
                         injector.cache.update(constructorType, instance);
                     }
-                } else {
-                    instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
+                }
+
+                // At this point either we have no external resolution or if we did it didn't want to handle it so we must now try
+                if (instance === TYPE_NOT_FOUND || instance == null) {
+                    if (registration) {
+                        instance = this.createInstance(
+                            constructorType,
+                            true,
+                            registration,
+                            options as any,
+                            ancestry,
+                            injector,
+                        );
+                    } else {
+                        this.throwRegistrationNotFound(constructorType, ancestry);
+                    }
                 }
             }
         }
@@ -504,9 +511,26 @@ export class Injector implements IInjector {
         );
     }
 
+    private createInstanceFactory<T extends Newable>(
+        type: T,
+        updateCache = false,
+        options?: IConstructionOptionsInternal<T>,
+        ancestors: any[] = [],
+        injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
+    ) {
+        const injectorForType = injector.getInjectorForTypeOrToken(injector, type);
+        const registration = injectorForType.getRegistrationForType(type);
+        if (registration == null) {
+            this.throwRegistrationNotFound(type, ancestors);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this.createInstance(type, updateCache, registration!, options, ancestors, injector);
+    }
+
     private createInstance<T extends new (...args: any[]) => any>(
         type: T,
         updateCache = false,
+        registration: IInjectionConfiguration,
         options?: IConstructionOptionsInternal<T>,
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
@@ -521,7 +545,7 @@ export class Injector implements IInjector {
         }
 
         const overrideParams = (options || {}).params || [];
-        const constructorParamTypes = getConstructorTypes(type);
+        const constructorParamTypes = registration.metadata != null ? registration.metadata : getConstructorTypes(type);
         // Note this call to construct param values introduces recursive behavior
         const constructorParamValues = this.getConstructorParamValues<T>(
             constructorParamTypes,
@@ -607,7 +631,8 @@ export class Injector implements IInjector {
                 factoryToken.factoryTarget as Newable,
                 injector,
                 // Need to ensure the this pointer is not lost (consider autobind (spread throwing errors :/))
-                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) => this.createInstance(s, m, i, l, e), // :)
+                (s: any, m: boolean, i?: any, l?: Array<any>, e?: IInjector) =>
+                    this.createInstanceFactory(s, m, i, l, e), // :)
             );
         }
         return undefined;
@@ -724,7 +749,7 @@ export class Injector implements IInjector {
      * @param injector
      * @param tokenOrType
      */
-    private getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): Injector {
+    public getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): Injector {
         const isType = !isStringOrSymbol(tokenOrType);
         let currentInjector = injector as Injector;
 

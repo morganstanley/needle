@@ -59,26 +59,39 @@ import "reflect-metadata";
 
 # Injectable basics
 
+## Decorators vs Registration API
+
+This library performs runtime introspection in order to determine what types it should construct.  To do this the library uses metadata and generally this metadata will be implicitly captured for you if you have enabled TypeScripts `experimentalDecorators` and a class is decorated with any decorator. However, you do not need to use decorators if you do not wish to.  In the case where no decorators are applied you will need to manually provide the metadata via the registration API.  **Note** Managing the metadata explicitly can be time consuming so we **recommend using the auto generated metadata approach by default**. 
+
 ## Creating an injectable type
 
-The easiest way to make a type injectable is to annotate it with the @Injectable annotation.  All types by default decorated in this way will be available for injection in any runtime context. 
+The easiest way to make a type injectable is to decorate it with the @Injectable decorator.  All types by default decorated in this way will be available for injection in any runtime context. 
 
 ```typescript
 import { Injectable } from '@morgan-stanley/needle';
 
 @Injectable()
-class MyThing {}
+class Pet {}
+
+@Injectable()
+class Owner {
+    constructor(pet: Pet) {}
+}
 ```
 
-While annotations are recommended for most use cases, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function. 
+While decorators are recommended, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function. **IMPORTANT** If you have decided not to use decorators for you injectable types, you will need to provide the constructor metadata explicitly.  Below is an example of how you can do that. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
 
-class MyThing {}
+class Pet {}
 
-//Equivalent to annotation
-getRootInjector().register(MyThing)
+class Owner {
+    constructor(pet: Pet) {}
+}
+
+//Equivalent to decorator
+getRootInjector().register(Owner, { metadata: Pet }).register(Pet)
 ```
 
 ## Resolving injectables
@@ -88,7 +101,7 @@ In order to resolve an instance of your injectable you have a couple of options.
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
 
-const myThing = getRootInjector().get(MyThing);
+const myThing = getRootInjector().get(Owner);
 ```
 
 Alternatively, you can import the `get` function directly. 
@@ -96,7 +109,7 @@ Alternatively, you can import the `get` function directly.
 ```typescript
 import { get } from '@morgan-stanley/needle';
 
-const myThing = get(MyThing);
+const myThing = get(Owner);
 ```
 
 Both examples map to the same underlying implementation and use the root injector to resolve an instance.  Resolving the same type twice will result in the same instance being serviced from the cache.  
@@ -104,11 +117,13 @@ Both examples map to the same underlying implementation and use the root injecto
 ```typescript
 import { getRootInjector, get } from '@morgan-stanley/needle';
 
-const thing1 = getRootInjector().get(MyThing);
-const thing2 = get(MyThing);
+const owner1 = getRootInjector().get(Owner);
+const owner2 = get(Owner);
 
-console.log(thing1 === thing2) //True
+console.log(owner1 === owner2) //True
 ```
+
+All child dependencies (in this case `Pet`) will be automatically resolved for the `Owners` constructor.
 
 # Tokens
 
@@ -116,7 +131,7 @@ Tokens allow us to provide a marker to the injector whereby the type we are goin
 
 ## Registering with tokens
 
-The simplest way to register your type against a token is to use the tokens array defined in the `@Injectable` annotation. here we have a type `GeographyStudent` who defines a string `geography-student`  upon which this type can be resolved.  
+The simplest way to register your type against a token is to use the tokens array defined in the `@Injectable` decorator. here we have a type `GeographyStudent` who defines a string `geography-student`  upon which this type can be resolved.  
 
 ```typescript
 import { Injectable } from '@morgan-stanley/needle';
@@ -165,7 +180,7 @@ getRootInjector()
 
 ## Resolving by token
 
-To resolve a type by token we can make use of the `@Inject` annotation. In the constructor of a given injectable we can mark one of the parameters with `@Inject` providing a token which we wish to resolve. Note, the parameter type does not need to match the type of the injected value.  This is what allows us to use either interfaces or a sub type as a replacement for the real type. 
+To resolve a type by token we can make use of the `@Inject` decorator. In the constructor of a given injectable we can mark one of the parameters with `@Inject` providing a token which we wish to resolve. Note, the parameter type does not need to match the type of the injected value.  This is what allows us to use either interfaces or a sub type as a replacement for the real type. 
 
 ```typescript
 @Injectable()
@@ -264,7 +279,7 @@ getRootInjector()
 
 Strategies allow us to register multiple type providers against a given strategy key and then inject an array of all the strategies in the given consumer class. An injectable type can both exist as a strategy and pure injectable at the same time.  
 
-Creating strategies can be achieved using the `@Injectable` annotation or the API. Both approaches make use of the `strategy` property on the injectable config. 
+Creating strategies can be achieved using the `@Injectable` decorator or the API. Both approaches make use of the `strategy` property on the injectable config. 
 
 ## Registering strategies
 
@@ -316,7 +331,7 @@ getRootInjector()
 ```
 ## Resolving strategies
 
-When it comes to injecting lists of strategies we can use the `@Strategy` annotation to mark that we expect an array of strategies.  You can register consumers of strategies using this annotation or the API.  
+When it comes to injecting lists of strategies we can use the `@Strategy` decorator to mark that we expect an array of strategies.  You can register consumers of strategies using this decorator or the API.  
 
 ```typescript
 import { Injectable, get } from '@morgan-stanley/needle';
@@ -351,7 +366,7 @@ All types registered with the container can be used as factories.  There is no s
 
 ## Resolve a Factory
 
-There are two ways to resolve a factory.  Explicitly using the API or via the `@Factory` annotation.  Below are examples of both types of resolution.  
+There are two ways to resolve a factory.  Explicitly using the API or via the `@Factory` decorator.  Below are examples of both types of resolution.  
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
 
@@ -360,7 +375,7 @@ const carFactory = getRootInjector().getFactory(Car)
 console.log(carFactory) // Defined
 ```
 
-Example of annotation. 
+Example of decorator. 
 
 ```typescript
 @Injectable()
@@ -416,7 +431,7 @@ All types registered with the container can be used with lazy injection.  There 
 
 ## Resolve a LazyInstance
 
-There are two ways to resolve a Lazy.  Explicitly using the API or via the `@Lazy` annotation.  Below are examples of both types of resolution.  
+There are two ways to resolve a Lazy.  Explicitly using the API or via the `@Lazy` decorator.  Below are examples of both types of resolution.  
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
@@ -440,7 +455,7 @@ const carInstance = carLazy.value;
 hasValue = carLazy.hasValue //True;
 ```
 
-We can use the `@Lazy` annotation to signal to the injector that we would like a lazy to be provided in place of the real injectable.  
+We can use the `@Lazy` decorator to signal to the injector that we would like a lazy to be provided in place of the real injectable.  
 
 ```typescript
 @Injectable()
@@ -451,7 +466,7 @@ class CarManufacturer {
 
 # Optional injection
 
-In some environments it will not always be the case that an injectable type has been registered with the injector.  For these scenarios you can leverage the `@Optional` annotation which will allow the injector to resolve `undefined` if no matching registration can be found. 
+In some environments it will not always be the case that an injectable type has been registered with the injector.  For these scenarios you can leverage the `@Optional` decorator which will allow the injector to resolve `undefined` if no matching registration can be found. 
 
 ## Registering an Optional Injectable
 
@@ -459,7 +474,7 @@ All constructor types can be used with optional injection.  There is no special 
 
 ## Resolve an optional injectable
 
-We can use the `@Optional` annotation to signal to the injector that we would like it to resolve `undefined` if no registrations can be found. Below is an example of a constructor for a Car type which supports optional storage.  
+We can use the `@Optional` decorator to signal to the injector that we would like it to resolve `undefined` if no registrations can be found. Below is an example of a constructor for a Car type which supports optional storage.  
 
 ```typescript
 @Injectable()
@@ -499,7 +514,7 @@ There are times where you may require more granular control of a specific types 
 
 ## Registering a type for external resolution
 
-If you want to entirely own the process of constructing a given type you can define an `ExternalResolutionStrategy` which will be used in place of needles construction logic.  Below shows an example of registering our own resolution strategy against a given type using the annotation approach.  The `resolution` takes a resolver function where you can perform your custom construction and an additional flag (`cacheSyncing`) signalling to needle if it should store the result in its internal cache. 
+If you want to entirely own the process of constructing a given type you can define an `ExternalResolutionStrategy` which will be used in place of needles construction logic.  Below shows an example of registering our own resolution strategy against a given type using the decorator approach.  The `resolution` takes a resolver function where you can perform your custom construction and an additional flag (`cacheSyncing`) signalling to needle if it should store the result in its internal cache. 
 
 ```typescript
 @Injectable({
@@ -860,8 +875,3 @@ platformBrowserDynamic(providers)
     .bootstrapModule(AppModule)
     .catch(err => console.error(err));
 ```
-
-# Annotations vs API
-
-Using the annotations or using the API is really up to the developer.  As you can see you can achieve the same with both approaches.  However some advice when using the API. You may want to have a single registration file which registers all your injectables.  Avoid the urge to do this as it leads to issues when trying to implement semantic injection. Instead keep registrations local to the class implementations. 
-
