@@ -28,16 +28,20 @@ import {
     ITokenCache,
     Newable,
     StringOrSymbol,
+    IValueInjectionConfiguration,
+    ValueType,
 } from '../contracts/contracts';
 import { InstanceCache } from './cache';
 import { Configuration } from './configuration';
 import { AutoFactory } from './factory';
 import { getGlobal } from './globals';
+import { createBoxedValueType } from './boxing';
 import {
     isExternalResolutionConfigurationLike,
     isFactoryParameterToken,
     isLazyParameterToken,
     isStringOrSymbol,
+    isBoxedValue,
 } from './guards';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
@@ -168,6 +172,21 @@ export class Injector implements IInjector {
         this.registerTokens(type, config.tokens);
         this.registerStrategy(type, config.strategy);
         this._registrations.set(type, config);
+        return this;
+    }
+
+    public registerValue<T extends ValueType>(configuration: IValueInjectionConfiguration<T>): this {
+        if (configuration.tokens == null || configuration.tokens.length === 0) {
+            throw new Error('All values must be registered with a given token');
+        }
+
+        // Create a boxed value type, then an instance of it.
+        const BoxedValue = createBoxedValueType();
+        const boxedValueInstance = new BoxedValue(this, configuration.resolution);
+
+        //Now we can just register this type and its instance with the standard injector register method
+        this.registerInstance(BoxedValue, boxedValueInstance, configuration);
+
         return this;
     }
 
@@ -435,10 +454,12 @@ export class Injector implements IInjector {
 
         ancestry.push(constructorType);
 
-        // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
-        // If injector type then return `this` if not try and resolve from cache
-        const isInjectorType = constructorType === Injector || constructorType.typeId === INJECTOR_TYPE_ID;
-        instance = isInjectorType ? this : injector.cache.resolve(constructorType);
+        instance = this.getInjectorOrCacheValue(constructorType, injector);
+
+        //Intrinsic types are boxed by default and primed in the cache.  If we have one lets unbox its value and use that
+        if (isBoxedValue(instance)) {
+            instance = instance.unbox();
+        }
 
         // Not in cache so lets try and construct it
         if (instance == null) {
@@ -499,6 +520,13 @@ export class Injector implements IInjector {
         }
 
         return instance;
+    }
+
+    private getInjectorOrCacheValue(constructorType: any, injector: Injector): any {
+        // We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
+        // If injector type then return `this` if not try and resolve from cache
+        const isInjectorType = constructorType === Injector || constructorType.typeId === INJECTOR_TYPE_ID;
+        return isInjectorType ? this : injector.cache.resolve(constructorType);
     }
 
     private throwRegistrationNotFound(constructorType: any, ancestry: any[]) {
@@ -710,11 +738,15 @@ export class Injector implements IInjector {
             paramType = this.tryGetParamTypeFromToken(injectionParamTokens, index, paramType, paramInjector);
             const optional = this.isOptionalParam(optionalParamTokens, index);
 
-            const instance =
+            let instance =
                 paramInjector.cache.resolve(paramType) ||
                 paramInjector.getImpl(paramType, ancestors, {
                     mode: optional ? 'optional' : 'standard',
                 });
+
+            if (isBoxedValue(instance)) {
+                instance = instance.unbox();
+            }
 
             return instance;
         });

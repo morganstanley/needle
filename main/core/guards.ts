@@ -6,7 +6,10 @@ import {
     ILazyParameterInjectionToken,
     IParameterInjectionToken,
     StringOrSymbol,
+    IExternalValueResolutionConfiguration,
+    IBoxedValue,
 } from '../contracts/contracts';
+import { BOXED_TYPE_ID } from '../constants/constants';
 
 /**
  * Determines if the given type is an IInjectionTokenParameter
@@ -50,10 +53,18 @@ export function isStringOrSymbol(item: any): item is StringOrSymbol {
 }
 
 /**
- * Determines if a given value is an external resolution config
+ * Determines if the given value is an external resolution config
  * @param item
  */
 export function isExternalResolutionConfigurationLike(item: any): item is IExternalResolutionConfiguration {
+    return typeof item != null && item.resolver != null && typeof item.resolver === 'function';
+}
+
+/**
+ * Determines if the given value is an external value resolution config
+ * @param item
+ */
+export function isExternalValueResolutionConfigurationLike(item: any): item is IExternalValueResolutionConfiguration {
     return typeof item != null && item.resolver != null && typeof item.resolver === 'function';
 }
 
@@ -71,4 +82,11 @@ export function isInjectorLike(thing: any): thing is IInjector {
         thing.register != null &&
         thing.registerParamForFactoryInjection != null
     );
+}
+
+/**
+ * Determines if a value is a Boxed value
+ */
+export function isBoxedValue(thing: any): thing is IBoxedValue {
+    return thing != null && thing.typeId === BOXED_TYPE_ID;
 }
