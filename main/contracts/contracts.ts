@@ -385,9 +385,9 @@ export interface IValueInjectionConfiguration<T extends ValueType> {
     tokens: Array<StringOrSymbol> | undefined;
 
     /**
-     * Value resolution strategy.  Can be either a raw value or an external value resolution config
+     * The value or the value resolution strategy.
      */
-    resolution: IExternalValueResolutionConfiguration<T> | T;
+    value: IExternalValueResolutionConfiguration<T> | T;
 }
 
 /**

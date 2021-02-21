@@ -182,7 +182,7 @@ export class Injector implements IInjector {
 
         // Create a boxed value type, then an instance of it.
         const BoxedValue = createBoxedValueType();
-        const boxedValueInstance = new BoxedValue(this, configuration.resolution);
+        const boxedValueInstance = new BoxedValue(this, configuration.value);
 
         //Now we can just register this type and its instance with the standard injector register method
         this.registerInstance(BoxedValue, boxedValueInstance, configuration);

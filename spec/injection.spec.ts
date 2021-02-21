@@ -509,7 +509,7 @@ describe('Injector', () => {
             try {
                 instance.registerValue<string>({
                     tokens: [],
-                    resolution: 'myvalue',
+                    value: 'myvalue',
                 });
             } catch (ex) {
                 error = ex;
@@ -524,7 +524,7 @@ describe('Injector', () => {
 
             instance.registerValue<string>({
                 tokens: ['mystring'],
-                resolution: 'myvalue',
+                value: 'myvalue',
             });
 
             const value = instance.get('mystring');
@@ -538,7 +538,7 @@ describe('Injector', () => {
 
             instance.registerValue<number>({
                 tokens: ['answer-to-everything'],
-                resolution: 42,
+                value: 42,
             });
 
             const value = instance.get<number>('answer-to-everything');
@@ -552,7 +552,7 @@ describe('Injector', () => {
 
             instance.registerValue<Date>({
                 tokens: ['battle-of-hastings'],
-                resolution: new Date('14 Oct 1066'),
+                value: new Date('14 Oct 1066'),
             });
 
             const value = instance.get<Date>('battle-of-hastings');
@@ -571,7 +571,7 @@ describe('Injector', () => {
             // eslint-disable-next-line @typescript-eslint/ban-types
             instance.registerValue<Function>({
                 tokens: ['my-func'],
-                resolution: () => (invoked = true),
+                value: () => (invoked = true),
             });
 
             // eslint-disable-next-line @typescript-eslint/ban-types
@@ -587,7 +587,7 @@ describe('Injector', () => {
 
             instance.registerValue<boolean>({
                 tokens: ['flag'],
-                resolution: true,
+                value: true,
             });
 
             const value = instance.get<boolean>('flag');
@@ -600,7 +600,7 @@ describe('Injector', () => {
 
             instance.registerValue<string>({
                 tokens: ['value-1'],
-                resolution: {
+                value: {
                     cacheSyncing: true,
                     resolver: _injector => 'my-test',
                 },
@@ -618,7 +618,7 @@ describe('Injector', () => {
 
             instance.registerValue<number>({
                 tokens: ['value-1'],
-                resolution: {
+                value: {
                     cacheSyncing: false,
                     resolver: _injector => ++counter,
                 },
@@ -638,17 +638,17 @@ describe('Injector', () => {
 
             instance.registerValue<boolean>({
                 tokens: ['value-1'],
-                resolution: true,
+                value: true,
             });
 
             instance.registerValue<string>({
                 tokens: ['value-2'],
-                resolution: 'my-test',
+                value: 'my-test',
             });
 
             instance.registerValue<number>({
                 tokens: ['value-3'],
-                resolution: 13,
+                value: 13,
             });
 
             const value1 = instance.get<boolean>('value-1');
@@ -668,7 +668,7 @@ describe('Injector', () => {
                 .registerParamForTokenInjection('raw-token', SecurityToken, 0)
                 .registerValue<string>({
                     tokens: ['raw-token'],
-                    resolution: 'ABDCEF-12345',
+                    value: 'ABDCEF-12345',
                 });
 
             const securityToken = instance.get(SecurityToken);
@@ -683,13 +683,13 @@ describe('Injector', () => {
 
             instance.registerValue<string>({
                 tokens: ['my-value'],
-                resolution: 'my-test-value',
+                value: 'my-test-value',
             });
 
             try {
                 instance.registerValue<string>({
                     tokens: ['my-value'],
-                    resolution: 'another value',
+                    value: 'another value',
                 });
             } catch (ex) {
                 error = ex;
@@ -1759,7 +1759,7 @@ describe('Injector', () => {
 
                             instance.getScope(`level-${test.registrationLevel}`)!.registerValue<string>({
                                 tokens: ['ancestor-token'],
-                                resolution: 'ancestor',
+                                value: 'ancestor',
                             });
 
                             const ancestorValue = instance
@@ -1984,7 +1984,7 @@ describe('Injector', () => {
                                 .getScope(`level-${test.registrationLevel}`)!
                                 .registerValue<string>({
                                     tokens: ['my-value'],
-                                    resolution: 'value-parent',
+                                    value: 'value-parent',
                                 });
 
                             const value1 = ancestralInjector.get('my-value');
@@ -1992,7 +1992,7 @@ describe('Injector', () => {
 
                             scoped.registerValue<string>({
                                 tokens: ['my-value'],
-                                resolution: 'value-child',
+                                value: 'value-child',
                             });
 
                             const value2 = scoped.get('my-value');
