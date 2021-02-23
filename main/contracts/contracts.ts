@@ -2,7 +2,7 @@ import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type ValueType = number | string | Date | boolean | Function;
+export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | Object;
 
 export type InjectorIdentifier = string;
 

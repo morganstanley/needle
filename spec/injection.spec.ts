@@ -125,6 +125,11 @@ class SecurityToken {
 }
 
 @Injectable()
+class Payload {
+    constructor(@Inject('data-token') public jsonData: any) {}
+}
+
+@Injectable()
 class Vehicle {
     constructor(public type: 'Bike' | 'Car' | 'Bus' | 'Train') {}
 }
@@ -595,6 +600,66 @@ describe('Injector', () => {
             expect(value).toBeTrue();
         });
 
+        it('should register and resolve the value of type [RegEx]', () => {
+            const instance = getInstance();
+
+            instance.registerValue<RegExp>({
+                tokens: ['regular-expression'],
+                value: new RegExp('@'),
+            });
+
+            const value = instance.get<RegExp>('regular-expression');
+
+            expect(value).toBeDefined();
+        });
+
+        it('should register and resolve the value of type [Error]', () => {
+            const instance = getInstance();
+
+            instance.registerValue<Error>({
+                tokens: ['error-token'],
+                value: new Error('oops'),
+            });
+
+            const value = instance.get<Error>('error-token');
+
+            expect(value).toBeDefined();
+            expect(value.message).toBe('oops');
+        });
+
+        it('should register and resolve the value of type [Array]', () => {
+            const instance = getInstance();
+
+            instance.registerValue<Array<any>>({
+                tokens: ['array-token'],
+                value: [1, 2, 3],
+            });
+
+            const value = instance.get<Array<any>>('array-token');
+
+            expect(value).toBeDefined();
+            expect(value).toEqual([1, 2, 3]);
+        });
+
+        it('should register and resolve the value of type [JSON]', () => {
+            const instance = getInstance();
+            const jsonData = {
+                name: 'test',
+            };
+
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            instance.registerValue<object>({
+                tokens: ['json-token'],
+                value: jsonData,
+            });
+
+            // eslint-disable-next-line @typescript-eslint/ban-types
+            const value = instance.get<object>('json-token');
+
+            expect(value).toBeDefined();
+            expect(value).toBe(jsonData);
+        });
+
         it('should use the resolver config if provided to resolve the value', () => {
             const instance = getInstance();
 
@@ -609,6 +674,23 @@ describe('Injector', () => {
             const value = instance.get<string>('value-1');
 
             expect(value).toBe('my-test');
+        });
+
+        it('should use the resolver config if provided to resolve the value', () => {
+            const instance = getInstance();
+            const regex = new RegExp('@');
+
+            instance.registerValue<RegExp>({
+                tokens: ['value-1'],
+                value: {
+                    cacheSyncing: true,
+                    resolver: _injector => regex,
+                },
+            });
+
+            const value = instance.get<RegExp>('value-1');
+
+            expect(value).toBe(regex);
         });
 
         it('should regenerate the value if the resolver config does not enable caching', () => {
@@ -660,7 +742,7 @@ describe('Injector', () => {
             expect(value3).toBe(13);
         });
 
-        it('should inject the value into parent type', () => {
+        it('should inject the value into parent type [string]', () => {
             const instance = getInstance();
 
             instance
@@ -675,6 +757,27 @@ describe('Injector', () => {
 
             expect(securityToken).toBeDefined();
             expect(securityToken.rawToken).toBe('ABDCEF-12345');
+        });
+
+        it('should inject the value into parent type [object]', () => {
+            const instance = getInstance();
+            const jsonData = {
+                test: 'data',
+            };
+
+            instance
+                .register(Payload)
+                .registerParamForTokenInjection('data-token', Payload, 0)
+                // eslint-disable-next-line @typescript-eslint/ban-types
+                .registerValue<object>({
+                    tokens: ['data-token'],
+                    value: jsonData,
+                });
+
+            const payload = instance.get(Payload);
+
+            expect(payload).toBeDefined();
+            expect(payload.jsonData).toBe(jsonData);
         });
 
         it('should throw an error if value registered twice under same token and allowDuplicateTokens not enabled', () => {
