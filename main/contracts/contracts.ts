@@ -1,6 +1,9 @@
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | Object;
+
 export type InjectorIdentifier = string;
 
 export type StringOrSymbol = string | symbol;
@@ -214,9 +217,9 @@ export interface IInjector {
     register<T>(type: T, config?: IInjectionConfiguration<T>): this;
 
     /**
-     * Get the list of registration
+     * Registers a value with the injector.
      */
-    getRegistrations(): Map<any, IInjectionConfiguration>;
+    registerValue<T extends ValueType>(configuration: IValueInjectionConfiguration<T>): this;
 
     /**
      * Registers and instance of a type in the container
@@ -267,6 +270,11 @@ export interface IInjector {
      * @param parent Optional, destroy can be triggered by a parent being destroyed.
      */
     destroy(parent?: IInjector): void;
+
+    /**
+     * Get the list of registration
+     */
+    getRegistrations(): Map<any, IInjectionConfiguration>;
 
     /**
      * Gets an AutoFactory for a given type
@@ -368,18 +376,58 @@ export interface IInjectionConfiguration<T = any> {
 }
 
 /**
- * Configuration interface used when defining external resolution strategy
+ * Injection configuration object used for profiling information and behavior about the injectable value to the injector
  */
-export interface IExternalResolutionConfiguration<T = any> {
+export interface IValueInjectionConfiguration<T extends ValueType> {
+    /**
+     * A list of tokens that this injectable can be resolved by using the @Inject("token") annotation
+     */
+    tokens: Array<StringOrSymbol> | undefined;
+
+    /**
+     * The value or the value resolution strategy.
+     */
+    value: IExternalValueResolutionConfiguration<T> | T;
+}
+
+/**
+ * Represents a Boxed value type.
+ */
+export interface IBoxedValue {
+    typeId: string;
+    unbox(): any;
+}
+
+/**
+ * Base interface used when defining external resolution strategy
+ */
+export interface IExternalResolutionConfigurationBase {
     /**
      * Flag that when set to true will sync instances with the injectors cache.
      * @description By default no cache syncing is done
      */
     cacheSyncing?: boolean;
+}
+
+/**
+ * Configuration interface used when defining external resolution strategy
+ */
+export interface IExternalResolutionConfiguration<T = any> extends IExternalResolutionConfigurationBase {
     /**
      * The resolver function to be used when instancing types
      */
     resolver(type: T, currentInjector: IInjector, locals?: any): InstanceOfType<T>;
+}
+
+/**
+ * Configuration interface used when defining external value resolution strategy
+ */
+export interface IExternalValueResolutionConfiguration<T extends ValueType = any>
+    extends IExternalResolutionConfigurationBase {
+    /**
+     * The resolver function to be used when resolving the value
+     */
+    resolver(currentInjector: IInjector): T;
 }
 
 /**
