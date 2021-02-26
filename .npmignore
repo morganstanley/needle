@@ -6,14 +6,23 @@ dist/spec/
 .vscode/
 
 karma.conf.js
-train-build.js
-train.yaml
+karma.base.conf.js
+prettier.config.js
+.eslintrc.js
+.travis.yml
+codecov.yml
+CONTRIBUTING.md
+tsconfig.json
+typedoc.json
 
 *.tgz
 
 # ignore main
 
 main/**/*
+spec/**/*
+.github/**/*
+.dco/**/*
 
 # except for ts files (required for source maps)
 
