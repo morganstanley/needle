@@ -57,6 +57,84 @@ And you should import this module at the root of your application.
 import "reflect-metadata";
 ```
 
+# Feature table
+
+| Feature                | Sub-feature                      | Needle | Notes                                                                                  |
+|------------------------|----------------------------------|--------|----------------------------------------------------------------------------------------|
+| Decorator support      |                                  | YES    | Using '@decorators' to signal behaviour                                                |
+| Optional decorators    |                                  | YES    | Supporting decorator less injection                                                    |
+| TypeScript Typing's    |                                  | YES    | Full TypeScript support with Type safety                                               |
+| Global configuration   |                                  | YES    | Ability to configure global setting in the container                                   |
+| Semantic Injection     |                                  | YES    | Ability to respect semantic versioning in all injectable types                         |
+| Cache                  |                                  | YES    | Caching of injectables                                                                 |
+|                        | Cache manipulation               | YES    | Ability to directly manipulate the cache                                               |
+|                        | Scoping support                  | YES    | Caching support in scoped injectors                                                    |
+| Metrics                |                                  | YES    | Tracking of injectables in the system                                                  |
+|                        | Auto tracking                    | YES    | Zero config tracking model                                                             |
+|                        | Activation tracking              | YES    | Tracking when a type is first constructed                                              |
+|                        | Activation owners                | YES    | Tracking what type created an Injectable                                               |
+|                        | Resolution statistics            | YES    | Details of how often a type has been resolved etc                                      |
+|                        | Creation cost                    | YES    | Cost in time to construct the the Injectable                                           |
+|                        | Dependency counts                | YES    | Number of dependencies a given type has                                                |
+|                        | Scoping support                  | YES    | Are metrics tracked in scoped injectors                                                |
+|                        | Metrics manipulation             | YES    | Can developers manipulate metrics                                                      |
+| Tokenisation           |                                  | YES    | Does the DI library support tokenisation                                               |
+|                        | Decorator support                | YES    | Can you define tokens using '@decorators'                                              |
+|                        | API support                      | YES    | Can you define tokens using an API                                                     |
+|                        | String tokens                    | YES    | Can I use strings as tokens                                                            |
+|                        | Symbol tokens                    | YES    | Can I use Symbols to as tokens                                                         |
+|                        | Multiple tokens                  | YES    | Can I register multiple tokens for a single Injectable                                 |
+|                        | Token overriding                 | YES    | Can I override existing token registrations                                            |
+|                        | Unique token enforcement         | YES    | Can I enforce no token overriding                                                      |
+|                        | Scoping support                  | YES    | Are tokens supported in scoped injectors                                               |
+| Strategies             |                                  | YES    | Does the DI library support injecting multiple injectables into a given constructor    |
+|                        | Decorator support                | YES    | Can I use `@decorators` to register a strategy                                         |
+|                        | API support                      | YES    | Can I use the API to register a strategy                                               |
+|                        | String tokens                    | YES    | Can I register strategies using strings                                                |
+|                        | Symbol tokens                    | YES    | Can I register strategies using Symbols                                                |
+|                        | Scoping support                  | YES    | Are strategies supported in scoped injectors                                           |
+| Factories              |                                  | YES    | Does the DI library support factory construction types                                 |
+|                        | Decorator support                | YES    | Can I use `@decorators` to resolve a factory                                           |
+|                        | API support                      | YES    | Can I use API to resolve a factory                                                     |
+|                        | Scoping support                  | YES    | Are factories supported in scoped injectors                                            |
+|                        | Auto factories                   | YES    | Can all types be used as Factories                                                     |
+|                        | Parameter profiling              | YES    | Can I control constructor parameters explicitly                                        |
+| Lazy Injection         |                                  | YES    | Does the DI library support lazy dependency injection                                  |
+|                        | Decorator support                | YES    | Can I use `@decorators` to register/resolve a lazy injectable                          |
+|                        | API support                      | YES    | Can I use the API to register/resolve a lazy injectable                                |
+|                        | Scoping support                  | YES    | Are lazy injectables supported in scoped injectors                                     |
+| Optional Injection     |                                  | YES    | Does the DI library support optional constructor params for injection                  |
+|                        | Decorator support                | YES    | Can I use `@decorators` to resolve optional injectable                                 |
+|                        | API support                      | YES    | Can I use the API to register/resolve a optional injectable                            |
+|                        | Scoping support                  | YES    | Are optional injectables supported in scoped injectors                                 |
+| Instance Injection     |                                  | YES    | Does the DI library support registering instances against a type                       |
+|                        | API support                      | YES    | Can I use the API to register an instance of a type for injection                      |
+|                        | Scoping support                  | YES    | Are instances supported in scoped injectors                                            |
+| Value Injection        |                                  | YES    | Does the DI library allow for registering a value for injection (Non-injectable types) |
+|                        | Intrinsic values                 | YES    | Can I register intrinsic types such as Date, Regex, Number                             |
+|                        | AOT values                       | YES    | Can I eagerly supply the value for the value injection                                 |
+|                        | JIT values                       | YES    | Can I compute the value at point of injection                                          |
+|                        | Dynamic values                   | YES    | Can I recompute the value being injected on each resolution                            |
+| Custom Construction    |                                  | YES    | Does the DI library support construction external to the library itself                |
+|                        | Bespoke type construction        | YES    | Can I create my own constructor for a given type                                       |
+|                        | Global bespoke construction      | YES    | Can I create a global constructor for all types                                        |
+|                        | Abstract type construction       | YES    | Can I create a constructor for abstract base types                                     |
+|                        | Scoping support                  | YES    | Are custom constructors supported in scoped injectors                                  |
+| Hierarchical injection |                                  | YES    | Does the DI library support scoped injection contexts                                  |
+|                        | String scope names               | YES    | Can I use strings for scope names                                                      |
+|                        | Symbol scope names               | YES    | Can I use Symbols for scoped names                                                     |
+|                        | Registration overriding          | YES    | Can I override ancestral registration in my scope                                      |
+|                        | Disposal                         | YES    | Can I destroy a scope                                                                  |
+|                        | Scope lookup                     | YES    | Can I find a scope easily using its name or id.                                        |
+|                        | Scope inheritance                | YES    | Can scopes extend other scopes                                                         |
+| Interception           |                                  | YES    | Does the DI library support interceptors                                               |
+|                        | Decorator support                | YES    | Can I register interceptions using `@decorators`                                       |
+|                        | API support                      | YES    | Can I register interceptions using the API                                             |
+|                        | Before construction interception | YES    | Can I intercept a given type before its  constructed                                   |
+|                        | After construction interception  | YES    | Can I intercept a given type after its constructed                                     |
+| Injection delegation   |                                  | YES    | Can I delegate all construction to another DI library.                                 |
+
+
 # Injectable basics
 
 ## Decorators vs Registration API
@@ -597,18 +675,6 @@ getRootInjector().registerValue<string>({
 If you want the value to mutate on each request, you can set `cacheSyncing` to false.  
 
 **Note**: As values have no associated type upon which to decorate, you can only use the Injector API to register values.  
-
-```typescript
-import { getRootInjector } from '@morgan-stanley/needle';
-
-const vehicle =  new Vehicle('Bike');
-
-getRootInjector().registerInstance(Vehicle, vehicle);
-
-const instance = get(Vehicle); 
-
-console.log(instance === vehicle) // True
-```
 
 # Metrics tracking
 
