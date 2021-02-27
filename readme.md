@@ -59,9 +59,9 @@ import "reflect-metadata";
 
 # Feature table
 
-| Feature                | Sub-feature                      | Details                                                                                | Needle       |
+| Feature                | Sub-feature                      | Details                                                                                | Status       |
 |------------------------|----------------------------------|----------------------------------------------------------------------------------------|--------------|
-| Decorator support      |                                  | Using '@decorators' to signal behaviour                                                | Full Support |
+| Decorator support      |                                  | Using '@decorators' to signal behavior                                                 | Full Support |
 | Optional decorators    |                                  | Supporting decorator less injection                                                    | Full Support |
 | TypeScript Typing's    |                                  | Full TypeScript support with Type safety                                               | Full Support |
 | Global configuration   |                                  | Ability to configure global setting in the container                                   | Full Support |
@@ -77,14 +77,14 @@ import "reflect-metadata";
 |                        | Creation cost                    | Cost in time to construct the the Injectable                                           | Full Support |
 |                        | Dependency counts                | Number of dependencies a given type has                                                | Full Support |
 |                        | Scoping support                  | Are metrics tracked in scoped injectors                                                | Full Support |
-|                        | Metrics manipulation             | Can developers maniplulate metrics                                                     | Full Support |
+|                        | Metrics manipulation             | Can developers manipulate metrics                                                      | Full Support |
 | Tokenisation           |                                  | Does the DI library support tokenisation                                               | Full Support |
 |                        | Decorator support                | Can you define tokens using '@decorators'                                              | Full Support |
 |                        | API support                      | Can you define tokens using an API                                                     | Full Support |
 |                        | String tokens                    | Can I use strings as tokens                                                            | Full Support |
 |                        | Symbol tokens                    | Can I use Symbols to as tokens                                                         | Full Support |
 |                        | Multiple tokens                  | Can I register multiple tokens for a single Injectable                                 | Full Support |
-|                        | Token overriding                 | Can I override exisiting token registrations                                           | Full Support |
+|                        | Token overriding                 | Can I override existing token registrations                                            | Full Support |
 |                        | Unique token enforcement         | Can I enforce no token overriding                                                      | Full Support |
 |                        | Scoping support                  | Are tokens supported in scoped injectors                                               | Full Support |
 | Strategies             |                                  | Does the DI library support injecting multiple injectables into a given constructor    | Full Support |
