@@ -57,7 +57,7 @@ And you should import this module at the root of your application.
 import "reflect-metadata";
 ```
 
-# Feature table
+# Feature support
 
 | Feature                | Sub-feature                      | Details                                                                                | Status       |
 |------------------------|----------------------------------|----------------------------------------------------------------------------------------|--------------|
@@ -69,12 +69,12 @@ import "reflect-metadata";
 | Cache                  |                                  | Caching of injectables                                                                 | Full Support |
 |                        | Cache manipulation               | Ability to directly manipulate the cache                                               | Full Support |
 |                        | Scoping support                  | Caching support in scoped injectors                                                    | Full Support |
-| Metrics                |                                  | Tracking of injectables in the system                                                  | Full Support |
+| Metrics                |                                  | Tracking injectables in the system                                                     | Full Support |
 |                        | Auto tracking                    | Zero config tracking model                                                             | Full Support |
 |                        | Activation tracking              | Tracking when a type is first constructed                                              | Full Support |
 |                        | Activation owners                | Tracking what type created an Injectable                                               | Full Support |
 |                        | Resolution statistics            | Details of how often a type has been resolved etc                                      | Full Support |
-|                        | Creation cost                    | Cost in time to construct the the Injectable                                           | Full Support |
+|                        | Creation cost                    | Cost in time to construct the  Injectable                                              | Full Support |
 |                        | Dependency counts                | Number of dependencies a given type has                                                | Full Support |
 |                        | Scoping support                  | Are metrics tracked in scoped injectors                                                | Full Support |
 |                        | Metrics manipulation             | Can developers manipulate metrics                                                      | Full Support |
@@ -133,6 +133,7 @@ import "reflect-metadata";
 |                        | Before construction interception | Can I intercept a given type before its  constructed                                   | Full Support |
 |                        | After construction interception  | Can I intercept a given type after its constructed                                     | Full Support |
 | Injection delegation   |                                  | Can I delegate all construction to another DI library.                                 | Full Support |
+
 
 # Injectable basics
 
