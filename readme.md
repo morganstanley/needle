@@ -63,7 +63,7 @@ import "reflect-metadata";
 |------------------------|----------------------------------|----------------------------------------------------------------------------------------|--------------|
 | [Decorator support](https://github.com/morganstanley/needle#creating-an-injectable-type)      |                                  | Using '@decorators' to signal behavior                                                | Full Support |
 | Optional decorators    |                                  | Supporting decorator free injection                                                    | Full Support |
-| TypeScript Typing's    |                                  | Full TypeScript support with type safety                                               | Full Support |
+| TypeScript support   |                                  | Full TypeScript support with type safety                                               | Full Support |
 | [Global configuration](https://github.com/morganstanley/needle#global-configuration)   |                                  | Ability to configure global settings in the container                                  | Full Support |
 | [Semantic Injection](https://github.com/morganstanley/needle#semantic-injection)     |                                  | Ability to respect semantic versioning in all injectable types                         | Full Support |
 | Cache                  |                                  | Caching of injectables                                                                 | Full Support |
