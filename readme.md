@@ -61,79 +61,78 @@ import "reflect-metadata";
 
 | Feature                | Sub-feature                      | Details                                                                                | Status       |
 |------------------------|----------------------------------|----------------------------------------------------------------------------------------|--------------|
-| Decorator support      |                                  | Using '@decorators' to signal behavior                                                 | Full Support |
-| Optional decorators    |                                  | Supporting decorator less injection                                                    | Full Support |
-| TypeScript Typing's    |                                  | Full TypeScript support with Type safety                                               | Full Support |
-| Global configuration   |                                  | Ability to configure global setting in the container                                   | Full Support |
-| Semantic Injection     |                                  | Ability to respect semantic versioning in all injectable types                         | Full Support |
+| [Decorator support](https://github.com/morganstanley/needle#creating-an-injectable-type)      |                                  | Using '@decorators' to signal behavior                                                | Full Support |
+| Optional decorators    |                                  | Supporting decorator free injection                                                    | Full Support |
+| TypeScript Typing's    |                                  | Full TypeScript support with type safety                                               | Full Support |
+| [Global configuration](https://github.com/morganstanley/needle#global-configuration)   |                                  | Ability to configure global settings in the container                                  | Full Support |
+| [Semantic Injection](https://github.com/morganstanley/needle#semantic-injection)     |                                  | Ability to respect semantic versioning in all injectable types                         | Full Support |
 | Cache                  |                                  | Caching of injectables                                                                 | Full Support |
 |                        | Cache manipulation               | Ability to directly manipulate the cache                                               | Full Support |
 |                        | Scoping support                  | Caching support in scoped injectors                                                    | Full Support |
-| Metrics                |                                  | Tracking injectables in the system                                                     | Full Support |
+| [Metrics](https://github.com/morganstanley/needle#metrics-tracking)                |                                  | Tracking injectables in the system                                                     | Full Support |
 |                        | Auto tracking                    | Zero config tracking model                                                             | Full Support |
 |                        | Activation tracking              | Tracking when a type is first constructed                                              | Full Support |
-|                        | Activation owners                | Tracking what type created an Injectable                                               | Full Support |
+|                        | Activation owners                | Tracking what type is responsible for constructing an Injectable                       | Full Support |
 |                        | Resolution statistics            | Details of how often a type has been resolved etc                                      | Full Support |
 |                        | Creation cost                    | Cost in time to construct the  Injectable                                              | Full Support |
-|                        | Dependency counts                | Number of dependencies a given type has                                                | Full Support |
+|                        | Dependency counts                | Number of dependencies a given type has in its constructor                             | Full Support |
 |                        | Scoping support                  | Are metrics tracked in scoped injectors                                                | Full Support |
-|                        | Metrics manipulation             | Can developers manipulate metrics                                                      | Full Support |
-| Tokenisation           |                                  | Does the DI library support tokenisation                                               | Full Support |
+|                        | Metrics manipulation             | Can developers manipulate the metric data                                              | Full Support |
+| [Tokenisation](https://github.com/morganstanley/needle#tokens)          |                                  | Does the DI library support tokenisation                                               | Full Support |
 |                        | Decorator support                | Can you define tokens using '@decorators'                                              | Full Support |
 |                        | API support                      | Can you define tokens using an API                                                     | Full Support |
 |                        | String tokens                    | Can I use strings as tokens                                                            | Full Support |
-|                        | Symbol tokens                    | Can I use Symbols to as tokens                                                         | Full Support |
-|                        | Multiple tokens                  | Can I register multiple tokens for a single Injectable                                 | Full Support |
+|                        | Symbol tokens                    | Can I use Symbols as tokens                                                            | Full Support |
+|                        | Multiple tokens                  | Can I register multiple tokens for a single injectable                                 | Full Support |
 |                        | Token overriding                 | Can I override existing token registrations                                            | Full Support |
-|                        | Unique token enforcement         | Can I enforce no token overriding                                                      | Full Support |
+|                        | Unique token enforcement         | Can I enforce unqiue tokens                                                            | Full Support |
 |                        | Scoping support                  | Are tokens supported in scoped injectors                                               | Full Support |
-| Strategies             |                                  | Does the DI library support injecting multiple injectables into a given constructor    | Full Support |
+| [Strategies](https://github.com/morganstanley/needle#strategies)             |                                  | Does the DI library support injecting multiple injectables into a given constructor    | Full Support |
 |                        | Decorator support                | Can I use `@decorators` to register a strategy                                         | Full Support |
 |                        | API support                      | Can I use the API to register a strategy                                               | Full Support |
 |                        | String tokens                    | Can I register strategies using strings                                                | Full Support |
 |                        | Symbol tokens                    | Can I register strategies using Symbols                                                | Full Support |
 |                        | Scoping support                  | Are strategies supported in scoped injectors                                           | Full Support |
-| Factories              |                                  | Does the DI library support factory construction types                                 | Full Support |
+| [Factories](https://github.com/morganstanley/needle#factories)              |                                  | Does the DI library support factory construction types                                 | Full Support |
 |                        | Decorator support                | Can I use `@decorators` to resolve a factory                                           | Full Support |
 |                        | API support                      | Can I use API to resolve a factory                                                     | Full Support |
 |                        | Scoping support                  | Are factories supported in scoped injectors                                            | Full Support |
 |                        | Auto factories                   | Can all types be used as Factories                                                     | Full Support |
 |                        | Parameter profiling              | Can I control constructor parameters explicitly                                        | Full Support |
-| Lazy Injection         |                                  | Does the DI library support lazy dependency injection                                  | Full Support |
+| [Lazy Injection](https://github.com/morganstanley/needle#lazy-injection)         |                                  | Does the DI library support lazy dependency injection                                  | Full Support |
 |                        | Decorator support                | Can I use `@decorators` to register/resolve a lazy injectable                          | Full Support |
 |                        | API support                      | Can I use the API to register/resolve a lazy injectable                                | Full Support |
 |                        | Scoping support                  | Are lazy injectables supported in scoped injectors                                     | Full Support |
-| Optional Injection     |                                  | Does the DI library support optional constructor params for injection                  | Full Support |
+| [Optional Injection](https://github.com/morganstanley/needle#optional-injection)     |                                  | Does the DI library support optional constructor params for injection                  | Full Support |
 |                        | Decorator support                | Can I use `@decorators` to resolve optional injectable                                 | Full Support |
 |                        | API support                      | Can I use the API to register/resolve a optional injectable                            | Full Support |
 |                        | Scoping support                  | Are optional injectables supported in scoped injectors                                 | Full Support |
-| Instance Injection     |                                  | Does the DI library support registering instances against a type                       | Full Support |
+| [Instance Injection](https://github.com/morganstanley/needle#register-instance)     |                                  | Does the DI library support registering instances against a type                       | Full Support |
 |                        | API support                      | Can I use the API to register an instance of a type for injection                      | Full Support |
 |                        | Scoping support                  | Are instances supported in scoped injectors                                            | Full Support |
-| Value Injection        |                                  | Does the DI library allow for registering a value for injection (Non-injectable types) | Full Support |
+| [Value Injection](https://github.com/morganstanley/needle#register-value)        |                                  | Does the DI library allow for registering a value for injection (Non-injectable types) | Full Support |
 |                        | Intrinsic values                 | Can I register intrinsic types such as Date, Regex, Number                             | Full Support |
 |                        | AOT values                       | Can I eagerly supply the value for the value injection                                 | Full Support |
 |                        | JIT values                       | Can I compute the value at point of injection                                          | Full Support |
 |                        | Dynamic values                   | Can I recompute the value being injected on each resolution                            | Full Support |
-| Custom Construction    |                                  | Does the DI library support construction external to the library itself                | Full Support |
+| [Custom Construction](https://github.com/morganstanley/needle#external-resolution-strategies)    |                                  | Does the DI library support construction external to the library itself                | Full Support |
 |                        | Bespoke type construction        | Can I create my own constructor for a given type                                       | Full Support |
 |                        | Global bespoke construction      | Can I create a global constructor for all types                                        | Full Support |
 |                        | Abstract type construction       | Can I create a constructor for abstract base types                                     | Full Support |
 |                        | Scoping support                  | Are custom constructors supported in scoped injectors                                  | Full Support |
-| Hierarchical injection |                                  | Does the DI library support scoped injection contexts                                  | Full Support |
+| [Hierarchical injection](https://github.com/morganstanley/needle#scoped-injection) |                                  | Does the DI library support scoped injection contexts                                  | Full Support |
 |                        | String scope names               | Can I use strings for scope names                                                      | Full Support |
 |                        | Symbol scope names               | Can I use Symbols for scoped names                                                     | Full Support |
 |                        | Registration overriding          | Can I override ancestral registration in my scope                                      | Full Support |
 |                        | Disposal                         | Can I destroy a scope                                                                  | Full Support |
 |                        | Scope lookup                     | Can I find a scope easily using its name or id.                                        | Full Support |
 |                        | Scope inheritance                | Can scopes extend other scopes                                                         | Full Support |
-| Interception           |                                  | Does the DI library support interceptors                                               | Full Support |
+| [Interception](https://github.com/morganstanley/needle#interception)           |                                  | Does the DI library support interceptors                                               | Full Support |
 |                        | Decorator support                | Can I register interceptions using `@decorators`                                       | Full Support |
 |                        | API support                      | Can I register interceptions using the API                                             | Full Support |
 |                        | Before construction interception | Can I intercept a given type before its  constructed                                   | Full Support |
 |                        | After construction interception  | Can I intercept a given type after its constructed                                     | Full Support |
-| Injection delegation   |                                  | Can I delegate all construction to another DI library.                                 | Full Support |
-
+| [Injection delegation](https://github.com/morganstanley/needle#external-resolution-strategy)   |                                  | Can I delegate all construction to another DI library.                                 | Full Support |
 
 # Injectable basics
 
