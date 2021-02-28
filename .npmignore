@@ -22,7 +22,8 @@ typedoc.json
 main/**/*
 spec/**/*
 .github/**/*
-.dco/**/*
+dco/**/*
+docs/**/*
 
 # except for ts files (required for source maps)
 
