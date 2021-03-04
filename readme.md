@@ -481,7 +481,13 @@ const carWithSuperPowerfulEngine = factory.create(new SuperPowerfulEngine());
 
 ```
 
-If you would **not** like the injector to auto resolve the value for engine and you wanted to actually return `null` or `undefined` you can use well known injector values to achieve this.  
+If you prefer not to pass undefined to the factory, there is also a named constant `AUTO_RESOLVE` which can be used instead.  
+
+```typescript
+factory.create(AUTO_RESOLVE, 4);
+```
+
+If you would **not** like the injector to auto resolve the value for engine and you wanted to actually return `null` or `undefined` you can use well known injector values (`UNDEFINED_VALUE`, `NULL_VALUE` ) to achieve this.  
 
 ```typescript
 

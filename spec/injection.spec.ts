@@ -23,7 +23,13 @@ import {
     Optional,
     Strategy,
 } from '../main';
-import { DI_ROOT_INJECTOR_KEY, NULL_VALUE, TYPE_NOT_FOUND, UNDEFINED_VALUE } from '../main/constants/constants';
+import {
+    DI_ROOT_INJECTOR_KEY,
+    NULL_VALUE,
+    TYPE_NOT_FOUND,
+    UNDEFINED_VALUE,
+    AUTO_RESOLVE,
+} from '../main/constants/constants';
 import { InstanceCache } from '../main/core/cache';
 import { isInjectorLike } from '../main/core/guards';
 import { InjectionTokensCache } from '../main/core/tokens';
@@ -1023,6 +1029,19 @@ describe('Injector', () => {
 
             const carFactory = instance.getFactory(Car);
             const car = carFactory.create();
+
+            expect(carFactory).toBeDefined();
+            expect(car).toBeDefined();
+            expect(car.engine).toBeDefined();
+        });
+
+        it('should auto resolve parameters for a factory when supplied using named constant', () => {
+            const instance = getInstance();
+
+            instance.register(Car).register(Engine);
+
+            const carFactory = instance.getFactory(Car);
+            const car = carFactory.create(AUTO_RESOLVE);
 
             expect(carFactory).toBeDefined();
             expect(car).toBeDefined();

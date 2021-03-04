@@ -16,3 +16,8 @@ export const UNDEFINED_VALUE = { type: 'UNDEFINED_VALUE' };
  * Represents a type not being found inside of the injector or external injector
  */
 export const TYPE_NOT_FOUND = { type: 'TYPE_NOT_FOUND' };
+
+/**
+ * This constant can be used in conjunction with AutoFactory
+ */
+export const AUTO_RESOLVE = undefined;
