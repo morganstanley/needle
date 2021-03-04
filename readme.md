@@ -481,7 +481,7 @@ const carWithSuperPowerfulEngine = factory.create(new SuperPowerfulEngine());
 
 ```
 
-If you prefer not to pass undefined to the factory, there is also a convenience named constant `AUTO_RESOLVE` which be used instead.  
+If you prefer not to pass undefined to the factory, there is also a named constant `AUTO_RESOLVE` which can be used instead.  
 
 ```typescript
 factory.create(AUTO_RESOLVE, 4);
