@@ -5,6 +5,7 @@ export * from './annotations/factory';
 export * from './annotations/lazy';
 export * from './annotations/optional';
 export * from './annotations/interceptor';
+export * from './constants/constants';
 export * from './contracts/contracts';
 export * from './core/factory';
 export * from './core/lazy';
