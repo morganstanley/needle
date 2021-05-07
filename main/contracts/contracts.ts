@@ -300,7 +300,7 @@ export interface IInjector {
     /***
      * Gets an instance of a type or returns undefined if no registration
      */
-    getOptional<T>(type: T): InstanceOfType<T> | undefined;
+    getOptional<T>(type: T | StringOrSymbol): InstanceOfType<T> | undefined;
 
     /**
      * Returns an Array of the all types registered in the container

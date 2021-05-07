@@ -1,5 +1,5 @@
 import { DI_ROOT_INJECTOR_KEY } from '../constants/constants';
-import { IConstructionOptions, IInjector, InstanceOfType, Newable } from '../contracts/contracts';
+import { IConstructionOptions, IInjector, InstanceOfType, Newable, StringOrSymbol } from '../contracts/contracts';
 import { getGlobal } from './globals';
 
 const globalReference = getGlobal();
@@ -28,8 +28,8 @@ export function get<T>(
  * Gets an instance of a type or returns undefined if no registration
  * @param type The type to be resolved
  */
-export function getOptional<T extends Newable>(type: T): InstanceOfType<T> | undefined {
-    return getRootInjector().getOptional(type);
+export function getOptional<T extends Newable>(type: T | StringOrSymbol): InstanceOfType<T> | undefined {
+    return getRootInjector().getOptional<T>(type);
 }
 
 /***
