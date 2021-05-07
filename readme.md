@@ -574,6 +574,23 @@ You can also resolve an optional injectable using the `getOptional` method on th
 const car = injector.getOptional(Car) //Undefined
 ```
 
+## Resolve and optional token
+
+The `@Optional` decorator and the `getOptional` method also accept tokens to optionally inject:
+
+```typescript
+@Injectable()
+class Car {
+    constructor(@Optional("storageToken") private storage?: Storage) {
+        console.log(storage) //Undefined
+    }
+}
+```
+
+```typescript
+const car = injector.getOptional("carToken") //Undefined
+```
+
 # Register instance
 
 There are sometimes where you do not want the injection container to create the type. Instead you want to take an already existing instance and register it against a type.  For this you can use `registerInstance` on the injector.  
