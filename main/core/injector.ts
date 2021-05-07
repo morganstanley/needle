@@ -360,7 +360,7 @@ export class Injector implements IInjector {
     /**
      * Resolves a type and optional returns undefined if no registrations present
      */
-    public getOptional<T>(type: T): InstanceOfType<T> | undefined {
+    public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<T> | undefined {
         return this.getImpl((type as unknown) as Newable, [], { mode: 'optional' });
     }
 
@@ -448,7 +448,12 @@ export class Injector implements IInjector {
             ? injector.tokenCache.getTypeForToken(typeOrToken)
             : typeOrToken;
 
+        const allowOptional = options != null && options.mode === 'optional';
+
         if (constructorType === undefined) {
+            if (allowOptional) {
+                return undefined;
+            }
             throw new Error(NOT_FOUND);
         }
 
@@ -463,7 +468,6 @@ export class Injector implements IInjector {
 
         // Not in cache so lets try and construct it
         if (instance == null) {
-            const allowOptional = options != null && options.mode === 'optional';
             const registration = injector.getRegistrationForType(constructorType);
 
             // Are we going to use the types resolution strategy over the external one

@@ -1228,8 +1228,22 @@ describe('Injector', () => {
             expect(child).toBeUndefined();
         });
 
+        it('should resolve undefined when getOptional invoked on injector with a token and no registrations', () => {
+            const instance = getInstance();
+
+            const child = instance.getOptional('nonExistentToken');
+
+            expect(child).toBeUndefined();
+        });
+
         it('should resolve undefined when getOptional invoked via pure import and no registrations', () => {
             const child = getOptional(Child);
+
+            expect(child).toBeUndefined();
+        });
+
+        it('should resolve undefined when getOptional invoked via pure import with a token and no registrations', () => {
+            const child = getOptional('nonExistentToken');
 
             expect(child).toBeUndefined();
         });
@@ -1240,6 +1254,18 @@ describe('Injector', () => {
             instance.register(Child);
 
             const child = instance.getOptional(Child);
+
+            expect(child).toBeDefined();
+        });
+
+        it('should resolve token when getOptional invoked on injector has registrations', () => {
+            const instance = getInstance();
+
+            const token = 'injectionToken';
+
+            instance.register(Child, { tokens: [token] });
+
+            const child = instance.getOptional(token);
 
             expect(child).toBeDefined();
         });
