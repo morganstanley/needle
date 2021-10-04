@@ -1010,3 +1010,13 @@ platformBrowserDynamic(providers)
     .bootstrapModule(AppModule)
     .catch(err => console.error(err));
 ```
+## Injecting strategies into Angular components
+
+It is important to note that the @Strategy decorator cannot be used directly within the constructor of an Angular component. Angular is not aware of the @Strategy decorator so it is unable to resolve the strategies at runtime. When working with Angular components the Injector API should be used instead. This can be accessed by importing the `getRootInjector` function.
+
+```typescript
+import { getRootInjector } from '@morgan-stanley/needle';
+
+const strategies = getRootInjector().getStrategies('work-strategies');
+
+```
