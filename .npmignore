@@ -4,6 +4,7 @@ spec/
 reports/
 dist/spec/
 .vscode/
+.github/**/*
 
 karma.conf.js
 karma.base.conf.js
