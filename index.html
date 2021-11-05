@@ -1,0 +1,1572 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@morgan-stanley/needle</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">@morgan-stanley/needle</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1>@morgan-stanley/needle</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#morgan-stanleyneedle" id="morgan-stanleyneedle" style="color: inherit; text-decoration: none;">
+					<h1>@morgan-stanley/needle</h1>
+				</a>
+				<p><img src="https://img.shields.io/npm/v/@morgan-stanley/needle" alt="npm">
+					<a href="https://github.com/Roaders/needle/actions/workflows/build.yml"><img src="https://github.com/morganstanley/needle/actions/workflows/build.yml/badge.svg" alt="Build Status"></a>
+					<a href="https://codecov.io/gh/MorganStanley/needle"><img src="https://codecov.io/gh/MorganStanley/needle/branch/master/graph/badge.svg" alt="codecov"></a>
+					<a href="https://snyk.io/test/github/MorganStanley/needle%7D"><img src="https://snyk.io/test/github/MorganStanley/needle/badge.svg" alt="Known Vulnerabilities"></a>
+					<img src="https://img.shields.io/npm/l/@morgan-stanley/needle" alt="NPM">
+				<img src="https://img.shields.io/badge/types-TypeScript-blue" alt="NPM"></p>
+				<a href="#what-is-needle" id="what-is-needle" style="color: inherit; text-decoration: none;">
+					<h1>What is Needle?</h1>
+				</a>
+				<p>Needle is a lightweight &amp; powerful dependency injection container for supporting the development of universal code with full semantic runtime injection.  It helps you increase the testability of your applications as well as decoupling your code more effectively </p>
+				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+					<h1>Installation</h1>
+				</a>
+				<pre><code><span class="hljs-built_in">npm</span> install @morgan-stanley/needle</code></pre>
+				<a href="#typescript" id="typescript" style="color: inherit; text-decoration: none;">
+					<h1>TypeScript</h1>
+				</a>
+				<p>Required Typescript version: &gt;3.4</p>
+				<p>The library depends on TypeScript&#39;s support for decorators. Therefore you must enable <code>experimentalDecorators</code> and <code>emitDecoratorMetadata</code></p>
+				<pre><code class="language-json">{
+    <span class="hljs-attr">"compilerOptions"</span>: {
+        <span class="hljs-attr">"experimentalDecorators"</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-attr">"emitDecoratorMetadata"</span>: <span class="hljs-literal">true</span>
+    }
+}</code></pre>
+				<a href="#why-use-this" id="why-use-this" style="color: inherit; text-decoration: none;">
+					<h1>Why use this?</h1>
+				</a>
+				<ul>
+					<li>Simple &amp; lightweight </li>
+					<li>Can be used in many different JavaScript contexts: node, browsers, angular, react or vanilla js  </li>
+					<li>Provides a non-invasive way to stand up a tree of dependencies</li>
+					<li>Increases your code testability</li>
+					<li>Support semantic versioning injection</li>
+				</ul>
+				<a href="#polyfills" id="polyfills" style="color: inherit; text-decoration: none;">
+					<h1>Polyfills</h1>
+				</a>
+				<p>This library will work with modern browsers and JavaScript run-times without the need for polyfills, however if targeting older browsers like IE11 you will need to provide a polyfill for the following types. </p>
+				<ul>
+					<li>Map - <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map">Read about the Map type here</a></li>
+					<li>Symbol - <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol">Read about the Symbol type here</a></li>
+				</ul>
+				<p><strong>Note</strong> Symbol support is optional and only required if you intend to use Symbols for your token registrations.  </p>
+				<p>This library also makes use of the <code>reflect-metadata</code> <a href="https://rbuckton.github.io/reflect-metadata/">API</a> for performing runtime introspection. Most browsers will not support this therefore you must install this yourself. </p>
+				<pre><code class="language-typescript">npm install reflect-metadata</code></pre>
+				<p>And you should import this module at the root of your application.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> <span class="hljs-string">"reflect-metadata"</span>;</code></pre>
+				<a href="#feature-support" id="feature-support" style="color: inherit; text-decoration: none;">
+					<h1>Feature support</h1>
+				</a>
+				<table>
+					<thead>
+						<tr>
+							<th>Feature</th>
+							<th>Sub-feature</th>
+							<th>Details</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody><tr>
+							<td><a href="https://github.com/morganstanley/needle#creating-an-injectable-type">Decorator support</a></td>
+							<td></td>
+							<td>Using &#39;@decorators&#39; to signal behavior</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td>Optional decorators</td>
+							<td></td>
+							<td>Supporting decorator free injection</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td>TypeScript support</td>
+							<td></td>
+							<td>Full TypeScript support with type safety</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#global-configuration">Global configuration</a></td>
+							<td></td>
+							<td>Ability to configure global settings in the container</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#semantic-injection">Semantic Injection</a></td>
+							<td></td>
+							<td>Ability to respect semantic versioning in all injectable types</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td>Cache</td>
+							<td></td>
+							<td>Caching of injectables</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Cache manipulation</td>
+							<td>Ability to directly manipulate the cache</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Caching support in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#metrics-tracking">Metrics</a></td>
+							<td></td>
+							<td>Tracking injectables in the system</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Auto tracking</td>
+							<td>Zero config tracking model</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Activation tracking</td>
+							<td>Tracking when a type is first constructed</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Activation owners</td>
+							<td>Tracking what type is responsible for constructing an Injectable</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Resolution statistics</td>
+							<td>Details of how often a type has been resolved etc</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Creation cost</td>
+							<td>Cost in time to construct the  Injectable</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Dependency counts</td>
+							<td>Number of dependencies a given type has in its constructor</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are metrics tracked in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Metrics manipulation</td>
+							<td>Can developers manipulate the metric data</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#tokens">Tokenisation</a></td>
+							<td></td>
+							<td>Does the DI library support tokenisation</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Decorator support</td>
+							<td>Can you define tokens using &#39;@decorators&#39;</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>API support</td>
+							<td>Can you define tokens using an API</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>String tokens</td>
+							<td>Can I use strings as tokens</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Symbol tokens</td>
+							<td>Can I use Symbols as tokens</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Multiple tokens</td>
+							<td>Can I register multiple tokens for a single injectable</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Token overriding</td>
+							<td>Can I override existing token registrations</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Unique token enforcement</td>
+							<td>Can I enforce unqiue tokens</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are tokens supported in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#strategies">Strategies</a></td>
+							<td></td>
+							<td>Does the DI library support injecting multiple injectables into a given constructor</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Decorator support</td>
+							<td>Can I use <code>@decorators</code> to register a strategy</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>API support</td>
+							<td>Can I use the API to register a strategy</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>String tokens</td>
+							<td>Can I register strategies using strings</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Symbol tokens</td>
+							<td>Can I register strategies using Symbols</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are strategies supported in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#factories">Factories</a></td>
+							<td></td>
+							<td>Does the DI library support factory construction types</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Decorator support</td>
+							<td>Can I use <code>@decorators</code> to resolve a factory</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>API support</td>
+							<td>Can I use API to resolve a factory</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are factories supported in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Auto factories</td>
+							<td>Can all types be used as Factories</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Parameter profiling</td>
+							<td>Can I control constructor parameters explicitly</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#lazy-injection">Lazy Injection</a></td>
+							<td></td>
+							<td>Does the DI library support lazy dependency injection</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Decorator support</td>
+							<td>Can I use <code>@decorators</code> to register/resolve a lazy injectable</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>API support</td>
+							<td>Can I use the API to register/resolve a lazy injectable</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are lazy injectables supported in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#optional-injection">Optional Injection</a></td>
+							<td></td>
+							<td>Does the DI library support optional constructor params for injection</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Decorator support</td>
+							<td>Can I use <code>@decorators</code> to resolve optional injectable</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>API support</td>
+							<td>Can I use the API to register/resolve a optional injectable</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are optional injectables supported in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#register-instance">Instance Injection</a></td>
+							<td></td>
+							<td>Does the DI library support registering instances against a type</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>API support</td>
+							<td>Can I use the API to register an instance of a type for injection</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are instances supported in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#register-value">Value Injection</a></td>
+							<td></td>
+							<td>Does the DI library allow for registering a value for injection (Non-injectable types)</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Intrinsic values</td>
+							<td>Can I register intrinsic types such as Date, Regex, Number</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>AOT values</td>
+							<td>Can I eagerly supply the value for the value injection</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>JIT values</td>
+							<td>Can I compute the value at point of injection</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Dynamic values</td>
+							<td>Can I recompute the value being injected on each resolution</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#external-resolution-strategies">Custom Construction</a></td>
+							<td></td>
+							<td>Does the DI library support construction external to the library itself</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Bespoke type construction</td>
+							<td>Can I create my own constructor for a given type</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Global bespoke construction</td>
+							<td>Can I create a global constructor for all types</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Abstract type construction</td>
+							<td>Can I create a constructor for abstract base types</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scoping support</td>
+							<td>Are custom constructors supported in scoped injectors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#scoped-injection">Hierarchical injection</a></td>
+							<td></td>
+							<td>Does the DI library support scoped injection contexts</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>String scope names</td>
+							<td>Can I use strings for scope names</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Symbol scope names</td>
+							<td>Can I use Symbols for scoped names</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Registration overriding</td>
+							<td>Can I override ancestral registration in my scope</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Disposal</td>
+							<td>Can I destroy a scope</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scope lookup</td>
+							<td>Can I find a scope easily using its name or id.</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Scope inheritance</td>
+							<td>Can scopes extend other scopes</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#interception">Interception</a></td>
+							<td></td>
+							<td>Does the DI library support interceptors</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Decorator support</td>
+							<td>Can I register interceptions using <code>@decorators</code></td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>API support</td>
+							<td>Can I register interceptions using the API</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>Before construction interception</td>
+							<td>Can I intercept a given type before its  constructed</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td>After construction interception</td>
+							<td>Can I intercept a given type after its constructed</td>
+							<td>Full Support</td>
+						</tr>
+						<tr>
+							<td><a href="https://github.com/morganstanley/needle#external-resolution-strategy">Injection delegation</a></td>
+							<td></td>
+							<td>Can I delegate all construction to another DI library.</td>
+							<td>Full Support</td>
+						</tr>
+				</tbody></table>
+				<a href="#injectable-basics" id="injectable-basics" style="color: inherit; text-decoration: none;">
+					<h1>Injectable basics</h1>
+				</a>
+				<a href="#decorators-vs-registration-api" id="decorators-vs-registration-api" style="color: inherit; text-decoration: none;">
+					<h2>Decorators vs Registration API</h2>
+				</a>
+				<p>This library performs runtime introspection in order to determine what types it should construct.  To do this the library uses metadata and generally this metadata will be implicitly captured for you if you have enabled TypeScripts <code>emitDecoratorMetadata</code> and a class is decorated with any decorator. However, you do not need to use decorators if you do not wish to.  In the case where no decorators are applied you will need to manually provide the metadata via the registration API.  <strong>Note</strong> Managing the metadata explicitly can be time consuming so we <strong>recommend using the auto generated metadata approach by default</strong>. </p>
+				<a href="#creating-an-injectable-type" id="creating-an-injectable-type" style="color: inherit; text-decoration: none;">
+					<h2>Creating an injectable type</h2>
+				</a>
+				<p>The easiest way to make a type injectable is to decorate it with the @Injectable decorator.  All types by default decorated in this way will be available for injection in any runtime context. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { Injectable } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> Pet {}
+
+<span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> Owner {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pet: Pet</span>) {}
+}</code></pre>
+				<p>While decorators are recommended, you can also achieve the same using the Injector API. You gain access to this API by importing the <code>getRootInjector</code> function. <strong>IMPORTANT</strong> If you have decided not to use decorators for you injectable types, you will need to provide the constructor metadata explicitly.  Below is an example of how you can do that. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">class</span> Pet {}
+
+<span class="hljs-keyword">class</span> Owner {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pet: Pet</span>) {}
+}
+
+<span class="hljs-comment">//Equivalent to decorator</span>
+getRootInjector().register(Owner, { metadata: Pet }).register(Pet)</code></pre>
+				<a href="#resolving-injectables" id="resolving-injectables" style="color: inherit; text-decoration: none;">
+					<h2>Resolving injectables</h2>
+				</a>
+				<p>In order to resolve an instance of your injectable you have a couple of options.  You can use the <code>getRootInjector</code> function which you can import from the main package.  This function returns an instance of the <code>Injector</code> API.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> myThing = getRootInjector().get(Owner);</code></pre>
+				<p>Alternatively, you can import the <code>get</code> function directly. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { <span class="hljs-keyword">get</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> myThing = <span class="hljs-keyword">get</span>(Owner);</code></pre>
+				<p>Both examples map to the same underlying implementation and use the root injector to resolve an instance.  Resolving the same type twice will result in the same instance being serviced from the cache.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector, <span class="hljs-keyword">get</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> owner1 = getRootInjector().get(Owner);
+<span class="hljs-keyword">const</span> owner2 = <span class="hljs-keyword">get</span>(Owner);
+
+<span class="hljs-built_in">console</span>.log(owner1 === owner2) <span class="hljs-comment">//True</span></code></pre>
+				<p>All child dependencies (in this case <code>Pet</code>) will be automatically resolved for the <code>Owners</code> constructor.</p>
+				<a href="#tokens" id="tokens" style="color: inherit; text-decoration: none;">
+					<h1>Tokens</h1>
+				</a>
+				<p>Tokens allow us to provide a marker to the injector whereby the type we are going to be injecting either cannot be imported or we wish to use an interface instead.  Every injectable in the system can be registered with either zero or more tokens.  A single type can register itself against multiple tokens.  Tokens can be defined using a <code>string</code> or <code>symbol</code></p>
+				<a href="#registering-with-tokens" id="registering-with-tokens" style="color: inherit; text-decoration: none;">
+					<h2>Registering with tokens</h2>
+				</a>
+				<p>The simplest way to register your type against a token is to use the tokens array defined in the <code>@Injectable</code> decorator. here we have a type <code>GeographyStudent</code> who defines a string <code>geography-student</code>  upon which this type can be resolved.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { Injectable } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-meta">@Injectable</span>({
+    tokens: [<span class="hljs-string">'geography-student'</span>],
+})
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> GeographyStudent <span class="hljs-keyword">extends</span> Student {}</code></pre>
+				<p>The API equivalent of this registration is shown below. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().register(GeographyStudent, { tokens: [<span class="hljs-string">'geography-student'</span>] });</code></pre>
+				<p>As stated, you are not limited to just one 1 token per type.  Simply add additional tokens to the list if you require more. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { Injectable } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-meta">@Injectable</span>({
+    tokens: [<span class="hljs-string">'geography-student'</span>, <span class="hljs-string">'student'</span>],
+})
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> GeographyStudent <span class="hljs-keyword">extends</span> Student {}</code></pre>
+				<a href="#registering-symbols-for-tokens" id="registering-symbols-for-tokens" style="color: inherit; text-decoration: none;">
+					<h2>Registering Symbols for tokens</h2>
+				</a>
+				<p>Using strings as tokens for most teams is perfectly acceptable, however often in large code bases it is possible to run into naming collisions.  In order to resolve this issue you can instead adopt <code>Symbols</code> instead to define your tokens.  Below is an example of two registrations where the Symbol names overlap but will not pollute each other when resolutions are made as Symbols are unique. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> pricingSymbol1 = Symbol.for(<span class="hljs-string">'pricing'</span>);
+<span class="hljs-keyword">const</span> pricingSymbol2 = Symbol.for(<span class="hljs-string">'pricing'</span>);
+
+getRootInjector().configuration.allowDuplicateTokens = <span class="hljs-literal">false</span>;
+
+getRootInjector()
+    .register(PricingServiceV1, { tokens: [pricingSymbol1] })
+    .register(PricingServiceV2, { tokens: [pricingSymbol2] }); <span class="hljs-comment">//No exception thrown as Symbols are unique</span></code></pre>
+				<a href="#resolving-by-token" id="resolving-by-token" style="color: inherit; text-decoration: none;">
+					<h2>Resolving by token</h2>
+				</a>
+				<p>To resolve a type by token we can make use of the <code>@Inject</code> decorator. In the constructor of a given injectable we can mark one of the parameters with <code>@Inject</code> providing a token which we wish to resolve. Note, the parameter type does not need to match the type of the injected value.  This is what allows us to use either interfaces or a sub type as a replacement for the real type. </p>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> GeographyTeacher <span class="hljs-keyword">extends</span> Person {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Inject</span>(<span class="hljs-string">'geography-student'</span>) <span class="hljs-keyword">public</span> student: Student</span>) {
+        <span class="hljs-keyword">super</span>();
+    }
+}</code></pre>
+				<p>The API equivalent of this registration is shown below. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> GeographyTeacher <span class="hljs-keyword">extends</span> Person {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">public</span> student: IStudent</span>) {
+        <span class="hljs-keyword">super</span>();
+    }
+}
+
+<span class="hljs-keyword">const</span> argumentIndex = <span class="hljs-number">0</span>;
+
+getRootInjector()
+    .register(GeographyTeacher)
+    .registerParamForTokenInjection(<span class="hljs-string">'geography-student'</span>, GeographyTeacher, argumentIndex);
+</code></pre>
+				<a href="#token-overriding" id="token-overriding" style="color: inherit; text-decoration: none;">
+					<h2>Token overriding</h2>
+				</a>
+				<p>It is often the case that you may want to resolve a different type instance as a replacement for say a default one.  For example, say you have a Pricing service which for new customers you want to use the new pricing models but for existing customers you will use the old pricing model. </p>
+				<p>Using token injection we follow a last in first out (<code>LIFO</code>).  Therefore, the last Injectable to be registered to a given token is the one that will be resolved.  </p>
+				<p><em>Note: the configuration must be set to <code>allowDuplicateTokens</code> for this to be possible.</em></p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector, Injectable } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().configuration.allowDuplicateTokens = <span class="hljs-literal">true</span>;
+
+<span class="hljs-meta">@Injectable</span>(
+    tokens: [<span class="hljs-string">'pricing'</span>]
+)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> PricingServiceV1 <span class="hljs-keyword">implements</span> IPricing {}
+
+<span class="hljs-meta">@Injectable</span>(
+    tokens: [<span class="hljs-string">'pricing'</span>]
+)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> PricingServiceV2 <span class="hljs-keyword">implements</span> IPricing  {}
+
+<span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> CustomerPricing {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Inject</span>(<span class="hljs-string">'pricing'</span>) <span class="hljs-keyword">private</span> pricing: IPricing</span>) {
+        <span class="hljs-built_in">console</span>.log(pricing <span class="hljs-keyword">instanceof</span> PricingServiceV2) <span class="hljs-comment">// true</span>
+        <span class="hljs-keyword">super</span>();
+    }
+}</code></pre>
+				<p>The API equivalent of this registration is shown below. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().configuration.allowDuplicateTokens = <span class="hljs-literal">true</span>;
+
+<span class="hljs-keyword">const</span> argumentIndex = <span class="hljs-number">0</span>;
+
+getRootInjector()
+    .register(PricingServiceV1, { tokens: [<span class="hljs-string">'pricing'</span>] })
+    .register(PricingServiceV2, { tokens: [<span class="hljs-string">'pricing'</span>] })
+    .register(CustomerPricing)
+    .registerParamForTokenInjection(<span class="hljs-string">'pricing'</span>, CustomerPricing, argumentIndex);
+</code></pre>
+				<a href="#unique-token-enforcement" id="unique-token-enforcement" style="color: inherit; text-decoration: none;">
+					<h2>Unique token enforcement</h2>
+				</a>
+				<p>If you wish to restrict duplicate tokens in the system you can control this using the configuration. <em>Note, the default is already set to <code>false</code>.</em></p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().configuration.allowDuplicateTokens = <span class="hljs-literal">false</span>;
+
+getRootInjector()
+    .register(PricingServiceV1, { tokens: [<span class="hljs-string">'pricing'</span>] })
+    <span class="hljs-comment">//Exception thrown here</span>
+    .register(PricingServiceV2, { tokens: [<span class="hljs-string">'pricing'</span>] }); </code></pre>
+				<a href="#strategies" id="strategies" style="color: inherit; text-decoration: none;">
+					<h1>Strategies</h1>
+				</a>
+				<a href="#creating-strategies" id="creating-strategies" style="color: inherit; text-decoration: none;">
+					<h2>Creating strategies</h2>
+				</a>
+				<p>Strategies allow us to register multiple type providers against a given strategy key and then inject an array of all the strategies in the given consumer class. An injectable type can both exist as a strategy and pure injectable at the same time.  </p>
+				<p>Creating strategies can be achieved using the <code>@Injectable</code> decorator or the API. Both approaches make use of the <code>strategy</code> property on the injectable config. </p>
+				<a href="#registering-strategies" id="registering-strategies" style="color: inherit; text-decoration: none;">
+					<h2>Registering strategies</h2>
+				</a>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { Injectable } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">interface</span> IStrategy {}
+
+<span class="hljs-meta">@Injectable</span>({
+    strategy: <span class="hljs-string">'work-strategies'</span>,
+})
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Strategy1 <span class="hljs-keyword">implements</span> IStrategy {}
+
+<span class="hljs-comment">// tslint:disable-next-line:max-classes-per-file</span>
+<span class="hljs-meta">@Injectable</span>({
+    strategy: <span class="hljs-string">'work-strategies'</span>,
+})
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Strategy2 <span class="hljs-keyword">implements</span> IStrategy {}</code></pre>
+				<p>or registering via the API would look like this. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector()
+    .register(Strategy1, {
+        strategy: <span class="hljs-string">'work-strategies'</span>,
+    })
+    .register(Strategy2, {
+        strategy: <span class="hljs-string">'work-strategies'</span>,
+    });
+</code></pre>
+				<p>To avoid naming conflicts that can occur with strings, you can also use <code>symbols</code> for your strategy names.  Below is an example of this using the injector API.</p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+<span class="hljs-keyword">const</span> strategySymbol = Symbol.for(<span class="hljs-string">'work-strategies'</span>);
+
+getRootInjector()
+    .register(Strategy1, {
+        strategy: strategySymbol,
+    })
+    .register(Strategy2, {
+        strategy: strategySymbol,
+    });</code></pre>
+				<a href="#resolving-strategies" id="resolving-strategies" style="color: inherit; text-decoration: none;">
+					<h2>Resolving strategies</h2>
+				</a>
+				<p>When it comes to injecting lists of strategies we can use the <code>@Strategy</code> decorator to mark that we expect an array of strategies.  You can register consumers of strategies using this decorator or the API.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { Injectable, <span class="hljs-keyword">get</span> } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> StrategyConsumer {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Strategy</span>(<span class="hljs-string">'work-strategies'</span>) <span class="hljs-keyword">public</span> workStrategies: IStrategy[]</span>) {}
+}
+
+<span class="hljs-keyword">const</span> instance = <span class="hljs-keyword">get</span>(StrategyConsumer);
+
+<span class="hljs-built_in">console</span>.log(instance.workStrategies.length) <span class="hljs-comment">// 2 strategies</span></code></pre>
+				<p>Or using the API we can resolve a list of strategies in the following way.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> strategies = getRootInjector().getStrategies(<span class="hljs-string">'work-strategies'</span>);
+
+<span class="hljs-built_in">console</span>.log(strategies.length) <span class="hljs-comment">// 2 strategies</span></code></pre>
+				<a href="#factories" id="factories" style="color: inherit; text-decoration: none;">
+					<h1>Factories</h1>
+				</a>
+				<p>It is often the case that you need to be able to construct types with specific context or dependencies.  For these use cases you can rely on factories.</p>
+				<a href="#registering-a-factory" id="registering-a-factory" style="color: inherit; text-decoration: none;">
+					<h2>Registering a Factory</h2>
+				</a>
+				<p>All types registered with the container can be used as factories.  There is no special registration required.</p>
+				<a href="#resolve-a-factory" id="resolve-a-factory" style="color: inherit; text-decoration: none;">
+					<h2>Resolve a Factory</h2>
+				</a>
+				<p>There are two ways to resolve a factory.  Explicitly using the API or via the <code>@Factory</code> decorator.  Below are examples of both types of resolution.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> carFactory = getRootInjector().getFactory(Car)
+
+<span class="hljs-built_in">console</span>.log(carFactory) <span class="hljs-comment">// Defined</span></code></pre>
+				<p>Example of decorator. </p>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> CarManufacturer {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Factory</span>(Car) <span class="hljs-keyword">private</span> carFactory: AutoFactory&lt;<span class="hljs-keyword">typeof</span> Car&gt;</span>) {}
+}</code></pre>
+				<p>In each case the consumer will be returned an <code>AutoFactory</code>.  The AutoFactory provides a type safe <code>create</code> method in order to construct a new instance of the target type. </p>
+				<pre><code class="language-typescript">
+<span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> Engine {}
+
+<span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> Car <span class="hljs-keyword">extends</span> Vehicle {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">public</span> engine: Engine, <span class="hljs-keyword">public</span> numberOfDoor = 2</span>) {
+        <span class="hljs-keyword">super</span>(<span class="hljs-string">'Car'</span>);
+    }
+}
+
+<span class="hljs-keyword">const</span> factory:  AutoFactory&lt;<span class="hljs-keyword">typeof</span> Car&gt; = getRootInjector().getFactory(Car);
+<span class="hljs-keyword">const</span> carWithFourDoors = factory.create(<span class="hljs-literal">undefined</span>, <span class="hljs-number">4</span>);
+<span class="hljs-keyword">const</span> carWithSuperPowerfulEngine = factory.create(<span class="hljs-keyword">new</span> SuperPowerfulEngine());
+</code></pre>
+				<p>If you prefer not to pass undefined to the factory, there is also a named constant <code>AUTO_RESOLVE</code> which can be used instead.  </p>
+				<pre><code class="language-typescript">factory.create(AUTO_RESOLVE, <span class="hljs-number">4</span>);</code></pre>
+				<p>If you would <strong>not</strong> like the injector to auto resolve the value for engine and you wanted to actually return <code>null</code> or <code>undefined</code> you can use well known injector values (<code>UNDEFINED_VALUE</code>, <code>NULL_VALUE</code> ) to achieve this.  </p>
+				<pre><code class="language-typescript">
+<span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">import</span> { NULL_VALUE, UNDEFINED_VALUE} <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> factory:  AutoFactory&lt;<span class="hljs-keyword">typeof</span> Car&gt; = getRootInjector().getFactory(Car);
+<span class="hljs-keyword">const</span> carWithEmptyEngine = factory.create(UNDEFINED_VALUE, <span class="hljs-number">4</span>);
+<span class="hljs-keyword">const</span> carWithNoEngine = factory.create(NULL_VALUE);
+
+carWithEmptyEngine.engine === <span class="hljs-literal">undefined</span> <span class="hljs-comment">//True</span>
+carWithNoEngine.engine === <span class="hljs-literal">null</span> <span class="hljs-comment">//True</span></code></pre>
+				<p><code>IMPORTANT</code>: You can only pass undefined to constructor params which either support injection or default value.  Type safety must be adhered to so <code>SuperPowerfulEngine</code> in this case must extend <code>Engine</code> type to be valid to the compiler.</p>
+				<a href="#lazy-injection" id="lazy-injection" style="color: inherit; text-decoration: none;">
+					<h1>Lazy injection</h1>
+				</a>
+				<p>In certain situations, constructing the entire dependency tree can either be expensive or alternatively might introduce side effects you want to avoid.  In those cases <code>Lazy</code> injectables can be useful. Lazy injectables provide a placeholder injection type of <code>LazyInstance&lt;T&gt;</code> which will only construct the target injectable when its value property is read. </p>
+				<a href="#registering-a-lazy-injectable" id="registering-a-lazy-injectable" style="color: inherit; text-decoration: none;">
+					<h2>Registering a Lazy injectable</h2>
+				</a>
+				<p>All types registered with the container can be used with lazy injection.  There is no special registration required.</p>
+				<a href="#resolve-a-lazyinstance" id="resolve-a-lazyinstance" style="color: inherit; text-decoration: none;">
+					<h2>Resolve a LazyInstance</h2>
+				</a>
+				<p>There are two ways to resolve a Lazy.  Explicitly using the API or via the <code>@Lazy</code> decorator.  Below are examples of both types of resolution.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> carLazy = getRootInjector().getLazy(Car)
+
+<span class="hljs-built_in">console</span>.log(carLazy) <span class="hljs-comment">// Defined</span></code></pre>
+				<p>We can trigger realization of the target injectable value by reading the lazy&#39;s <code>value</code> property.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> carInstance = carLazy.value;</code></pre>
+				<p>We can also check to see if the lazy&#39;s value has been generated by reading the <code>hasValue</code> property.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">let</span> hasValue = carLazy.hasValue <span class="hljs-comment">//False;</span>
+<span class="hljs-keyword">const</span> carInstance = carLazy.value;
+hasValue = carLazy.hasValue <span class="hljs-comment">//True;</span></code></pre>
+				<p>We can use the <code>@Lazy</code> decorator to signal to the injector that we would like a lazy to be provided in place of the real injectable.  </p>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> CarManufacturer {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Lazy</span>(Car) <span class="hljs-keyword">private</span> carLazy: LazyInstance&lt;<span class="hljs-keyword">typeof</span> Car&gt;</span>) {}
+}</code></pre>
+				<a href="#optional-injection" id="optional-injection" style="color: inherit; text-decoration: none;">
+					<h1>Optional injection</h1>
+				</a>
+				<p>In some environments it will not always be the case that an injectable type has been registered with the injector.  For these scenarios you can leverage the <code>@Optional</code> decorator which will allow the injector to resolve <code>undefined</code> if no matching registration can be found. </p>
+				<a href="#registering-an-optional-injectable" id="registering-an-optional-injectable" style="color: inherit; text-decoration: none;">
+					<h2>Registering an Optional Injectable</h2>
+				</a>
+				<p>All constructor types can be used with optional injection.  There is no special registration required. </p>
+				<a href="#resolve-an-optional-injectable" id="resolve-an-optional-injectable" style="color: inherit; text-decoration: none;">
+					<h2>Resolve an optional injectable</h2>
+				</a>
+				<p>We can use the <code>@Optional</code> decorator to signal to the injector that we would like it to resolve <code>undefined</code> if no registrations can be found. Below is an example of a constructor for a Car type which supports optional storage.  </p>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> Car {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Optional</span>() <span class="hljs-keyword">private</span> storage?: Storage</span>) {
+        <span class="hljs-built_in">console</span>.log(storage) <span class="hljs-comment">//Undefined</span>
+    }
+}</code></pre>
+				<p>You can also resolve an optional injectable using the <code>getOptional</code> method on the injector api.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> car = injector.getOptional(Car) <span class="hljs-comment">//Undefined</span></code></pre>
+				<a href="#resolve-and-optional-token" id="resolve-and-optional-token" style="color: inherit; text-decoration: none;">
+					<h2>Resolve and optional token</h2>
+				</a>
+				<p>The <code>@Optional</code> decorator and the <code>getOptional</code> method also accept tokens to optionally inject:</p>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> Car {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Optional</span>(<span class="hljs-string">"storageToken"</span>) <span class="hljs-keyword">private</span> storage?: Storage</span>) {
+        <span class="hljs-built_in">console</span>.log(storage) <span class="hljs-comment">//Undefined</span>
+    }
+}</code></pre>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> car = injector.getOptional(<span class="hljs-string">"carToken"</span>) <span class="hljs-comment">//Undefined</span></code></pre>
+				<a href="#register-instance" id="register-instance" style="color: inherit; text-decoration: none;">
+					<h1>Register instance</h1>
+				</a>
+				<p>There are sometimes where you do not want the injection container to create the type. Instead you want to take an already existing instance and register it against a type.  For this you can use <code>registerInstance</code> on the injector.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> vehicle =  <span class="hljs-keyword">new</span> Vehicle(<span class="hljs-string">'Bike'</span>);
+
+getRootInjector().registerInstance(Vehicle, vehicle);
+
+<span class="hljs-keyword">const</span> instance = <span class="hljs-keyword">get</span>(Vehicle); 
+
+<span class="hljs-built_in">console</span>.log(instance === vehicle) <span class="hljs-comment">// True</span></code></pre>
+				<a href="#external-resolution-strategies" id="external-resolution-strategies" style="color: inherit; text-decoration: none;">
+					<h1>External Resolution Strategies</h1>
+				</a>
+				<p>There are times where you may require more granular control of a specific types construction.  This may be because you want to resolve the the type from a different injection container, the type may not be <code>Newable</code> consider the case of an abstract class or for a variety of other reasons.   In order to support this, needles injectable config provides a <code>resolution</code> property which can be used to specify your own external resolution strategy.</p>
+				<a href="#registering-a-type-for-external-resolution" id="registering-a-type-for-external-resolution" style="color: inherit; text-decoration: none;">
+					<h2>Registering a type for external resolution</h2>
+				</a>
+				<p>If you want to entirely own the process of constructing a given type you can define an <code>ExternalResolutionStrategy</code> which will be used in place of needles construction logic.  Below shows an example of registering our own resolution strategy against a given type using the decorator approach.  The <code>resolution</code> takes a resolver function where you can perform your custom construction and an additional flag (<code>cacheSyncing</code>) signalling to needle if it should store the result in its internal cache. </p>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>({
+    resolution: {
+        resolver: <span class="hljs-function">(<span class="hljs-params">_injector, _args</span>) =&gt;</span>  <span class="hljs-keyword">new</span> SuperCar(),
+        cacheSyncing: <span class="hljs-literal">true</span>,
+    }
+})
+<span class="hljs-keyword">class</span> SuperCar {}</code></pre>
+				<p>The same can be achieved using the injector API.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().register(SuperCar, {
+    resolution: {
+        resolver: <span class="hljs-function">(<span class="hljs-params">_injector, _args</span>) =&gt;</span>  <span class="hljs-keyword">new</span> SuperCar(),
+        cacheSyncing: <span class="hljs-literal">true</span>,
+    }
+});</code></pre>
+				<a href="#registering-abstract-types-for-external-resolution" id="registering-abstract-types-for-external-resolution" style="color: inherit; text-decoration: none;">
+					<h2>Registering abstract types for external resolution</h2>
+				</a>
+				<p>Some types cannot be constructed directly, these types instead require that we use a subtype which is considered <code>Newable</code>. This is commonly the case where we have an abstract base class that we want to inject that into other types using the base class, but at the same time we need to provide a concrete instance. </p>
+				<p> In the example below we provide an example of this whereby we have an abstract <code>Car</code> class which can be registered to a sub type, in this case <code>SuperCar</code>. </p>
+				<p><strong>Note</strong>: The <code>resolution</code> property accepts a shorthand version whereby you provide just a compatible type for the super type.  If this is used, needle will automatically do the type substitution for you. This makes overriding a base type very simple. </p>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>({
+    resolution: SuperCar
+})
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> Car  {}</code></pre>
+				<p>Or using the injector API</p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().register(Car, { resolution: SuperCar });</code></pre>
+				<p>In the section under <strong>Global Configuration</strong> you can learn about how you can use <strong>External Resolution Strategies</strong> to delegate construction globally and provide fallback strategies when performing interop with other container systems. </p>
+				<a href="#register-value" id="register-value" style="color: inherit; text-decoration: none;">
+					<h1>Register Value</h1>
+				</a>
+				<p>JavaScript has a number of intrinsic types that you may wish to inject directly into a constructor without the need for wrapping in a higher type. These types include <code>Array</code>, <code>Boolean</code>, <code>Date</code>, <code>Error</code>, <code>Function</code>, <code>JSON</code>, <code>Number</code>, <code>RegExp</code> and <code>String</code>. In order to support direct injection of these types we can use the <code>registerValue</code> method found on the injector.  The <code>registerValue</code> method only takes one parameter, the injection configuration object. There are two ways to resolve the value, you can either provide a value at point of registration or you can use a resolution strategy to resolve at point of use.  Below are some examples to illustrate how this works. </p>
+				<a href="#registering-with-a-aot-value" id="registering-with-a-aot-value" style="color: inherit; text-decoration: none;">
+					<h2>Registering with a AOT value</h2>
+				</a>
+				<pre><code class="language-typescript"><span class="hljs-meta">@Injectable</span>()
+<span class="hljs-keyword">class</span> SecurityContext  {
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params"><span class="hljs-meta">@Inject</span>(<span class="hljs-string">'security-token'</span>) <span class="hljs-keyword">public</span> securityToken: <span class="hljs-built_in">string</span></span>){}
+}
+
+<span class="hljs-comment">// Tokens are used the same as for other types. </span>
+getRootInjector().registerValue&lt;<span class="hljs-built_in">string</span>&gt;({
+    tokens: [<span class="hljs-string">'security-token'</span>], 
+    value: <span class="hljs-string">'TmVlZGxlIFByb2plY3Q='</span>,
+});</code></pre>
+				<a href="#registering-with-a-jit-computed-value-value" id="registering-with-a-jit-computed-value-value" style="color: inherit; text-decoration: none;">
+					<h2>Registering with a JIT computed value value</h2>
+				</a>
+				<pre><code class="language-typescript">getRootInjector().registerValue&lt;<span class="hljs-built_in">string</span>&gt;({
+    tokens: [<span class="hljs-string">'security-token'</span>], 
+    value: {
+        cacheSyncing: <span class="hljs-literal">true</span>,
+        resolver: _injector =&gt; Encryption.resolveUserContextToken(),
+    },
+});</code></pre>
+				<p>If you want the value to mutate on each request, you can set <code>cacheSyncing</code> to false.  </p>
+				<p><strong>Note</strong>: As values have no associated type upon which to decorate, you can only use the Injector API to register values.  </p>
+				<a href="#metrics-tracking" id="metrics-tracking" style="color: inherit; text-decoration: none;">
+					<h1>Metrics tracking</h1>
+				</a>
+				<p>The injector tracks metrics about your injectable types during runtime.  There are a range of different values captured and these are stored in the metrics provider which is accessible via the Injector type.  The data is store as records and the below type shows the information captured.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> IMetricRecord {
+    <span class="hljs-comment">/**
+     * The type who's metrics are being tracked
+     */</span>
+    <span class="hljs-keyword">type</span>: <span class="hljs-built_in">any</span>;
+    <span class="hljs-comment">/**
+     * First activation time
+     */</span>
+    activated: <span class="hljs-built_in">Date</span>;
+    <span class="hljs-comment">/**
+     * What type constructed this type. (Defaults to self if bare resolution)
+     */</span>
+    activationTypeOwner: <span class="hljs-built_in">any</span>;
+    <span class="hljs-comment">/**
+     * The number of times this type has been resolved
+     */</span>
+    resolutionCount: <span class="hljs-built_in">number</span>;
+    <span class="hljs-comment">/**
+     * The last time this type resolved
+     */</span>
+    lastResolution: <span class="hljs-built_in">Date</span>;
+    <span class="hljs-comment">/**
+     * The number of types this type depends on based on constructor signature.
+     */</span>
+    dependencyCount: <span class="hljs-built_in">number</span>;
+    <span class="hljs-comment">/**
+     * The time it took to construct this type
+     */</span>
+    creationTimeMs: <span class="hljs-built_in">number</span>;
+}</code></pre>
+				<a href="#reading-the-metric-data" id="reading-the-metric-data" style="color: inherit; text-decoration: none;">
+					<h2>Reading the metric data</h2>
+				</a>
+				<p>There are a number of ways to read the metric data.  To access via the injector instance simply do the following. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> metrics = getRootInjector().metrics;</code></pre>
+				<p>You can easily <code>dump</code> the data to the console using the following.  </p>
+				<pre><code class="language-typescript">getRootInjector().metrics.dump();</code></pre>
+				<p>You can reset the metrics by calling the <code>reset</code> method.</p>
+				<pre><code class="language-typescript">getRootInjector().metrics.reset();</code></pre>
+				<p>You read the metrics for a specific type by using the <code>getMetricsForType</code> method. </p>
+				<pre><code class="language-typescript">getRootInjector().metrics.getMetricsForType(MyType);</code></pre>
+				<p>You an read all the metric data by reading the <code>data</code> property. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> records: IMetricRecord[] = getRootInjector().metrics.data;</code></pre>
+				<a href="#scoped-injection" id="scoped-injection" style="color: inherit; text-decoration: none;">
+					<h1>Scoped injection</h1>
+				</a>
+				<p>Hierarchical injection (aka Scoped injection) is the ability to create new child injection scopes which descend from our primary root injector.  There are many times when you may require scoped injection, normally they are associated with a given context in our app domains and provide the ability to deviate from the global registrations defined in the root injector. </p>
+				<p>Scoped injectors inherit their ancestors registrations by default, and then can override those with their own or add additional registrations as required.  </p>
+				<p>Scoped injectors can also be created from other scopes, therefore allowing you to build complex hierarchies which can model your domain accurately.  </p>
+				<a href="#creating-a-scope" id="creating-a-scope" style="color: inherit; text-decoration: none;">
+					<h2>Creating a scope</h2>
+				</a>
+				<p>To create a new injection scope we can call the <code>createScope</code> method from any <code>Injector</code> instance. When we create the new scope we must provide a name for the new scope. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> scopedInjector = getRootInjector().createScope(<span class="hljs-string">'my-scoped-injector'</span>);
+
+<span class="hljs-keyword">const</span> amIScoped = scopedInjector.isScoped(); <span class="hljs-comment">//True</span></code></pre>
+				<a href="#scope-resolution" id="scope-resolution" style="color: inherit; text-decoration: none;">
+					<h2>Scope Resolution</h2>
+				</a>
+				<p>By default scoped injectors inherit their parents registrations. Any updates to the parent scopes registrations automatically flow to the child scopes. </p>
+				<p>Therefore if a parent has defined a registration and we try and resolve that type from our scoped injector, then the type instance will be provided without error. </p>
+				<p>This is true no matter how deep the scope hierarchy is, as the resolution process walks up the tree until a valid registration is found.  Example below. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> rootInjector = getRootInjector();
+
+<span class="hljs-comment">//Single registration</span>
+rootInjector.register(Child);
+
+<span class="hljs-comment">//Create 2 levels of scope</span>
+<span class="hljs-keyword">const</span> level2Injector = rootInjector
+    .createScope(<span class="hljs-string">'level-1'</span>)
+    .createScope(<span class="hljs-string">'level-2'</span>);
+
+<span class="hljs-comment">//Instance of child (Serviced from root injector)</span>
+<span class="hljs-keyword">const</span> child = level2Injector.get(Child);</code></pre>
+				<a href="#scope-overrides" id="scope-overrides" style="color: inherit; text-decoration: none;">
+					<h2>Scope overrides</h2>
+				</a>
+				<p>The key reason to create a new scope is in order to provide overrides for a particular context in your applications.  During the resolution process for a given type, the injector will first look towards its local registrations and if it finds a match will use that over any parent registrations.  Therefore you can easily replace registrations from the hierarchy with your own and create instances localized to your scope and all child scopes within it.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> rootInjector = getRootInjector();
+
+<span class="hljs-comment">//Single registration</span>
+rootInjector.register(Child);
+
+<span class="hljs-comment">//Create 2 levels of scope</span>
+<span class="hljs-keyword">const</span> level2Injector = rootInjector
+    .createScope(<span class="hljs-string">'level-1'</span>)
+    .createScope(<span class="hljs-string">'level-2'</span>);
+
+<span class="hljs-comment">//Create our scoped registrations</span>
+level2Injector
+    .register(Child) <span class="hljs-comment">//override root registration</span>
+    .registerInstance(Teacher, <span class="hljs-keyword">new</span> Teacher(<span class="hljs-string">'History'</span>))
+
+<span class="hljs-keyword">const</span> child1 = rootInjector.get(Child);
+<span class="hljs-keyword">const</span> child2 = level2Injector.get(Child);
+<span class="hljs-keyword">const</span> teacher = level2Injector.get(Teacher);
+
+child1 === child2 <span class="hljs-comment">// False</span>
+
+rootInjector.get(Teacher); <span class="hljs-comment">//Fails as no registration in parent scopes</span></code></pre>
+				<p>As a scoped injector is no different to the root injector, the full registration API is available. Therefore you can create registrations of any kind.  </p>
+				<a href="#finding-a-scope" id="finding-a-scope" style="color: inherit; text-decoration: none;">
+					<h2>Finding a scope</h2>
+				</a>
+				<p>If you want to resolve a scope you can do this either using the <code>id</code> or <code>name</code> of the scope.  Below is an example.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> rootInjector = getRootInjector();
+
+<span class="hljs-keyword">const</span> level2Injector = rootInjector.createScope(<span class="hljs-string">'level-1'</span>)
+
+rootInjector.getScope(level2Injector.id);
+rootInjector.getScope(<span class="hljs-string">'level-1'</span>);</code></pre>
+				<a href="#scope-disposal" id="scope-disposal" style="color: inherit; text-decoration: none;">
+					<h2>Scope disposal</h2>
+				</a>
+				<p>As scoped injectors sit in a tree they can be disposed of easily by calling dispose either on the scope directly or a parent scope. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">const</span> rootInjector = getRootInjector();
+
+<span class="hljs-comment">//Single registration</span>
+rootInjector.register(Child);
+
+<span class="hljs-comment">//Create 2 levels of scope</span>
+<span class="hljs-keyword">const</span> level2Injector = rootInjector
+    .createScope(<span class="hljs-string">'level-1'</span>)
+    .createScope(<span class="hljs-string">'level-2'</span>);
+
+<span class="hljs-keyword">const</span> level1 = rootInjector.getScope(<span class="hljs-string">'level-1'</span>);
+<span class="hljs-keyword">const</span> level2 = rootInjector.getScope(<span class="hljs-string">'level-2'</span>);
+
+level1.destroy();
+
+level1.isDestroyed() <span class="hljs-comment">//True;</span>
+level2.isDestroyed() <span class="hljs-comment">//True;</span></code></pre>
+				<a href="#interception" id="interception" style="color: inherit; text-decoration: none;">
+					<h1>Interception</h1>
+				</a>
+				<p>Needle provides support for interception of construction using <code>interceptors</code>.  Interceptors provide the ability for developers to hook into a types construction both immediately before and after a type is instanced.  This technique is useful when you need to configure an instance before that instance is injected into downstream consumers. For example, if we had a Car type which injected an Engine, we may wish to call the engine.tune() function before giving to the car instance.  Interceptors are considered global inside of needle.  Therefore if you create multiple scopes each instance being constructed will pass through the same set of interceptors.  </p>
+				<a href="#creating-an-interceptor" id="creating-an-interceptor" style="color: inherit; text-decoration: none;">
+					<h2>Creating an interceptor</h2>
+				</a>
+				<p>To create an interceptor is simple, we simply implement an interface called <code>IConstructionInterceptor</code> in our class.  The interface is generic and there we can provide the Type that we wish to target as a generic param.  Below is an example interceptor which implements the interface for the Engine type.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> EngineInterceptor <span class="hljs-keyword">implements</span> IConstructionInterceptor&lt;<span class="hljs-keyword">typeof</span> Engine&gt; {
+    <span class="hljs-keyword">public</span> readonly target: <span class="hljs-keyword">typeof</span> Engine = Engine;
+    <span class="hljs-keyword">public</span> beforeCreate(context: IInjectionContext&lt;<span class="hljs-keyword">typeof</span> Engine&gt;): <span class="hljs-built_in">void</span> {
+        <span class="hljs-built_in">console</span>.log(context);
+    }
+    <span class="hljs-keyword">public</span> afterCreate(instance: Engine, context: IInjectionContext&lt;<span class="hljs-keyword">typeof</span> Engine&gt;): <span class="hljs-built_in">void</span> {
+        <span class="hljs-built_in">console</span>.log(instance);
+        <span class="hljs-built_in">console</span>.log(context);
+    }
+}</code></pre>
+				<p>The interface requires we implement 3 members</p>
+				<ul>
+					<li><code>target</code> -  The type we wish to intercept</li>
+					<li><code>beforeCreate</code> - A method that will be invoked directly before the type instanced and after all its constructor args are resolved. </li>
+					<li><code>afterCreate</code> -  A method that will be invoked immediately after the target type was instanced.  </li>
+				</ul>
+				<p>Each method call will receive an <code>injection context</code> object which provides information about the context of injection. This includes information such as the injector instance resolving the type, the configuration used during construction and an array of constructor args.</p>
+				<a href="#registering-an-interceptor" id="registering-an-interceptor" style="color: inherit; text-decoration: none;">
+					<h2>Registering an interceptor</h2>
+				</a>
+				<p>There are two ways to register an interceptor in the system, you can either decorate your class with <code>@Interceptor()</code>.  The decorator approach essentially makes you interceptor an injectable so that you can inject other dependencies into it.  The other approach is to use the injector API and provide an instance manually. <strong>Note</strong>: Decorated interceptors will be constructed at point of registration.</p>
+				<pre><code class="language-typescript"><span class="hljs-comment">//Decorated</span>
+<span class="hljs-meta">@Interceptor</span>()
+<span class="hljs-keyword">class</span> EngineInterceptor{}
+
+<span class="hljs-comment">//Explicit</span>
+injector.registerInterceptor(<span class="hljs-keyword">new</span> EngineInterceptor());</code></pre>
+				<p><strong>Note</strong>, regardless of the scope of the injector all interceptors will be registered with the the root injector. </p>
+				<a href="#global-configuration" id="global-configuration" style="color: inherit; text-decoration: none;">
+					<h1>Global configuration</h1>
+				</a>
+				<a href="#max-tree-depth" id="max-tree-depth" style="color: inherit; text-decoration: none;">
+					<h2>Max tree depth</h2>
+				</a>
+				<p>When constructing a tree of dependencies the hierarchy can get very deep, this is especially so if a circular reference is encountered.  Determining if this is the case can be difficult which is where <code>maxTreeDepth</code> can help.  Setting this value (<code>defaults to 500</code>) will set a max limit on the depth of the tree being created. If the limit is reached an exception will be thrown. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().configuration.maxTreeDepth = <span class="hljs-number">1000</span>;</code></pre>
+				<a href="#track-metrics" id="track-metrics" style="color: inherit; text-decoration: none;">
+					<h2>Track metrics</h2>
+				</a>
+				<p>By default the injector will track common metric information about types in the system.  This includes information such as first activation time, number of resolutions, cost of construction etc.  You can disable metrics tracking by setting the <code>trackMetrics</code> flag to false.  </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+getRootInjector().configuration.trackMetrics = <span class="hljs-literal">false</span>;</code></pre>
+				<a href="#external-resolution-strategy" id="external-resolution-strategy" style="color: inherit; text-decoration: none;">
+					<h2>External Resolution Strategy</h2>
+				</a>
+				<p>In certain environments you will want to delegate type construction to an external DI container or custom constructor function. The <code>externalResolutionStrategy</code> is what makes this possible. When you define this strategy all construction will be delegated to that strategy and the internal type resolution strategy will be ignored.  If however you want to adopt a fallback strategy, first checking your external resolver then falling back to this injector you can achieve this by returning a special value <code>TYPE_NOT_FOUND</code> which will signal to needle that it should now attempt to resolve the type as the external one couldn&#39;t.  This mechanism allows developers to completely control type construction so that they can inject their own pipelines into the process.    </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRootInjector, IInjector, TYPE_NOT_FOUND } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> dummyStrategy: IExternalResolutionConfiguration = {
+    resolver: <span class="hljs-function">(<span class="hljs-params"><span class="hljs-keyword">type</span>: <span class="hljs-built_in">any</span>, currentInjector: IInjector, locals?: <span class="hljs-built_in">any</span>[]</span>) =&gt;</span> {
+        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">type</span> === MyCustomType){
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> MyCustomType();
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">return</span> TYPE_NOT_FOUND;
+        }
+    }
+    cacheSyncing: <span class="hljs-literal">true</span>;
+}
+
+getRootInjector().configuration.externalResolutionStrategy = dummyStrategy;</code></pre>
+				<p>Setting <code>cacheSyncing</code> to <code>true</code> will ensure that our local cache will be updated when each type instance is resolved. This is useful when you are performing bridging between an external container and the local one.  Technically tho, if the external DI strategy is implementing caching you will not need to sync the cache and instead re-request to the strategies resolver should result in a cached instance. </p>
+				<a href="#getting-lists-of-registered-types" id="getting-lists-of-registered-types" style="color: inherit; text-decoration: none;">
+					<h1>Getting lists of registered types</h1>
+				</a>
+				<p>When working with other libraries you may wish to resolve a list of types that have been registered with the container.   For this there are three utility methods you can use <code>getRegisteredTypes</code>, <code>getRegisteredTypesWithDependencies</code> and <code>getRegisteredTypesWithFactories</code>.</p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { getRegisteredTypes } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-keyword">const</span> types = getRegisteredTypes() <span class="hljs-comment">//Returns an array of raw types. </span>
+
+<span class="hljs-keyword">const</span> typesWithDeps = getRegisteredTypesWithDependencies() <span class="hljs-comment">//Returns an Array&lt;{provide: any, deps: Array&lt;&gt;any}&gt;</span>
+
+<span class="hljs-keyword">const</span> typesWithFactories = getRegisteredTypesWithFactories() <span class="hljs-comment">//Returns an Array&lt;{provide: any, useFactory: () =&gt; T)}&gt;</span>
+</code></pre>
+				<a href="#semantic-injection" id="semantic-injection" style="color: inherit; text-decoration: none;">
+					<h1>Semantic Injection</h1>
+				</a>
+				<p>Node&#39;s module resolution works on a folder hierarchy where an applications dependencies are stored in a <code>node_modules</code> folder and dependencies can either be shared across multiple transient dependencies or localized to a specific dependency&#39;s needs. This means that if you have an npm package installed in your app that has a dependency on <a href="mailto:foo@1.1.1">foo@1.1.1</a> and another that uses <a href="mailto:foo@2.0.0">foo@2.0.0</a>, both can co-exist in the same app domain.  </p>
+				<p>This is a powerful feature of the node/npm ecosystem and one that developers take advantage of everyday when building their apps. However, it is often the case that this semantic version isolation is not extended to your DI container.  This is something this library is trying help with.  </p>
+				<p>When constructing a tree of dependencies our DI container will guarantee that each injected instance into a constructor will match the semantic version the consuming code was built against.  This means that you can introduce new versions of libraries into your application in a more natural and safe manner, avoiding big bang migrations. The DI system will automatically manage the what and where of injection into your types. </p>
+				<p>Further, due to the way npm organizes semantic versions, if you have two or more dependencies in your app that rely on foo@^1.x.x, then npm will determine what is the latest compatible version of the @foo dependency being used and then synchronize all the others to use that by de-duping out older versions.  So versions 1.1.1 and 1.2.1 would be aligned to 1.5.0 if that was being used. Read more about that <a href="https://docs.npmjs.com/cli/dedupe">here</a></p>
+				<p>Semantic injection is a powerful technique for isolating change and instead letting it trickle through your system.  It can extend all the way through your package hierarchy and requires little effort from the developers to manage. </p>
+				<a href="#integrating-with-angular-2" id="integrating-with-angular-2" style="color: inherit; text-decoration: none;">
+					<h1>Integrating with Angular 2+</h1>
+				</a>
+				<p>If you want to integrate this library with Angular&#39;s dependency injection system it&#39;s a pretty easy thing to do.  In the <code>main.ts</code> file of your Angular app you can resolve all the registered providers and then pass them to the <code>platformBrowserDynamic</code> call. </p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> <span class="hljs-string">'reflect-metadata'</span>;
+<span class="hljs-keyword">import</span> { platformBrowserDynamic } <span class="hljs-keyword">from</span> <span class="hljs-string">'@angular/platform-browser-dynamic'</span>;
+<span class="hljs-keyword">import</span> { getRegisteredTypesWithFactories } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+<span class="hljs-keyword">import</span> { AppModule } <span class="hljs-keyword">from</span> <span class="hljs-string">'app/app.module'</span>;
+
+<span class="hljs-keyword">const</span> providers = getRegisteredTypesWithFactories();
+
+platformBrowserDynamic(providers)
+    .bootstrapModule(AppModule)
+    .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> <span class="hljs-built_in">console</span>.error(err));</code></pre>
+				<a href="#using-needle39s-decorators-within-angular-components" id="using-needle39s-decorators-within-angular-components" style="color: inherit; text-decoration: none;">
+					<h2>Using Needle&#39;s decorators within Angular components</h2>
+				</a>
+				<p>It is important to note that the decorators provided by Needle cannot be used directly within the constructor of an Angular component. Angular is not aware of these decorators so it is unable to resolve the required instances at runtime. When working with Angular components the <code>Injector</code> API should be used instead. To access the <code>Injector</code> API inject an instance of the <code>Injector</code> directly into your component.</p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { Injector } <span class="hljs-keyword">from</span> <span class="hljs-string">'@morgan-stanley/needle'</span>;
+
+<span class="hljs-meta">@Component</span>({
+  selector: <span class="hljs-string">'my-component'</span>,
+  templateUrl: <span class="hljs-string">'./my-component.html'</span>,
+  styleUrls: [<span class="hljs-string">'./my-component.scss'</span>]
+})
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> MyComponent {
+
+    <span class="hljs-keyword">constructor</span>(<span class="hljs-params">injector: Injector</span>) {
+        <span class="hljs-comment">// Example resolutions</span>
+        <span class="hljs-keyword">const</span> strategies = injector.getStrategies(<span class="hljs-string">'work-strategies'</span>);
+        <span class="hljs-keyword">const</span> carLazy = injector.getLazy(Car);
+    }
+}
+</code></pre>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/autofactory.html" class="tsd-kind-icon">Auto<wbr>Factory</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/configuration.html" class="tsd-kind-icon">Configuration</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/injectiontokenscache.html" class="tsd-kind-icon">Injection<wbr>Tokens<wbr>Cache</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/injector.html" class="tsd-kind-icon">Injector</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/instancecache.html" class="tsd-kind-icon">Instance<wbr>Cache</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/lazyinstance.html" class="tsd-kind-icon">Lazy<wbr>Instance</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/metrics.html" class="tsd-kind-icon">Metrics</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/iboxedvalue.html" class="tsd-kind-icon">IBoxed<wbr>Value</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/icache.html" class="tsd-kind-icon">ICache</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/iconfiguration.html" class="tsd-kind-icon">IConfiguration</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/iconstructioninterceptor.html" class="tsd-kind-icon">IConstruction<wbr>Interceptor</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/iconstructionoptions.html" class="tsd-kind-icon">IConstruction<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/iconstructionoptionsinternal.html" class="tsd-kind-icon">IConstruction<wbr>Options<wbr>Internal</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/iexternalresolutionconfiguration.html" class="tsd-kind-icon">IExternal<wbr>Resolution<wbr>Configuration</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/iexternalresolutionconfigurationbase.html" class="tsd-kind-icon">IExternal<wbr>Resolution<wbr>Configuration<wbr>Base</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/iexternalvalueresolutionconfiguration.html" class="tsd-kind-icon">IExternal<wbr>Value<wbr>Resolution<wbr>Configuration</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ifactoryparameterinjectiontoken.html" class="tsd-kind-icon">IFactory<wbr>Parameter<wbr>Injection<wbr>Token</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/iinjectionconfiguration.html" class="tsd-kind-icon">IInjection<wbr>Configuration</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/iinjectioncontext.html" class="tsd-kind-icon">IInjection<wbr>Context</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/iinjectiontoken.html" class="tsd-kind-icon">IInjection<wbr>Token</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/iinjector.html" class="tsd-kind-icon">IInjector</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ilazyparameterinjectiontoken.html" class="tsd-kind-icon">ILazy<wbr>Parameter<wbr>Injection<wbr>Token</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/imetricrecord.html" class="tsd-kind-icon">IMetric<wbr>Record</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/imetrics.html" class="tsd-kind-icon">IMetrics</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/imetricsprovider.html" class="tsd-kind-icon">IMetrics<wbr>Provider</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/iparameterinjectiontoken.html" class="tsd-kind-icon">IParameter<wbr>Injection<wbr>Token</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/itokencache.html" class="tsd-kind-icon">IToken<wbr>Cache</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/ivalueinjectionconfiguration.html" class="tsd-kind-icon">IValue<wbr>Injection<wbr>Configuration</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#constructor" class="tsd-kind-icon">Constructor</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#injectiontype" class="tsd-kind-icon">Injection<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#injectoridentifier" class="tsd-kind-icon">Injector<wbr>Identifier</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#instancefactory" class="tsd-kind-icon">Instance<wbr>Factory</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#instanceoftype" class="tsd-kind-icon">Instance<wbr>OfType</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#metadataparams" class="tsd-kind-icon">Metadata<wbr>Params</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#metadatastaticconstructortypes" class="tsd-kind-icon">Metadata<wbr>Static<wbr>Constructor<wbr>Types</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#newable" class="tsd-kind-icon">Newable</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#newableconstructorinterceptor" class="tsd-kind-icon">Newable<wbr>Constructor<wbr>Interceptor</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#optionalconstructorparameters" class="tsd-kind-icon">Optional<wbr>Constructor<wbr>Parameters</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#statictypes" class="tsd-kind-icon">Static<wbr>Types</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#stringorsymbol" class="tsd-kind-icon">String<wbr>OrSymbol</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#valuetype" class="tsd-kind-icon">Value<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#auto_resolve" class="tsd-kind-icon">AUTO_<wbr>RESOLVE</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#boxed_type_id" class="tsd-kind-icon">BOXED_<wbr>TYPE_<wbr>ID</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#di_root_injector_key" class="tsd-kind-icon">DI_<wbr>ROOT_<wbr>INJECTOR_<wbr>KEY</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#injector_type_id" class="tsd-kind-icon">INJECTOR_<wbr>TYPE_<wbr>ID</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#reflect" class="tsd-kind-icon">Reflect</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#context" class="tsd-kind-icon">context</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#defaultinjectionconfiguration" class="tsd-kind-icon">default<wbr>Injection<wbr>Configuration</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#global" class="tsd-kind-icon">global</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#globalreference" class="tsd-kind-icon">global<wbr>Reference</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#require" class="tsd-kind-icon">require</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#factory" class="tsd-kind-icon">Factory</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#inject" class="tsd-kind-icon">Inject</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#injectable" class="tsd-kind-icon">Injectable</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#interceptor" class="tsd-kind-icon">Interceptor</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#lazy" class="tsd-kind-icon">Lazy</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#optional" class="tsd-kind-icon">Optional</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#strategy" class="tsd-kind-icon">Strategy</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#createboxedvaluetype" class="tsd-kind-icon">create<wbr>Boxed<wbr>Value<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="globals.html#findindex" class="tsd-kind-icon">find<wbr>Index</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="globals.html#get" class="tsd-kind-icon">get</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="globals.html#getconstructortypes" class="tsd-kind-icon">get<wbr>Constructor<wbr>Types</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#getglobal" class="tsd-kind-icon">get<wbr>Global</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="globals.html#getlazy" class="tsd-kind-icon">get<wbr>Lazy</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="globals.html#getoptional" class="tsd-kind-icon">get<wbr>Optional</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#getregisteredtypes" class="tsd-kind-icon">get<wbr>Registered<wbr>Types</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#getregisteredtypeswithdependencies" class="tsd-kind-icon">get<wbr>Registered<wbr>Types<wbr>With<wbr>Dependencies</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#getregisteredtypeswithfactories" class="tsd-kind-icon">get<wbr>Registered<wbr>Types<wbr>With<wbr>Factories</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#getrootinjector" class="tsd-kind-icon">get<wbr>Root<wbr>Injector</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isboxedvalue" class="tsd-kind-icon">is<wbr>Boxed<wbr>Value</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isconstructorparametertoken" class="tsd-kind-icon">is<wbr>Constructor<wbr>Parameter<wbr>Token</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isexternalresolutionconfigurationlike" class="tsd-kind-icon">is<wbr>External<wbr>Resolution<wbr>Configuration<wbr>Like</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isexternalvalueresolutionconfigurationlike" class="tsd-kind-icon">is<wbr>External<wbr>Value<wbr>Resolution<wbr>Configuration<wbr>Like</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isfactoryparametertoken" class="tsd-kind-icon">is<wbr>Factory<wbr>Parameter<wbr>Token</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isinjectorlike" class="tsd-kind-icon">is<wbr>Injector<wbr>Like</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#islazyparametertoken" class="tsd-kind-icon">is<wbr>Lazy<wbr>Parameter<wbr>Token</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isstringorsymbol" class="tsd-kind-icon">is<wbr>String<wbr>OrSymbol</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#null_value" class="tsd-kind-icon">NULL_<wbr>VALUE</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#type_not_found" class="tsd-kind-icon">TYPE_<wbr>NOT_<wbr>FOUND</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#undefined_value" class="tsd-kind-icon">UNDEFINED_<wbr>VALUE</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>
