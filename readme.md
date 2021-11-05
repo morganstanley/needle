@@ -7,6 +7,10 @@
 ![NPM](https://img.shields.io/npm/l/@morgan-stanley/needle)
 ![NPM](https://img.shields.io/badge/types-TypeScript-blue)
 
+# What is Needle?
+
+Needle is a lightweight & powerful dependency injection container for supporting the development of universal code with full semantic runtime injection.  It helps you increase the testability of your applications as well as decoupling your code more effectively 
+
 # Installation
 
 ```
