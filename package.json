@@ -23,7 +23,7 @@
         "copy": "copyfiles main/**/*.html main/**/*.css main/**/*.jpg dist",
         "prebuild-release": "npm run clean && npm run verify-release",
         "verify-release": "concurrently --kill-others-on-fail npm:lint npm:test npm:build",
-        "build-release": "npm run copy-dist && typedoc",
+        "build-release": "npm run copy-dist && typedoc main/index.ts",
         "watch-build": "tsc --watch",
         "test": "karma start --singleRun --browsers ChromeHeadlessNoSandbox",
         "lint": "eslint . --ext .ts,.js",
