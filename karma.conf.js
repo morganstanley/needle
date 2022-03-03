@@ -39,7 +39,7 @@ module.exports = function(config) {
         rules.push({
             test: /\.ts$/,
             use: {
-                loader: 'istanbul-instrumenter-loader',
+                loader: '@jsdevtools/coverage-istanbul-loader',
                 options: {
                     esModules: true,
                 },
@@ -51,7 +51,7 @@ module.exports = function(config) {
     }
 
     config.set({
-        frameworks: ['jasmine'],
+        frameworks: ['jasmine', 'webpack'],
 
         reporters,
 
