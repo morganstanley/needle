@@ -1,5 +1,5 @@
 {
-    "version": "0.3.15",
+    "version": "0.3.16",
     "description": "A small & lightweight dependency injection container for use in multiple contexts like Angular, React & node.",
     "name": "@morgan-stanley/needle",
     "license": "Apache-2.0",
