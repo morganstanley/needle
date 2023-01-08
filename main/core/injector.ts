@@ -346,7 +346,7 @@ export class Injector implements IInjector {
      * Gets an AutoFactory for a given type
      * @param type
      */
-    public getFactory<T extends Newable>(type: T): AutoFactory<ResolvableTypeOrToken<T>> {
+    public getFactory<T extends Newable>(type: T): AutoFactory<T> {
         return new AutoFactory<any>(type, this, this.createInstanceFactory);
     }
 

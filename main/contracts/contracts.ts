@@ -282,7 +282,7 @@ export interface IInjector {
      * Gets an AutoFactory for a given type
      * @param type
      */
-    getFactory<T extends Newable>(type: T): AutoFactory<ResolvableTypeOrToken<T>>;
+    getFactory<T extends Newable>(type: T): AutoFactory<T>;
 
     /**
      * Gets a Lazy for a given type
