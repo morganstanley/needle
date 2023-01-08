@@ -30,6 +30,7 @@ import {
     StringOrSymbol,
     IValueInjectionConfiguration,
     ValueType,
+    ResolvableTypeOrToken,
 } from '../contracts/contracts';
 import { InstanceCache } from './cache';
 import { Configuration } from './configuration';
@@ -345,22 +346,22 @@ export class Injector implements IInjector {
      * Gets an AutoFactory for a given type
      * @param type
      */
-    public getFactory<T extends Newable>(type: T): AutoFactory<T> {
-        return new AutoFactory(type, this, this.createInstanceFactory);
+    public getFactory<T extends Newable>(type: T): AutoFactory<ResolvableTypeOrToken<T>> {
+        return new AutoFactory<any>(type, this, this.createInstanceFactory);
     }
 
     /**
      * Gets an Lazy<T> for a given type
-     * @param type
+     * @param typeOrToken
      */
-    public getLazy<T>(type: T): LazyInstance<T> {
-        return new LazyInstance<T>(() => this.get(type));
+    public getLazy<T>(typeOrToken: T | StringOrSymbol): LazyInstance<ResolvableTypeOrToken<T>> {
+        return new LazyInstance<any>(() => this.get(typeOrToken));
     }
 
     /**
      * Resolves a type and optional returns undefined if no registrations present
      */
-    public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<T> | undefined {
+    public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvableTypeOrToken<T>> | undefined {
         return this.getImpl((type as unknown) as Newable, [], { mode: 'optional' });
     }
 
@@ -368,8 +369,8 @@ export class Injector implements IInjector {
         typeOrToken: T | StringOrSymbol,
         ancestry: any[] = [],
         options?: T extends Newable ? IConstructionOptions<T> : never,
-    ): InstanceOfType<T> {
-        return this.getImpl(typeOrToken, ancestry, options) as InstanceOfType<T>;
+    ): InstanceOfType<ResolvableTypeOrToken<T>> {
+        return this.getImpl(typeOrToken, ancestry, options) as InstanceOfType<any>;
     }
 
     /**

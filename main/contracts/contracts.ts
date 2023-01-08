@@ -29,6 +29,8 @@ export type NewableConstructorInterceptor = new (...args: any[]) => IConstructio
 // More forgiving InstanceType to support instances of an Abstract Type (not Newable)
 export type InstanceOfType<T> = T extends { prototype: infer U } ? U : T;
 
+export type ResolvableTypeOrToken<T> = T extends string ? unknown : T extends symbol ? unknown : T;
+
 /**
  * Constructor options allows passing of partial params to injector for construction
  */
@@ -280,13 +282,13 @@ export interface IInjector {
      * Gets an AutoFactory for a given type
      * @param type
      */
-    getFactory<T extends Newable>(type: T): AutoFactory<T>;
+    getFactory<T extends Newable>(type: T): AutoFactory<ResolvableTypeOrToken<T>>;
 
     /**
      * Gets a Lazy for a given type
      * @param type
      */
-    getLazy<T>(type: T): LazyInstance<T>;
+    getLazy<T>(type: T | StringOrSymbol): LazyInstance<ResolvableTypeOrToken<T>>;
 
     /**
      * Gets an instance of a given type
@@ -295,12 +297,12 @@ export interface IInjector {
         typeOrToken: T | StringOrSymbol,
         ancestry?: any[],
         options?: T extends Newable ? IConstructionOptions<T> : never,
-    ): InstanceOfType<T>;
+    ): InstanceOfType<ResolvableTypeOrToken<T>>;
 
     /***
      * Gets an instance of a type or returns undefined if no registration
      */
-    getOptional<T>(type: T | StringOrSymbol): InstanceOfType<T> | undefined;
+    getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvableTypeOrToken<T>> | undefined;
 
     /**
      * Returns an Array of the all types registered in the container

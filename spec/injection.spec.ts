@@ -359,6 +359,18 @@ describe('Injector', () => {
             expect(child).toBeDefined();
         });
 
+        it('should resolve an instance of the type by token (string) and no type info pass returns ANY', () => {
+            const instance = getInstance();
+
+            instance.register(Child, {
+                tokens: ['child'],
+            });
+
+            const child = instance.get('child');
+
+            expect(child).toBeDefined();
+        });
+
         it('should resolve an instance of the type by token (symbol)', () => {
             const instance = getInstance();
 
@@ -1150,6 +1162,20 @@ describe('Injector', () => {
             expect(lazyIndividual instanceof LazyInstance).toBeTruthy();
             expect(lazyIndividual.value.id).toBeDefined();
             expect((lazyIndividual.value as Child).age).toBe(7);
+        });
+
+        it('should resolve an instance of lazy when getLazy invoked with a token', () => {
+            const instance = getInstance();
+
+            instance.register(Child, {
+                tokens: ['child'],
+            });
+
+            const lazy = instance.getLazy<Child>('child');
+
+            expect(lazy instanceof LazyInstance).toBeTruthy();
+            expect(lazy.value.id).toBeDefined();
+            expect(lazy.value.age).toBe(7);
         });
 
         it('should return false when hasValue queried and value has not yet been read', () => {
