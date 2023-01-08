@@ -30,7 +30,7 @@ import {
     StringOrSymbol,
     IValueInjectionConfiguration,
     ValueType,
-    ResolvableTypeOrToken,
+    ResolvedType,
 } from '../contracts/contracts';
 import { InstanceCache } from './cache';
 import { Configuration } from './configuration';
@@ -354,14 +354,14 @@ export class Injector implements IInjector {
      * Gets an Lazy<T> for a given type
      * @param typeOrToken
      */
-    public getLazy<T>(typeOrToken: T | StringOrSymbol): LazyInstance<ResolvableTypeOrToken<T>> {
+    public getLazy<T>(typeOrToken: T | StringOrSymbol): LazyInstance<ResolvedType<T>> {
         return new LazyInstance<any>(() => this.get(typeOrToken));
     }
 
     /**
      * Resolves a type and optional returns undefined if no registrations present
      */
-    public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvableTypeOrToken<T>> | undefined {
+    public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined {
         return this.getImpl((type as unknown) as Newable, [], { mode: 'optional' });
     }
 
@@ -369,7 +369,7 @@ export class Injector implements IInjector {
         typeOrToken: T | StringOrSymbol,
         ancestry: any[] = [],
         options?: T extends Newable ? IConstructionOptions<T> : never,
-    ): InstanceOfType<ResolvableTypeOrToken<T>> {
+    ): InstanceOfType<ResolvedType<T>> {
         return this.getImpl(typeOrToken, ancestry, options) as InstanceOfType<any>;
     }
 

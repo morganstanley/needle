@@ -4,7 +4,7 @@ import {
     IInjector,
     InstanceOfType,
     Newable,
-    ResolvableTypeOrToken,
+    ResolvedType,
     StringOrSymbol,
 } from '../contracts/contracts';
 import { getGlobal } from './globals';
@@ -27,7 +27,7 @@ export function get<T>(
     type: T,
     ancestry: any[] = [],
     options?: T extends Newable ? IConstructionOptions<T> : never,
-): InstanceOfType<ResolvableTypeOrToken<T>> {
+): InstanceOfType<ResolvedType<T>> {
     return getRootInjector().get(type, ancestry, options);
 }
 
@@ -35,9 +35,7 @@ export function get<T>(
  * Gets an instance of a type or returns undefined if no registration
  * @param type The type to be resolved
  */
-export function getOptional<T extends Newable>(
-    type: T | StringOrSymbol,
-): InstanceOfType<ResolvableTypeOrToken<T>> | undefined {
+export function getOptional<T extends Newable>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined {
     return getRootInjector().getOptional<T>(type);
 }
 
@@ -48,7 +46,7 @@ export function getLazy<T>(
     type: T,
     ancestry: any[] = [],
     options?: T extends Newable ? IConstructionOptions<T> : never,
-): () => InstanceOfType<ResolvableTypeOrToken<T>> {
+): () => InstanceOfType<ResolvedType<T>> {
     return () => get(type, ancestry, options);
 }
 
