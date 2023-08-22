@@ -81,7 +81,7 @@ export class Injector implements IInjector {
      * Creates a new map from our internal child maps
      */
     public get children(): Map<InjectorIdentifier, IInjector> {
-        return new Map(this._children);
+        return this._children;
     }
 
     /**
