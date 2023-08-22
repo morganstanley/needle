@@ -1778,6 +1778,60 @@ describe('Injector', () => {
                 expect(scopedMetrics!.resolutionCount).toBe(1);
             });
 
+            it('should remove the child scope from the parent', () => {
+                const instance = getInstance();
+
+                instance
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                const scoped = instance
+                    .createScope('test-scope')
+                    .register(GrandParent)
+                    .register(Parent)
+                    .register(Child);
+
+                const childCountBefore = instance.children.size;
+
+                scoped.destroy();
+
+                const childCountAfter = instance.children.size;
+
+                expect(childCountBefore).toBe(1);
+                expect(childCountAfter).toBe(0);
+            });
+
+            it('should remove the children in all scopes when parent scope destroyed', () => {
+                const instance = getInstance();
+
+                const level2 = instance.createScope('level-2');
+                const level3 = level2.createScope('level-3');
+                const level4 = level3.createScope('level-4');
+
+                const level1CountBefore = instance.children.size;
+                const level2CountBefore = level2.children.size;
+                const level3CountBefore = level3.children.size;
+                const level4CountBefore = level4.children.size;
+
+                level3.destroy();
+
+                const level1CountAfter = instance.children.size;
+                const level2CountAfter = level2.children.size;
+                const level3CountAfter = level3.children.size;
+                const level4CountAfter = level4.children.size;
+
+                expect(level1CountBefore).toBe(1);
+                expect(level2CountBefore).toBe(1);
+                expect(level3CountBefore).toBe(1);
+                expect(level4CountBefore).toBe(0);
+
+                expect(level1CountAfter).toBe(1);
+                expect(level2CountAfter).toBe(0);
+                expect(level3CountAfter).toBe(0);
+                expect(level4CountAfter).toBe(0);
+            });
+
             it('should record metrics correctly for correct parent scope when instance resolved from parent rather than local', () => {
                 const instance = getInstance();
 
@@ -2015,6 +2069,7 @@ describe('Injector', () => {
 
                             expect(destroyed).not.toBe(scope.isDestroyed());
                             expect(scope.isDestroyed()).toBeTrue();
+                            expect(parent.children.has(scope.id)).toBeFalse();
                         });
                     });
                 });
