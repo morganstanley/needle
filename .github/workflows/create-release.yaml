@@ -28,8 +28,6 @@ jobs:
         if: github.repository == 'morganstanley/needle'
         uses: justincy/github-action-npm-release@2.0.2
         id: release
-        with:
-          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Print release output
         if: ${{ steps.release.outputs.released == 'true' }}
