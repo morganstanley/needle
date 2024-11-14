@@ -65,7 +65,7 @@
         "karma-webpack": "^5.0.0",
         "prettier": "^1.19.1",
         "puppeteer": "^13.4.1",
-        "reflect-metadata": "^0.1.13",
+        "reflect-metadata": "^0.2.2",
         "rimraf": "^2.6.2",
         "source-map": "0.5.7",
         "ts-loader": "^9.2.7",
@@ -76,7 +76,7 @@
     },
     "peerDependencies": {
         "typescript": ">=3.4",
-        "reflect-metadata": "^0.1.13"
+        "reflect-metadata": "^0.2.2"
     },
     "repository": {
         "type": "git",
