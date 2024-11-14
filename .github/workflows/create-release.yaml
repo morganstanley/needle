@@ -37,6 +37,6 @@ jobs:
 
       - name: Publish
         if: steps.release.outputs.released == 'true'
-        uses: JS-DevTools/npm-publish@0f451a94170d1699fd50710966d48fb26194d939 # v1.4.3
+        uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
         with:
           token: ${{ secrets.NPM_TOKEN }}
