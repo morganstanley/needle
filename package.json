@@ -42,7 +42,7 @@
         "@typescript-eslint/eslint-plugin": "^4.15.0",
         "@typescript-eslint/parser": "^4.15.0",
         "ajv": "^6.10.2",
-        "chromedriver": "^98.0.1",
+        "chromedriver": "^119.0.1",
         "circular-dependency-plugin": "^5.2.0",
         "concurrently": "^7.5.0",
         "copyfiles": "^1.2.0",
