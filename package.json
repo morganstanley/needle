@@ -45,7 +45,7 @@
         "chromedriver": "^119.0.1",
         "circular-dependency-plugin": "^5.2.0",
         "concurrently": "^9.1.0",
-        "copyfiles": "^1.2.0",
+        "copyfiles": "^2.4.1",
         "eslint": "^7.20.0",
         "eslint-config-prettier": "^7.2.0",
         "eslint-config-standard": "^16.0.2",
