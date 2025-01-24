@@ -12,12 +12,12 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: '16.x'
 
@@ -26,7 +26,7 @@ jobs:
 
       - name: Release
         if: github.repository == 'morganstanley/needle'
-        uses: justincy/github-action-npm-release@2.0.2
+        uses: justincy/github-action-npm-release@f6afd60cbb595a76ecae037ad006671636d321f5 # 2.0.2
         id: release
 
       - name: Print release output
@@ -35,6 +35,6 @@ jobs:
 
       - name: Publish
         if: steps.release.outputs.released == 'true'
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
         with:
           token: ${{ secrets.NPM_TOKEN }}
