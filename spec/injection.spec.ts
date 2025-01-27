@@ -303,7 +303,7 @@ describe('Injector', () => {
             try {
                 instance.get(Child);
             } catch (ex) {
-                message = ex.message;
+                message = (ex as any).message;
             }
 
             expect(
@@ -453,7 +453,7 @@ describe('Injector', () => {
                     tokens: ['child'],
                 });
             } catch (ex) {
-                message = ex.message;
+                message = (ex as any).message;
             }
 
             expect(message).toBe(
@@ -477,7 +477,7 @@ describe('Injector', () => {
                     tokens: [symbol],
                 });
             } catch (ex) {
-                message = ex.message;
+                message = (ex as any).message;
             }
 
             expect(message).toBe(
@@ -1304,7 +1304,7 @@ describe('Injector', () => {
             try {
                 instance.getOptional(GrandParent);
             } catch (ex) {
-                message = ex.message;
+                message = (ex as any).message;
             }
 
             expect(message).toBe(
@@ -1607,7 +1607,7 @@ describe('Injector', () => {
                 try {
                     instance.get(Child);
                 } catch (ex) {
-                    message = ex.message;
+                    message = (ex as any).message;
                 }
 
                 expect(invoked).toBeTruthy();

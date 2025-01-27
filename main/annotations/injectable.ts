@@ -15,8 +15,8 @@ import { getRootInjector } from '../core/util.functions';
  *
  * @param configuration
  */
-export function Injectable(configuration?: IInjectionConfiguration) {
-    return (type: any) => {
+export function Injectable<T>(configuration?: IInjectionConfiguration<T>) {
+    return (type: T) => {
         getRootInjector().register(type, configuration);
     };
 }

@@ -19,7 +19,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: '16.x'
+          node-version: '22.x'
+          registry-url: https://registry.npmjs.org/
 
       - name: Install node modules and verify build
         run: npm ci && npm run build-release
@@ -28,8 +29,6 @@ jobs:
         if: github.repository == 'morganstanley/needle'
         uses: justincy/github-action-npm-release@f6afd60cbb595a76ecae037ad006671636d321f5 # 2.0.2
         id: release
-        with:
-          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Print release output
         if: ${{ steps.release.outputs.released == 'true' }}

@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { generateUUID } from '../core/uuid';
 import { getRootInjector } from '../core/util.functions';
 
 /**
@@ -10,7 +10,7 @@ export function Optional() {
     // the original decorator
     function optional(target: any, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
-            token: `optional_${uuid()}`,
+            token: `optional_${generateUUID()}`,
             owner: target,
             property,
             index,
