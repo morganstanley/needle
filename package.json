@@ -71,7 +71,6 @@
         "webpack": "^5.69.1"
     },
     "peerDependencies": {
-        "reflect-metadata": "^0.2.2",
         "typescript": ">=3.4"
     },
     "repository": {
