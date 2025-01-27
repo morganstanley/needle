@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { generateUUID } from '../core/uuid';
 import { Factory } from '../annotations/factory';
 import { Inject } from '../annotations/inject';
 import { Lazy } from '../annotations/lazy';
@@ -108,7 +108,7 @@ export class Injector implements IInjector {
     private _registrations: Map<any, IInjectionConfiguration>;
     private _interceptors: Map<any, IConstructionInterceptor[]>;
     public readonly _children = new Map<InjectorIdentifier, Injector>();
-    public readonly id = uuid();
+    public readonly id = generateUUID();
     public readonly cache: ICache;
     public readonly tokenCache: ITokenCache;
     public readonly configuration: IConfiguration;

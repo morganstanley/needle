@@ -32,13 +32,9 @@
         "prepublishOnly": "npm run build-release",
         "lint:fix": "eslint . --ext .ts,.js --fix"
     },
-    "dependencies": {
-        "uuid": "^8.3.0"
-    },
     "devDependencies": {
         "@jsdevtools/coverage-istanbul-loader": "^3.0.5",
         "@types/jasmine": "^5.1.5",
-        "@types/uuid": "^3.4.4",
         "@typescript-eslint/eslint-plugin": "^4.15.0",
         "@typescript-eslint/parser": "^4.15.0",
         "ajv": "^6.10.2",
@@ -75,8 +71,8 @@
         "webpack": "^5.69.1"
     },
     "peerDependencies": {
-        "typescript": ">=3.4",
-        "reflect-metadata": "^0.2.2"
+        "reflect-metadata": "^0.2.2",
+        "typescript": ">=3.4"
     },
     "repository": {
         "type": "git",

@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { generateUUID } from '../core/uuid';
 import { Newable } from '../contracts/contracts';
 import { getRootInjector } from '../core/util.functions';
 
@@ -13,7 +13,7 @@ export function Lazy(lazyTarget: Newable) {
     // the original decorator
     function lazy(target: any, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
-            token: `lazy_${uuid()}`, // We can auto generate a token for lazy.
+            token: `lazy_${generateUUID()}`, // We can auto generate a token for lazy.
             owner: target,
             lazyTarget,
             property,
