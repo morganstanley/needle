@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: '22.x'
           registry-url: https://registry.npmjs.org/
@@ -29,6 +29,8 @@ jobs:
         if: github.repository == 'morganstanley/needle'
         uses: justincy/github-action-npm-release@f6afd60cbb595a76ecae037ad006671636d321f5 # 2.0.2
         id: release
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Print release output
         if: ${{ steps.release.outputs.released == 'true' }}
@@ -36,6 +38,6 @@ jobs:
 
       - name: Publish
         if: steps.release.outputs.released == 'true'
-        uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
