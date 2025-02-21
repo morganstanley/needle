@@ -440,7 +440,7 @@ export class Injector implements IInjector {
         const NOT_FOUND = isStringOrSymbol(typeOrToken)
             ? `Cannot resolve Type with token '${typeOrToken.toString()}' as no types have been registered against that token value`
             : `Cannot resolve Type '${
-                  (typeOrToken as any).name
+                  (typeOrToken as any)?.name
               }' as no types have been registered against any injectors`;
 
         const injector = this.getInjectorForTypeOrToken(this, typeOrToken);

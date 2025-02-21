@@ -43,14 +43,9 @@ The library depends on TypeScript's support for decorators. Therefore you must e
 
 # Polyfills
 
-This library will work with modern browsers and JavaScript run-times without the need for polyfills, however if targeting older browsers like IE11 you will need to provide a polyfill for the following types. 
+This library also makes optional use of the `reflect-metadata` [API](https://rbuckton.github.io/reflect-metadata/) for performing runtime introspection. The library leverages TypeScripts `emitDecoratorMetadata` to support runtime type information being available.  
 
-* Map - [Read about the Map type here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
-* Symbol - [Read about the Symbol type here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol)
-
-**Note** Symbol support is optional and only required if you intend to use Symbols for your token registrations.  
-
-This library also makes use of the `reflect-metadata` [API](https://rbuckton.github.io/reflect-metadata/) for performing runtime introspection. Most browsers will not support this therefore you must install this yourself. 
+Most browsers will not support this therefore you must install this yourself. 
 
 ```typescript
 npm install reflect-metadata
@@ -61,6 +56,8 @@ And you should import this module at the root of your application.
 ```typescript
 import "reflect-metadata";
 ```
+
+If you do not want to use this polyfill you can instead adopt the explicit metadata detailed below. 
 
 # Feature support
 
@@ -141,9 +138,6 @@ import "reflect-metadata";
 
 # Injectable basics
 
-## Decorators vs Registration API
-
-This library performs runtime introspection in order to determine what types it should construct.  To do this the library uses metadata and generally this metadata will be implicitly captured for you if you have enabled TypeScripts `emitDecoratorMetadata` and a class is decorated with any decorator. However, you do not need to use decorators if you do not wish to.  In the case where no decorators are applied you will need to manually provide the metadata via the registration API.  **Note** Managing the metadata explicitly can be time consuming so we **recommend using the auto generated metadata approach by default**. 
 
 ## Creating an injectable type
 
@@ -174,6 +168,37 @@ class Owner {
 
 //Equivalent to decorator
 getRootInjector().register(Owner, { metadata: Pet }).register(Pet)
+```
+
+## Decorators & Metadata
+
+This library performs runtime introspection in order to determine what types it should construct.  To do this the library uses metadata and generally this metadata will be implicitly captured for you if you have enabled TypeScripts `emitDecoratorMetadata` and a class is decorated with any decorator. However, you do not need to use decorators or `emitDecoratorMetadata` if you do not wish to.  In that case you will need to manually provide the metadata using a decorator or registration API.  **Note** Managing the metadata explicitly can be time consuming so we **recommend using the auto generated metadata approach by default**.  
+
+```typescript
+import { Injectable } from '@morgan-stanley/needle';
+
+@Injectable()
+class Pet {}
+
+//Explicit metadata via the metadata property on the decorator. 
+@Injectable({ metadata: [Pet]})
+class Owner {
+    constructor(pet: Pet) {}
+}
+
+//Explicit metadata using the registration API 
+getRootInjector().register(Owner, { metadata: Pet }).register(Pet)
+```
+
+Note, if you are injecting a token or a strategy etc into a constructor you may not have the type available to you.  In this case you can use following.  
+
+```typescript
+import { Injectable, METADATA } from '@morgan-stanley/needle';
+
+@Injectable({ metadata: [METADATA.token]})
+class Owner {
+    constructor(@Inject('my-pet') pet: IPet) {}
+}
 ```
 
 ## Resolving injectables
