@@ -440,7 +440,7 @@ export class Injector implements IInjector {
         const NOT_FOUND = isStringOrSymbol(typeOrToken)
             ? `Cannot resolve Type with token '${typeOrToken.toString()}' as no types have been registered against that token value`
             : `Cannot resolve Type '${
-                  (typeOrToken as any).name
+                  (typeOrToken as any)?.name
               }' as no types have been registered against any injectors`;
 
         const injector = this.getInjectorForTypeOrToken(this, typeOrToken);
@@ -501,14 +501,7 @@ export class Injector implements IInjector {
                 // At this point either we have no external resolution or if we did it didn't want to handle it so we must now try
                 if (instance === TYPE_NOT_FOUND || instance == null) {
                     if (registration) {
-                        instance = this.createInstance(
-                            constructorType,
-                            true,
-                            registration,
-                            options as any,
-                            ancestry,
-                            injector,
-                        );
+                        instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
                     } else {
                         this.throwRegistrationNotFound(constructorType, ancestry);
                     }
@@ -556,14 +549,12 @@ export class Injector implements IInjector {
         if (registration == null) {
             this.throwRegistrationNotFound(type, ancestors);
         }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.createInstance(type, updateCache, registration!, options, ancestors, injector);
+        return this.createInstance(type, updateCache, options, ancestors, injector);
     }
 
     private createInstance<T extends new (...args: any[]) => any>(
         type: T,
         updateCache = false,
-        registration: IInjectionConfiguration,
         options?: IConstructionOptionsInternal<T>,
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
@@ -578,7 +569,7 @@ export class Injector implements IInjector {
         }
 
         const overrideParams = (options || {}).params || [];
-        const constructorParamTypes = registration.metadata != null ? registration.metadata : getConstructorTypes(type);
+        const constructorParamTypes = getConstructorTypes(type);
         // Note this call to construct param values introduces recursive behavior
         const constructorParamValues = this.getConstructorParamValues<T>(
             constructorParamTypes,

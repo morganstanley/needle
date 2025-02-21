@@ -21,3 +21,14 @@ export const TYPE_NOT_FOUND = { type: 'TYPE_NOT_FOUND' };
  * This constant can be used in conjunction with AutoFactory
  */
 export const AUTO_RESOLVE = undefined;
+
+/**
+ * These values are used when defining explicit metadata and you have no type for the parameter being injected as you maybe using annotation.
+ *
+ * @example @Injectable({metadata: [MyThing, META_DATA.factory, META_DATA.token, META_DATA.strategy]})
+ */
+export const METADATA = {
+    factory: Object,
+    token: Object,
+    strategy: Object,
+};
