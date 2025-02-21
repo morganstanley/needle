@@ -167,7 +167,7 @@ class Owner {
 }
 
 //Equivalent to decorator
-getRootInjector().register(Owner, { metadata: Pet }).register(Pet)
+getRootInjector().register(Owner, { metadata: [Pet] }).register(Pet)
 ```
 
 ## Decorators & Metadata
@@ -187,7 +187,7 @@ class Owner {
 }
 
 //Explicit metadata using the registration API 
-getRootInjector().register(Owner, { metadata: Pet }).register(Pet)
+getRootInjector().register(Owner, { metadata: [Pet] }).register(Pet)
 ```
 
 Note, if you are injecting a token or a strategy etc into a constructor you may not have the type available to you.  In this case you can use following.  
