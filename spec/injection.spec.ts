@@ -856,6 +856,34 @@ describe('Injector', () => {
             expect(bike).toBeDefined();
             expect(car).not.toBe(bike);
         });
+
+        it('should register with default config', () => {
+            const instance = getInstance();
+
+            const vehicle1 = new Vehicle('Car');
+
+            instance.register(Vehicle);
+
+            instance.registerInstance(Vehicle, vehicle1);
+
+            const reg = instance.getRegistrationForType(Vehicle);
+
+            expect(reg).toEqual({});
+        });
+
+        it('should register with custom config', () => {
+            const instance = getInstance();
+
+            const vehicle1 = new Vehicle('Car');
+
+            instance.register(Vehicle);
+
+            instance.registerInstance(Vehicle, vehicle1, { metadata: [String] });
+
+            const reg = instance.getRegistrationForType(Vehicle);
+
+            expect(reg).toEqual({ metadata: [String] });
+        });
     });
 
     describe('Strategies', () => {
