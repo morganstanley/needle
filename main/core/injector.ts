@@ -239,8 +239,16 @@ export class Injector implements IInjector {
         instance: InstanceOfType<T>,
         config: IInjectionConfiguration = defaultInjectionConfiguration,
     ): this {
-        // Auto add the registration details
-        this.register(type, config);
+        const existingRegistration = this.getRegistrationForType(type);
+        //We should only register it if there is no existing registration OR its not the default registration.
+        if (
+            existingRegistration == null ||
+            (existingRegistration != null && config !== defaultInjectionConfiguration)
+        ) {
+            // Auto add the registration details
+            this.register(type, config);
+        }
+
         // Preload the cache
         this.cache.update(type, instance);
         return this;
