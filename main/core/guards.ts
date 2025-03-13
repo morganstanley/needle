@@ -31,7 +31,7 @@ export function isConstructorParameterToken(
 export function isFactoryParameterToken(
     item: IInjectionToken | IFactoryParameterInjectionToken,
 ): item is IFactoryParameterInjectionToken {
-    return isConstructorParameterToken(item) && item.factoryTarget != null;
+    return isConstructorParameterToken(item) && (item as IFactoryParameterInjectionToken).factoryTarget != null;
 }
 
 /**
@@ -41,7 +41,7 @@ export function isFactoryParameterToken(
 export function isLazyParameterToken(
     item: IInjectionToken | ILazyParameterInjectionToken,
 ): item is ILazyParameterInjectionToken {
-    return isConstructorParameterToken(item) && item.lazyTarget != null;
+    return isConstructorParameterToken(item) && (item as ILazyParameterInjectionToken).lazyTarget != null;
 }
 
 /**
@@ -57,7 +57,7 @@ export function isStringOrSymbol(item: any): item is StringOrSymbol {
  * @param item
  */
 export function isExternalResolutionConfigurationLike(item: any): item is IExternalResolutionConfiguration {
-    return typeof item != null && item.resolver != null && typeof item.resolver === 'function';
+    return item != null && item.resolver != null && typeof item.resolver === 'function';
 }
 
 /**
@@ -65,7 +65,7 @@ export function isExternalResolutionConfigurationLike(item: any): item is IExter
  * @param item
  */
 export function isExternalValueResolutionConfigurationLike(item: any): item is IExternalValueResolutionConfiguration {
-    return typeof item != null && item.resolver != null && typeof item.resolver === 'function';
+    return item != null && item.resolver != null && typeof item.resolver === 'function';
 }
 
 /**
