@@ -1,8 +1,9 @@
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | Object;
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | object;
 
 export type InjectorIdentifier = string;
 

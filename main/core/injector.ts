@@ -421,7 +421,6 @@ export class Injector implements IInjector {
     private getRootInjector(): Injector {
         let currentInjector: Injector = this;
         while (currentInjector.isRoot() === false) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             currentInjector = currentInjector.parent! as Injector;
         }
         return currentInjector;
@@ -592,7 +591,7 @@ export class Injector implements IInjector {
             .filter(interceptor => interceptor.target === type)
             .map(interceptor => ({
                 interceptor,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                 
                 configuration: injector.getRegistrationForType(type)!,
                 constructorArgs: constructorParamValues,
                 injector,

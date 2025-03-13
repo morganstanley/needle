@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-empty-interface */
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
+
 /* INTERNALS */
 import { Configuration } from 'main/core/configuration';
 import { Metrics } from 'main/core/metrics';
@@ -40,6 +38,7 @@ export abstract class Individual {
 
 export abstract class Student extends Individual {}
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface IStrategy {}
 
 //no metadata test
@@ -591,13 +590,13 @@ describe('Injector', () => {
 
             let invoked = false;
 
-            // eslint-disable-next-line @typescript-eslint/ban-types
+
             instance.registerValue<Function>({
                 tokens: ['my-func'],
                 value: () => (invoked = true),
             });
 
-            // eslint-disable-next-line @typescript-eslint/ban-types
+
             const value = instance.get<Function>('my-func');
             value();
 
@@ -665,13 +664,11 @@ describe('Injector', () => {
                 name: 'test',
             };
 
-            // eslint-disable-next-line @typescript-eslint/ban-types
             instance.registerValue<object>({
                 tokens: ['json-token'],
                 value: jsonData,
             });
 
-            // eslint-disable-next-line @typescript-eslint/ban-types
             const value = instance.get<object>('json-token');
 
             expect(value).toBeDefined();
@@ -786,7 +783,6 @@ describe('Injector', () => {
             instance
                 .register(Payload)
                 .registerParamForTokenInjection('data-token', Payload, 0)
-                // eslint-disable-next-line @typescript-eslint/ban-types
                 .registerValue<object>({
                     tokens: ['data-token'],
                     value: jsonData,
