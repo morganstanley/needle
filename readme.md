@@ -22,16 +22,7 @@ npm install @morgan-stanley/needle
 
 Required Typescript version: > 3.4
 
-The library depends on TypeScript's support for decorators. Therefore you must enable `experimentalDecorators` and `emitDecoratorMetadata`
-
-```json
-{
-    "compilerOptions": {
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true
-    }
-}
-```
+The library depends on TypeScript's support for decorators.
 
 # Why use this?
 
@@ -40,24 +31,6 @@ The library depends on TypeScript's support for decorators. Therefore you must e
 - Provides a non-invasive way to stand up a tree of dependencies
 - Increases your code testability
 - Support semantic versioning injection
-
-# Polyfills
-
-This library also makes optional use of the `reflect-metadata` [API](https://rbuckton.github.io/reflect-metadata/) for performing runtime introspection. The library leverages TypeScripts `emitDecoratorMetadata` to support runtime type information being available.
-
-Most browsers will not support this therefore you must install this yourself.
-
-```typescript
-npm install reflect-metadata
-```
-
-And you should import this module at the root of your application.
-
-```typescript
-import 'reflect-metadata';
-```
-
-If you do not want to use this polyfill you can instead adopt the explicit metadata detailed below.
 
 # Feature support
 
@@ -139,6 +112,74 @@ If you do not want to use this polyfill you can instead adopt the explicit metad
 
 # Injectable basics
 
+## Decorators & Metadata
+
+This library performs runtime type introspection in order to determine what types it should construct. There are two modes you can use for metadata `auto-generated` or `explicit`. Lets take a look at each, first lets start with explicit metadata.
+
+### Explicit Metadata
+
+When using explicit metadata we can use either the decorator or the registration API. Below is an example of how we provide the metadata using the decorator.
+
+```typescript
+import { Injectable } from '@morgan-stanley/needle';
+
+@Injectable()
+class Pet {}
+
+//Explicit metadata via the metadata property on the decorator.
+@Injectable({ metadata: [Pet] })
+class Owner {
+    constructor(pet: Pet) {}
+}
+```
+
+And if we prefer to use the registration API we can provide the metadata as follows.
+
+```typescript
+//Explicit metadata using the registration API
+getRootInjector()
+    .register(Owner, { metadata: [Pet] })
+    .register(Pet);
+```
+
+Note, if you are injecting a token or a strategy etc into a constructor you may not have the type available to you. In this case you can use following.
+
+```typescript
+import { Injectable, METADATA } from '@morgan-stanley/needle';
+
+@Injectable({ metadata: [METADATA.token] })
+class Owner {
+    constructor(@Inject('my-pet') pet: IPet) {}
+}
+```
+
+### Auto-generated metadata
+
+TypeScript has support for being able to generate the metadata for you as part of your compilation. You can enable this feature in your `tsconfig.json` file as follows.
+
+```json
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    }
+}
+```
+
+Once enabled TypeScript will emit special JS code which depends on a polyfill library called `reflect-metadata`. To use this approach you must install this polyfill with
+
+```typescript
+npm install reflect-metadata
+```
+
+Once installed you must then import this module as the very first import on the root of your application.
+
+```typescript
+import 'reflect-metadata';
+```
+
+After this, needle will then adopt a strategy of looking for explicitly defined metadata first and if not found falling back to the TypeScript generated metadata.
+
 ## Creating an injectable type
 
 The easiest way to make a type injectable is to decorate it with the @Injectable decorator. All types by default decorated in this way will be available for injection in any runtime context.
@@ -155,7 +196,7 @@ class Owner {
 }
 ```
 
-While decorators are recommended, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function. **IMPORTANT** If you have decided not to use decorators for you injectable types, you will need to provide the constructor metadata explicitly. Below is an example of how you can do that.
+While decorators are recommended, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function. 
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
@@ -170,39 +211,6 @@ class Owner {
 getRootInjector()
     .register(Owner, { metadata: [Pet] })
     .register(Pet);
-```
-
-## Decorators & Metadata
-
-This library performs runtime introspection in order to determine what types it should construct. To do this the library uses metadata and generally this metadata will be implicitly captured for you if you have enabled TypeScripts `emitDecoratorMetadata` and a class is decorated with any decorator. However, you do not need to use decorators or `emitDecoratorMetadata` if you do not wish to. In that case you will need to manually provide the metadata using a decorator or registration API. **Note** Managing the metadata explicitly can be time consuming so we **recommend using the auto generated metadata approach by default**.
-
-```typescript
-import { Injectable } from '@morgan-stanley/needle';
-
-@Injectable()
-class Pet {}
-
-//Explicit metadata via the metadata property on the decorator.
-@Injectable({ metadata: [Pet] })
-class Owner {
-    constructor(pet: Pet) {}
-}
-
-//Explicit metadata using the registration API
-getRootInjector()
-    .register(Owner, { metadata: [Pet] })
-    .register(Pet);
-```
-
-Note, if you are injecting a token or a strategy etc into a constructor you may not have the type available to you. In this case you can use following.
-
-```typescript
-import { Injectable, METADATA } from '@morgan-stanley/needle';
-
-@Injectable({ metadata: [METADATA.token] })
-class Owner {
-    constructor(@Inject('my-pet') pet: IPet) {}
-}
 ```
 
 ## Resolving injectables
@@ -907,7 +915,7 @@ level1.isDestroyed(); //True;
 level2.isDestroyed(); //True;
 ```
 
-## Injectable destroy hooks
+## Destroy hooks
 
 When an injection scope is destroyed needle will look to see if injectables in that scopes cache implement `IDestroyable`. If cache references are found, needle will invoke the `needle_destroy` function. This provides a perfect place for you to perform necessary clean up. Example below.
 
