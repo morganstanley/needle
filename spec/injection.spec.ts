@@ -10,6 +10,7 @@ import {
     getOptional,
     getRootInjector,
     IConstructionInterceptor,
+    IDestroyable,
     IInjectionContext,
     IInjector,
     Inject,
@@ -57,7 +58,10 @@ class Cat extends Pet {
 
 //no metadata test
 class Owner {
-    constructor(public dog: Dog, public cat: Cat) {}
+    constructor(
+        public dog: Dog,
+        public cat: Cat,
+    ) {}
 }
 
 @Injectable({
@@ -96,8 +100,13 @@ export class HistoryTeacher extends Individual {
 }
 
 @Injectable()
-export class Child extends Individual {
+export class Child extends Individual implements IDestroyable {
+    public isDestroyed = false;
     public age = 7;
+
+    public needle_destroy(): void {
+        this.isDestroyed = true;
+    }
 }
 
 @Injectable()
@@ -151,7 +160,10 @@ class Car extends Vehicle {
 
 @Injectable()
 class Bus extends Vehicle {
-    constructor(public engine: Engine, public capacity: number) {
+    constructor(
+        public engine: Engine,
+        public capacity: number,
+    ) {
         super('Car');
     }
 }
@@ -325,10 +337,7 @@ describe('Injector', () => {
         it('should not register a type twice', () => {
             const instance = getInstance();
 
-            instance
-                .register(GrandParent)
-                .register(GrandParent)
-                .register(GrandParent);
+            instance.register(GrandParent).register(GrandParent).register(GrandParent);
 
             expect(instance.getRegisteredTypes().length).toBe(1);
         });
@@ -336,10 +345,7 @@ describe('Injector', () => {
         it('should  register distinct types', () => {
             const instance = getInstance();
 
-            instance
-                .register(GrandParent)
-                .register(Parent)
-                .register(Child);
+            instance.register(GrandParent).register(Parent).register(Child);
 
             expect(instance.getRegisteredTypes().length).toBe(3);
         });
@@ -590,12 +596,10 @@ describe('Injector', () => {
 
             let invoked = false;
 
-
             instance.registerValue<Function>({
                 tokens: ['my-func'],
                 value: () => (invoked = true),
             });
-
 
             const value = instance.get<Function>('my-func');
             value();
@@ -682,7 +686,7 @@ describe('Injector', () => {
                 tokens: ['value-1'],
                 value: {
                     cacheSyncing: true,
-                    resolver: _injector => 'my-test',
+                    resolver: (_injector) => 'my-test',
                 },
             });
 
@@ -699,7 +703,7 @@ describe('Injector', () => {
                 tokens: ['value-1'],
                 value: {
                     cacheSyncing: true,
-                    resolver: _injector => regex,
+                    resolver: (_injector) => regex,
                 },
             });
 
@@ -717,7 +721,7 @@ describe('Injector', () => {
                 tokens: ['value-1'],
                 value: {
                     cacheSyncing: false,
-                    resolver: _injector => ++counter,
+                    resolver: (_injector) => ++counter,
                 },
             });
 
@@ -1242,10 +1246,7 @@ describe('Injector', () => {
         it('should inject a parameter of type lazy when lazy annotation present', () => {
             const instance = getInstance();
 
-            instance
-                .register(Engine)
-                .register(Train)
-                .registerParamForLazyInjection(Engine, Train, 0);
+            instance.register(Engine).register(Train).registerParamForLazyInjection(Engine, Train, 0);
 
             const train = instance.get(Train);
 
@@ -1339,10 +1340,7 @@ describe('Injector', () => {
         it('should resolve undefined instance for parameter decorated with @Optional and has NOT been registered', () => {
             const instance = getInstance();
 
-            instance
-                .register(GrandParent)
-                .register(Parent)
-                .registerParamForOptionalInjection(Parent, 0);
+            instance.register(GrandParent).register(Parent).registerParamForOptionalInjection(Parent, 0);
 
             const grandParent = instance.get(GrandParent);
 
@@ -1494,11 +1492,7 @@ describe('Injector', () => {
         it('should return undefined for deps', () => {
             const instance = getInstance();
 
-            const owner = instance
-                .register(Owner)
-                .register(Dog)
-                .register(Cat)
-                .get(Owner);
+            const owner = instance.register(Owner).register(Dog).register(Cat).get(Owner);
 
             expect(owner).toBeDefined();
             expect(owner.dog).toBeUndefined();
@@ -1522,10 +1516,7 @@ describe('Injector', () => {
         it('should construct a tree of dependencies', () => {
             const instance = getInstance();
 
-            instance
-                .register(GrandParent)
-                .register(Parent)
-                .register(Child);
+            instance.register(GrandParent).register(Parent).register(Child);
 
             const gp = instance.get(GrandParent);
 
@@ -1747,10 +1738,7 @@ describe('Injector', () => {
         it('should record the correct dependency count for a given type', () => {
             const instance = getInstance();
 
-            instance
-                .register(GrandParent)
-                .register(Parent)
-                .register(Child);
+            instance.register(GrandParent).register(Parent).register(Child);
 
             instance.get(GrandParent);
             instance.metrics.dump();
@@ -1760,7 +1748,7 @@ describe('Injector', () => {
             expect(result!.dependencyCount).toBe(1);
         });
 
-        it('should update the last resolution time', done => {
+        it('should update the last resolution time', (done) => {
             const instance = getInstance();
 
             instance.register(Child);
@@ -1781,10 +1769,7 @@ describe('Injector', () => {
             it('should record metrics correctly for each scope', () => {
                 const instance = getInstance();
 
-                instance
-                    .register(GrandParent)
-                    .register(Parent)
-                    .register(Child);
+                instance.register(GrandParent).register(Parent).register(Child);
 
                 const scoped = instance
                     .createScope('test-scope')
@@ -1805,10 +1790,7 @@ describe('Injector', () => {
             it('should remove the child scope from the parent', () => {
                 const instance = getInstance();
 
-                instance
-                    .register(GrandParent)
-                    .register(Parent)
-                    .register(Child);
+                instance.register(GrandParent).register(Parent).register(Child);
 
                 const scoped = instance
                     .createScope('test-scope')
@@ -1856,13 +1838,29 @@ describe('Injector', () => {
                 expect(level4CountAfter).toBe(0);
             });
 
+            it('should call destroy on injectables that implement IDestroy', () => {
+                const instance = getInstance();
+
+                const level2 = instance.createScope('level-2');
+
+                const child = new Child();
+                const before = child.isDestroyed;
+
+                //Front load our cache
+                level2.cache.update(Child, child);
+
+                level2.destroy();
+
+                const after = child.isDestroyed;
+
+                expect(before).toBeFalse();
+                expect(after).toBeTrue(); // Child should be destroyed
+            });
+
             it('should record metrics correctly for correct parent scope when instance resolved from parent rather than local', () => {
                 const instance = getInstance();
 
-                instance
-                    .register(GrandParent)
-                    .register(Parent)
-                    .register(Child);
+                instance.register(GrandParent).register(Parent).register(Child);
 
                 const scoped = instance.createScope('test-scope');
 
@@ -1957,7 +1955,7 @@ describe('Injector', () => {
         describe('Ancestry', () => {
             describe('Resolution', () => {
                 describe('Resolve instance from ancestor with explicit metadata', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
 
@@ -1975,7 +1973,7 @@ describe('Injector', () => {
                 });
 
                 describe('Resolve instance from ancestor', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
 
@@ -1989,7 +1987,7 @@ describe('Injector', () => {
                 });
 
                 describe('Resolve instance from ancestor using token', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve instance using ancestors registration - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
 
@@ -2005,7 +2003,7 @@ describe('Injector', () => {
                 });
 
                 describe('Resolve value from ancestor using token', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve value using ancestors registration - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
 
@@ -2025,7 +2023,7 @@ describe('Injector', () => {
                 });
 
                 describe('Resolve strategy from ancestor', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve strategies using ancestors registration - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2048,7 +2046,7 @@ describe('Injector', () => {
                 });
 
                 describe('Resolve factory from ancestor', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve factory using ancestors registration - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
 
@@ -2065,7 +2063,7 @@ describe('Injector', () => {
                 });
 
                 describe('Resolve lazy from ancestor', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve lazy.value using ancestors registration - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2083,7 +2081,7 @@ describe('Injector', () => {
 
             describe('Destroy', () => {
                 describe('with parent (In middle of tree) where destroy is invoked', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve using ancestors registration - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
                             const parent = instance.getScope(`level-${test.registrationLevel}`)!;
@@ -2101,7 +2099,7 @@ describe('Injector', () => {
 
             describe('Interception', () => {
                 describe('with interceptor registered in parent and type resolved from scope', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should intercept the construction - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
                             const parent = instance.getScope(`level-${test.registrationLevel}`)!;
@@ -2134,7 +2132,7 @@ describe('Injector', () => {
                 });
 
                 describe('with interceptor registered in scope and type resolved from parent', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should intercept the construction - ${getTestInfoAsText(test)}`, () => {
                             const instance = getInstance(true, test.depth);
                             const parent = instance.getScope(`level-${test.registrationLevel}`)!;
@@ -2167,7 +2165,7 @@ describe('Injector', () => {
                 });
 
                 describe('with interceptor registered directly in root and type resolved from parent and scope', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should intercept the construction only once - ${getTestInfoAsText(test)}`, () => {
                             const root = getInstance(true, test.depth);
                             const parent = root.getScope(`level-${test.registrationLevel}`)!;
@@ -2205,7 +2203,7 @@ describe('Injector', () => {
 
             describe('Overriding', () => {
                 describe('with registerInstance() override in a scope', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`should resolve the instance from the local scope ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2227,7 +2225,7 @@ describe('Injector', () => {
                 });
 
                 describe('with registerValue() override in a scope', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`should resolve the value from the local scope ignoring the value already resolved in parent scopes - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2256,7 +2254,7 @@ describe('Injector', () => {
                 });
 
                 describe('with register.strategies override in a scope', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`should resolve a different set of strategies ignoring those already resolved in the parent scopes (string token)- ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2284,7 +2282,7 @@ describe('Injector', () => {
                 });
 
                 describe('with register.tokens override in a scope', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`should resolve the instance from local scope using a String token ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2309,7 +2307,7 @@ describe('Injector', () => {
                         });
                     });
 
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`should resolve the instance from local scope using a Symbol token ignoring the instance already resolved in parent scopes - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2337,7 +2335,7 @@ describe('Injector', () => {
                 });
 
                 describe('with type registered in local scope and registrar.getLazy invoked', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve an instance from the local scope ignoring parent scopes - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2361,7 +2359,7 @@ describe('Injector', () => {
                 });
 
                 describe('with type registered in local scope with scoped dependency and registrar.getFactory invoked', () => {
-                    generateTestExecutionData().forEach(test => {
+                    generateTestExecutionData().forEach((test) => {
                         it(`Should resolve an new instance with each instance having a scoped shared dependency - ${getTestInfoAsText(
                             test,
                         )}`, () => {
@@ -2461,9 +2459,7 @@ describe('Injector', () => {
             const root = getInstance();
             const interceptor = new EngineInterceptor();
 
-            root.register(Engine)
-                .createScope('scoped')
-                .registerInterceptor(interceptor);
+            root.register(Engine).createScope('scoped').registerInterceptor(interceptor);
 
             root.get(Engine);
             const registration = root.getRegistrationForType(Engine);
@@ -2528,7 +2524,7 @@ describe('Injector', () => {
             root.get(Engine);
             const registration = root.getRegistrationForType(Engine);
 
-            [interceptor1, interceptor2, interceptor3].forEach(interceptor => {
+            [interceptor1, interceptor2, interceptor3].forEach((interceptor) => {
                 expect(interceptor.beforeInvocation.length).toBe(1);
                 expect(interceptor.beforeInvocation[0]).toBeDefined();
                 expect(interceptor.beforeInvocation[0].configuration).toBe(registration!);

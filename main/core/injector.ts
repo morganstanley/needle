@@ -43,6 +43,7 @@ import {
     isLazyParameterToken,
     isStringOrSymbol,
     isBoxedValue,
+    isDestroyable,
 } from './guards';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
@@ -199,7 +200,7 @@ export class Injector implements IInjector {
     public getScope(nameOrId: string): IInjector | undefined {
         const childScopes = Array.from(this._children).map(([_id, scope]) => scope);
 
-        const foundIndex = findIndex(childScopes, c => c.id === nameOrId || c.name === nameOrId);
+        const foundIndex = findIndex(childScopes, (c) => c.id === nameOrId || c.name === nameOrId);
         if (foundIndex !== -1) {
             return childScopes[foundIndex];
         }
@@ -320,12 +321,19 @@ export class Injector implements IInjector {
      */
     public destroy(parent?: IInjector): void {
         // Destroy our branch of the tree.
-        this.children.forEach(c => c.destroy(this));
+        this.children.forEach((c) => c.destroy(this));
 
         // We only remove ourselves from the parent if this instance had its destroy invoked not via its parent injector
         if (parent == null && this.parent != null) {
             this.parent.children.delete(this.id);
         }
+
+        //Before we purge the cache we must check to see if the type implements IDestroyable and then invoke as needed
+        this._cache.all().forEach((instance) => {
+            if (isDestroyable(instance)) {
+                instance.needle_destroy();
+            }
+        });
 
         // Clear out all the local data (registrations, cache etc)
         this.reset();
@@ -347,7 +355,7 @@ export class Injector implements IInjector {
             .filter(([_t, config]) => config.strategy === strategy)
             .map(([t]) => this.get<T>(t, []));
 
-        return (strategies as unknown) as Array<T>;
+        return strategies as unknown as Array<T>;
     }
 
     /**
@@ -370,7 +378,7 @@ export class Injector implements IInjector {
      * Resolves a type and optional returns undefined if no registrations present
      */
     public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined {
-        return this.getImpl((type as unknown) as Newable, [], { mode: 'optional' });
+        return this.getImpl(type as unknown as Newable, [], { mode: 'optional' });
     }
 
     public get<T>(
@@ -392,7 +400,7 @@ export class Injector implements IInjector {
      * Returns an array of all the types registered in the container with associated constructor dependencies
      */
     public getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }> {
-        return this.getRegisteredTypes().map(t => ({ provide: t, deps: getConstructorTypes(t) }));
+        return this.getRegisteredTypes().map((t) => ({ provide: t, deps: getConstructorTypes(t) }));
     }
 
     /**
@@ -537,7 +545,7 @@ export class Injector implements IInjector {
     private throwRegistrationNotFound(constructorType: any, ancestry: any[]) {
         throw new Error(
             `Cannot construct Type '${constructorType.name}' with ancestry '${ancestry
-                .map(ancestor => ancestor.name)
+                .map((ancestor) => ancestor.name)
                 .join(
                     ' -> ',
                 )}' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
@@ -570,7 +578,7 @@ export class Injector implements IInjector {
         if (ancestors.length > injector.configuration.maxTreeDepth) {
             throw new Error(
                 `Cannot construct Type '${(type as any).name}' with ancestry '${ancestors
-                    .map(ancestor => ancestor.name)
+                    .map((ancestor) => ancestor.name)
                     .join(' -> ')}' as max tree depth has been reached`,
             );
         }
@@ -588,10 +596,10 @@ export class Injector implements IInjector {
 
         // Construct our interceptor contexts (If we have some registered)
         const interceptorContexts = (this.getInterceptorsForType(type) || [])
-            .filter(interceptor => interceptor.target === type)
-            .map(interceptor => ({
+            .filter((interceptor) => interceptor.target === type)
+            .map((interceptor) => ({
                 interceptor,
-                 
+
                 configuration: injector.getRegistrationForType(type)!,
                 constructorArgs: constructorParamValues,
                 injector,
@@ -599,12 +607,12 @@ export class Injector implements IInjector {
             }));
 
         // Trigger before interceptors
-        interceptorContexts.forEach(context => context.interceptor.beforeCreate(context));
+        interceptorContexts.forEach((context) => context.interceptor.beforeCreate(context));
 
         const instance: any = new type(...constructorParamValues);
 
         // Trigger after interceptors
-        interceptorContexts.forEach(context => context.interceptor.afterCreate(instance, context));
+        interceptorContexts.forEach((context) => context.interceptor.afterCreate(instance, context));
 
         if (updateCache) {
             injector.cache.update(type, instance);
@@ -639,7 +647,7 @@ export class Injector implements IInjector {
         ancestors: any[],
         index: number,
     ): any[] | undefined {
-        const strategyToken = paramTokens[findIndex(paramTokens, ip => ip.index === index)];
+        const strategyToken = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
         if (strategyToken != null) {
             const strategies = this.getStrategiesTypes(injector, strategyToken).map(([t]) =>
                 injector.get(t, ancestors),
@@ -656,7 +664,7 @@ export class Injector implements IInjector {
      * @param index constructor index position
      */
     private tryGetFactoryParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
-        const factoryToken = paramTokens[findIndex(paramTokens, ip => ip.index === index)];
+        const factoryToken = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
         if (factoryToken != null && isFactoryParameterToken(factoryToken)) {
             return new AutoFactory(
                 factoryToken.factoryTarget as Newable,
@@ -676,7 +684,7 @@ export class Injector implements IInjector {
      * @param index constructor index position
      */
     private tryGetLazyParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
-        const lazyToken = paramTokens[findIndex(paramTokens, ip => ip.index === index)];
+        const lazyToken = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
         if (lazyToken != null && isLazyParameterToken(lazyToken)) {
             return new LazyInstance(() => injector.get(lazyToken.lazyTarget));
         }
@@ -684,7 +692,7 @@ export class Injector implements IInjector {
     }
 
     private isOptionalParam(paramTokens: IParameterInjectionToken[], index: number): boolean {
-        return findIndex(paramTokens, ip => ip.index === index) !== -1;
+        return findIndex(paramTokens, (ip) => ip.index === index) !== -1;
     }
 
     /**
@@ -702,13 +710,8 @@ export class Injector implements IInjector {
         }
 
         // These tokens are constructor parameter tokens
-        const {
-            injectionParamTokens,
-            strategyParamTokens,
-            factoryParamTokens,
-            lazyParamTokens,
-            optionalParamTokens,
-        } = this.getConstructorsParamTokens(injector, type);
+        const { injectionParamTokens, strategyParamTokens, factoryParamTokens, lazyParamTokens, optionalParamTokens } =
+            this.getConstructorsParamTokens(injector, type);
 
         return constructorParamTypes.map((paramType, index) => {
             const paramInjector = this.getInjectorForTypeOrToken(injector, paramType);
@@ -761,7 +764,7 @@ export class Injector implements IInjector {
         defaultType: any,
         paramInjector: Injector,
     ) {
-        const token = paramTokens[findIndex(paramTokens, ip => ip.index === index)];
+        const token = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
         if (token != null) {
             defaultType = paramInjector._tokenCache.getTypeForToken(token.token);
         }
@@ -852,8 +855,8 @@ export class Injector implements IInjector {
 
     private registerTokens(type: any, tokens: Array<StringOrSymbol> = []): void {
         tokens
-            .map(token => ({ token, owner: type, injectionType: 'singleton' } as IInjectionToken))
-            .forEach(t => {
+            .map((token) => ({ token, owner: type, injectionType: 'singleton' }) as IInjectionToken)
+            .forEach((t) => {
                 if (!this.configuration.allowDuplicateTokens) {
                     const tokenTypes = this.tokenCache.getTypesForToken(t.token);
                     if (tokenTypes.length > 0) {
@@ -861,7 +864,7 @@ export class Injector implements IInjector {
                             `Cannot register Type [${
                                 (type as any).name
                             }] with token '${t.token.toString()}'. Duplicate token found for the following type [${tokenTypes
-                                .map(tt => tt.name)
+                                .map((tt) => tt.name)
                                 .join(' -> ')}]`,
                         );
                     }

@@ -353,6 +353,18 @@ export interface IInjector {
 }
 
 /**
+ * Destroyable interface used to signal that an object can be destroyed
+ * @description This is used to signal that the object can be cleaned up and should not be used after this point.
+ */
+export interface IDestroyable{
+    /**
+     * Destroys the object and cleans up any resources it holds.
+     * @description After this method is called, the object should not be used anymore.
+     */
+    needle_destroy(): void;
+}
+
+/**
  * Injection configuration object used for profiling information and behavior about the injectable to the injector
  */
 export interface IInjectionConfiguration<T = any> {

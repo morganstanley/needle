@@ -8,6 +8,7 @@ import {
     StringOrSymbol,
     IExternalValueResolutionConfiguration,
     IBoxedValue,
+    IDestroyable,
 } from '../contracts/contracts';
 import { BOXED_TYPE_ID } from '../constants/constants';
 
@@ -89,4 +90,12 @@ export function isInjectorLike(thing: any): thing is IInjector {
  */
 export function isBoxedValue(thing: any): thing is IBoxedValue {
     return thing != null && thing.typeId === BOXED_TYPE_ID;
+}
+
+export function isDestroyable(thing: any): thing is IDestroyable {
+    return (
+        thing != null &&
+        (thing as IDestroyable).needle_destroy != null &&
+        typeof (thing as IDestroyable).needle_destroy === 'function'
+    );
 }
