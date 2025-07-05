@@ -1,20 +1,24 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
-import prettier from "eslint-config-prettier";
+import prettierConfig  from "eslint-config-prettier";
 import pluginPrettier from "eslint-plugin-prettier";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
     {
-        ignores: ["karma.conf.js", 'karma.base.conf.js', 'prettier.config.js' ], // Proper way to ignore files in Flat Config
+        ignores: ["karma.conf.js", 'karma.base.conf.js', 'prettier.config.js', 'reports/**' ], // Proper way to ignore files in Flat Config
     },
     { files: ["**/*.{js,mjs,cjs,ts}"]},
     { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
     { languageOptions: { globals: globals.browser } },
+
     pluginJs.configs.recommended,
+
+
     ...tseslint.configs.recommended,
-    prettier,
+
+    prettierConfig,
     {
         plugins: { prettier: pluginPrettier },
         rules: {
