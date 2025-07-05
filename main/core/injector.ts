@@ -329,7 +329,7 @@ export class Injector implements IInjector {
         }
 
         //Before we purge the cache we must check to see if the type implements IDestroyable and then invoke as needed
-        this._cache.all().forEach((instance) => {
+        this._cache.instances().forEach((instance) => {
             if (isDestroyable(instance)) {
                 instance.needle_destroy();
             }

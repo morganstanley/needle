@@ -14,8 +14,7 @@ export class InstanceCache implements ICache {
     public clear(): void {
         this.instanceMap.clear();
     }
-
-    public all(): Array<any> {
+    public instances(): Array<any> {
         return Array.from(this.instanceMap.values());
     }
 

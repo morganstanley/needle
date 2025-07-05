@@ -1,7 +1,6 @@
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
-
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | object;
 
@@ -126,6 +125,10 @@ export interface ICache {
      * Clears the cache
      */
     clear(): void;
+    /**
+     * Returns an array of all instances in the cache
+     */
+    instances(): Array<any>;
 }
 
 /**
@@ -356,7 +359,7 @@ export interface IInjector {
  * Destroyable interface used to signal that an object can be destroyed
  * @description This is used to signal that the object can be cleaned up and should not be used after this point.
  */
-export interface IDestroyable{
+export interface IDestroyable {
     /**
      * Destroys the object and cleans up any resources it holds.
      * @description After this method is called, the object should not be used anymore.

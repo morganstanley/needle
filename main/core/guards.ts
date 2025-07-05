@@ -92,10 +92,10 @@ export function isBoxedValue(thing: any): thing is IBoxedValue {
     return thing != null && thing.typeId === BOXED_TYPE_ID;
 }
 
-export function isDestroyable(thing: any): thing is IDestroyable {
+export function isDestroyable(value: any): value is IDestroyable {
     return (
-        thing != null &&
-        (thing as IDestroyable).needle_destroy != null &&
-        typeof (thing as IDestroyable).needle_destroy === 'function'
+        value != null &&
+        (value as IDestroyable).needle_destroy != null &&
+        typeof (value as IDestroyable).needle_destroy === 'function'
     );
 }
