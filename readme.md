@@ -820,17 +820,19 @@ const records: IMetricRecord[] = getRootInjector().metrics.data;
 
 # Caching strategies
 
-Needle supports a number of different caching strategies when managing your injectables. This gives you much more granular control over how the systems memory is used and offers opportunities for targeting resource restricted systems. There are are 4 types of caching you can employ with your injectables.
+Needle provides several flexible caching strategies for managing your injectables, allowing you to fine-tune memory usage and optimize for different runtime environments. The available caching strategies are:
 
-- Persistent - This is the default for needle whereby injectables once created will live in the injector cache for the remainder of your applications lifetime.
-- No-cache - This options lets you avoid needle caching your instances completely. This will result in new instances on each resolution.
-- Weak-references - Needle will leverage weak references to store your injectables in the cache allowing the garbage collector to reclaim the memory if not GC roots are found.
-- Idle - This option allows you to specify a idle timeout which needle will use to determine if your injectable should be evicted. If a subsequent resolution is made for the injectable the timeout will be reset.
-- Conditional - The conditional caching strategy lets you define a predicate that will be check at the end of each event tick where needle performs a resolution.
+- **Persistent**: The default strategy. Once an injectable is created, it remains cached for the application's lifetime.
+- **No-cache**: Disables caching entirely. Each resolution creates a new instance.
+- **Weak references**: Uses JavaScript's `WeakRef` to cache injectables, enabling garbage collection when no strong references remain.
+- **Idle**: Evicts injectables from the cache after a specified period of inactivity. The timeout resets on each access.
+- **Conditional**: Lets you define a custom predicate function to determine when an injectable should be evicted from the cache, evaluated after each resolution.
+
+These strategies give you granular control over resource management and can be tailored to fit the needs of both high-performance and resource-constrained applications.
 
 ## Persistent
 
-This is the default and no special configuration is required. However if you want to explicit about this and avoid global settings overriding your injectables cache strategy you can define it as follows.
+By default, the persistent cache strategy is applied automatically—no additional configuration is needed. However, if you want to be explicit and ensure that your injectable always uses the persistent strategy (regardless of global settings), you can specify it directly as shown below.
 
 ```typescript
 //Using the decorator
@@ -843,7 +845,7 @@ injector.register(NaughtyTurtle, { cacheStrategy: 'persistent' });
 
 ## No cache
 
-The `no-cache` option will instruct needle to never cache the injectable resulting a new instance on each resolution. Example below.
+The `no-cache` option tells Needle to skip caching entirely, so a fresh instance is created every time the injectable is resolved. This is useful when you need stateless or short-lived objects that shouldn't be reused. Example:
 
 ```typescript
 //Using the decorator
@@ -856,7 +858,7 @@ injector.register(NaughtyTurtle, { cacheStrategy: 'no-cache' });
 
 ## Weak references
 
-The `weak-reference` option will instruct needle to store your injectable instance in the cache using a weak reference. This means that its possible for the garbage collector to reclaim the memory later. Therefore there are no guarantees that if you resolve an injectable from needle the first time, that you will get the same instance a few moments later. The garbage collection is non-deterministic and therefore you should consider this in your use.
+The `weak-reference` cache strategy tells Needle to store your injectable instance using JavaScript's `WeakRef`. This allows the garbage collector to reclaim the instance's memory if there are no strong references to it elsewhere in your application. As a result, you are not guaranteed to receive the same instance on subsequent resolutions if the instance has been collected, Needle will create a new one. Because garbage collection is non-deterministic, use this strategy when you want to minimize memory usage and don't require persistent instances.
 
 ```typescript
 //Using the decorator
@@ -869,7 +871,7 @@ injector.register(NaughtyTurtle, { cacheStrategy: 'weak-reference'' });
 
 ## Idle
 
-The idle cache strategy will ensure your injectable is purged after a set period of time. You can define this in your configuration as follows. Note, if subsequent resolutions happen before the timeout is reached, needle will reset the elapsed time back to 0.
+The idle cache strategy automatically removes your injectable from the cache after a specified period of inactivity. You can configure the timeout in milliseconds. Each time the injectable is accessed, the timer resets—so the instance remains cached as long as it is used within the timeout window. This is useful for managing memory in scenarios where objects should only persist while actively in use.
 
 ```typescript
 //Using the decorator
@@ -882,7 +884,7 @@ injector.register(NaughtyTurtle, { cacheStrategy: { timeout: 500 } });
 
 ## Conditional
 
-The conditional cache strategy is useful if you which to evict items from memory based on some specific condition. Example below.
+The conditional cache strategy allows you to evict items from the cache based on a custom condition. You provide a predicate function that receives the instance and returns `true` if the item should be evicted. This gives you fine-grained control over cache behavior, enabling scenarios like time-based, state-based, or environment-based eviction. Example:
 
 ```typescript
 //Using the decorator
