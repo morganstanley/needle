@@ -1,5 +1,5 @@
 {
     "extends": "../tsconfig.json",
     "exclude": ["dist"],
-    "files": ["index.ts", "core/cache-strategy.ts"]
+    "files": ["index.ts"]
 }
