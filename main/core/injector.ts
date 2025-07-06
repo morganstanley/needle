@@ -509,7 +509,14 @@ export class Injector implements IInjector {
                 // At this point either we have no external resolution or if we did it didn't want to handle it so we must now try
                 if (instance === TYPE_NOT_FOUND || instance == null) {
                     if (registration) {
-                        instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
+                        instance = this.createInstance(
+                            constructorType,
+                            true,
+                            options as any,
+                            ancestry,
+                            injector,
+                            registration,
+                        );
                     } else {
                         this.throwRegistrationNotFound(constructorType, ancestry);
                     }

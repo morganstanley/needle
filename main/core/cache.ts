@@ -75,7 +75,7 @@ export class InstanceCache implements ICache {
 
     public clear(): void {
         //Before we purge the cache we must check to see if the type implements IDestroyable and then invoke as needed
-        Array.from(this.instanceMap.values()).forEach((instance) => this.evict(instance));
+        Array.from(this.instanceMap.keys()).forEach((type) => this.evict(type));
     }
 
     public instances(): Array<any> {

@@ -151,8 +151,10 @@ class Vehicle {
 @Injectable()
 class Engine {}
 
-@Injectable({ cacheStrategy: { timeout: 500 } })
-class IdleInjection {}
+class WeakReferenceInjectable {
+    public id = Math.floor(Math.random() * 100000 + 1);
+    constructor() {}
+}
 
 @Injectable()
 class Car extends Vehicle {
@@ -1681,12 +1683,113 @@ describe('Injector', () => {
     });
 
     describe('Caching', () => {
-        it('should resolve an instance of injector if injector.get invoked with type of Injector', () => {
-            const instance = getInstance();
-            const instance2 = instance.get(Injector);
+        it('should have a default caching strategy of `persistent`', () => {
+            const defaultCacheStrategy = getInstance().configuration.defaultCacheStrategy;
 
-            expect(instance2).toBeDefined();
-            expect(instance).toBe(instance2);
+            expect(defaultCacheStrategy).toBe('persistent');
+        });
+
+        it('should update the cache strategy', () => {
+            getInstance().configuration.defaultCacheStrategy = 'no-cache';
+
+            const defaultCacheStrategy = getInstance().configuration.defaultCacheStrategy;
+
+            expect(defaultCacheStrategy).toBe('no-cache');
+        });
+
+        it('should NOT cache the injectable if default cache strategy set to `no-cache`', () => {
+            getInstance().configuration.defaultCacheStrategy = 'no-cache';
+
+            const instance = getInstance();
+            instance.register(Child);
+
+            const child1 = instance.get(Child);
+            const child2 = instance.get(Child);
+
+            expect(child1).not.toBe(child2);
+        });
+
+        it('should return same reference if GC has not run', () => {
+            const instance = getInstance();
+            instance.register(WeakReferenceInjectable, { cacheStrategy: 'weak-reference' });
+
+            let firstInstance: WeakReferenceInjectable | undefined = instance.get(WeakReferenceInjectable);
+            const idOne = firstInstance.id;
+            //DeRef the child to allow GC to collect it
+            firstInstance = undefined;
+
+            const secondInstance = instance.get(WeakReferenceInjectable);
+            const idTwo = secondInstance.id;
+
+            expect(idOne).toBe(idTwo);
+        });
+
+        /**
+         * This is a special test to ensure that the WeakRef is collected by the GC.
+         * It is not guaranteed to pass every time, as it depends on the timing of the
+         * Garbage Collector. Therefore to test this you can run the test then in chrome
+         * devtools you can run the GC manually and the test will pass.
+         */
+        xit('should return a different instance after the GC has had time to run', async () => {
+            const instance = getInstance();
+            instance.register(WeakReferenceInjectable, { cacheStrategy: 'weak-reference' });
+
+            let firstInstance: WeakReferenceInjectable | undefined = instance.get(WeakReferenceInjectable);
+            const idOne = firstInstance.id;
+
+            // Access the WeakRef to monitor it
+            const weakRef = new WeakRef(firstInstance);
+
+            // Dereference to allow GC
+            firstInstance = undefined;
+
+            // Wait for a short while but not long enough for GC to kick in
+            await pause(10000); // Wait for the GC to run and the reference to have been collected
+
+            const ref = weakRef.deref();
+
+            const secondInstance = instance.get(WeakReferenceInjectable);
+            const idTwo = secondInstance.id;
+
+            expect(ref).toBeUndefined();
+            expect(idOne).not.toBe(idTwo); // Should be the same because GC hasn't run
+        }, 60000); // Increase timeout for this test
+
+        it('should evict the injectable from the cache after its timeout has expired and no other resolutions', async () => {
+            const instance = getInstance();
+            instance.register(WeakReferenceInjectable, { cacheStrategy: { timeout: 500 } });
+
+            const firstInstance: WeakReferenceInjectable | undefined = instance.get(WeakReferenceInjectable);
+
+            await pause(750); // Wait for the timeout to expire
+
+            const secondInstance = instance.get(WeakReferenceInjectable);
+
+            expect(firstInstance).not.toBe(secondInstance);
+        });
+
+        it('should NOT evict the injectable from the cache ifs its timeout has NOT expired and other resolutions have occurred', async () => {
+            const instance = getInstance();
+            instance.register(WeakReferenceInjectable, { cacheStrategy: { timeout: 1000 } });
+
+            const firstInstance: WeakReferenceInjectable | undefined = instance.get(WeakReferenceInjectable);
+
+            await pause(25); // Wait for the timeout to expire
+            const secondInstance = instance.get(WeakReferenceInjectable);
+
+            await pause(25); // Wait for the timeout to expire
+            const thirdInstance = instance.get(WeakReferenceInjectable);
+
+            await pause(25); // Wait brief period
+            const forthInstance = instance.get(WeakReferenceInjectable);
+
+            await pause(1500); // Wait for the timeout to expire
+            const fifthInstance = instance.get(WeakReferenceInjectable);
+
+            expect(firstInstance).toBe(secondInstance);
+            expect(secondInstance).toBe(thirdInstance);
+            expect(thirdInstance).toBe(forthInstance);
+            expect(fifthInstance).not.toBe(forthInstance);//Should be different because the timeout has expired
         });
     });
 
@@ -2556,3 +2659,7 @@ describe('Injector', () => {
         });
     });
 });
+
+function pause(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
