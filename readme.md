@@ -95,6 +95,12 @@ The library depends on TypeScript's support for decorators.
 |                                                                                               | Global bespoke construction      | Can I create a global constructor for all types                                        | Full Support |
 |                                                                                               | Abstract type construction       | Can I create a constructor for abstract base types                                     | Full Support |
 |                                                                                               | Scoping support                  | Are custom constructors supported in scoped injectors                                  | Full Support |
+| [Caching strategies](https://github.com/morganstanley/needle#caching-strategies)              |                                  | Does the DI library support scoped injection contexts                                  | Full Support |
+|                                                                                               | Persistent                       | Can injectables be cached indefinitely                                                 | Full Support |
+|                                                                                               | No caching                       | Can I stop the injector caching my injectables                                         | Full Support |
+|                                                                                               | Weak References                  | Can I store injectables using weak references in the cache                             | Full Support |
+|                                                                                               | Idle caching                     | Can have my injectables evicted on the cache based on a given timeout                  | Full Support |
+|                                                                                               | Conditional caching              | Can I evict items from the cache if a given condition is met                           | Full Support |
 | [Hierarchical injection](https://github.com/morganstanley/needle#scoped-injection)            |                                  | Does the DI library support scoped injection contexts                                  | Full Support |
 |                                                                                               | String scope names               | Can I use strings for scope names                                                      | Full Support |
 |                                                                                               | Symbol scope names               | Can I use Symbols for scoped names                                                     | Full Support |
@@ -196,7 +202,7 @@ class Owner {
 }
 ```
 
-While decorators are recommended, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function. 
+While decorators are recommended, you can also achieve the same using the Injector API. You gain access to this API by importing the `getRootInjector` function.
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';
@@ -810,6 +816,81 @@ You an read all the metric data by reading the `data` property.
 
 ```typescript
 const records: IMetricRecord[] = getRootInjector().metrics.data;
+```
+
+# Caching strategies
+
+Needle supports a number of different caching strategies when managing your injectables. This gives you much more granular control over how the systems memory is used and offers opportunities for targeting resource restricted systems. There are are 4 types of caching you can employ with your injectables.
+
+- Persistent - This is the default for needle whereby injectables once created will live in the injector cache for the remainder of your applications lifetime.
+- No-cache - This options lets you avoid needle caching your instances completely. This will result in new instances on each resolution.
+- Weak-references - Needle will leverage weak references to store your injectables in the cache allowing the garbage collector to reclaim the memory if not GC roots are found.
+- Idle - This option allows you to specify a idle timeout which needle will use to determine if your injectable should be evicted. If a subsequent resolution is made for the injectable the timeout will be reset.
+- Conditional - The conditional caching strategy lets you define a predicate that will be check at the end of each event tick where needle performs a resolution.
+
+## Persistent
+
+This is the default and no special configuration is required. However if you want to explicit about this and avoid global settings overriding your injectables cache strategy you can define it as follows.
+
+```typescript
+//Using the decorator
+@Injectable({ cacheStrategy: 'persistent' })
+class NaughtyTurtle {}
+
+//Using the registration API
+injector.register(NaughtyTurtle, { cacheStrategy: 'persistent' });
+```
+
+## No cache
+
+The `no-cache` option will instruct needle to never cache the injectable resulting a new instance on each resolution. Example below.
+
+```typescript
+//Using the decorator
+@Injectable({ cacheStrategy: 'no-cache' })
+class NaughtyTurtle {}
+
+//Using the registration API
+injector.register(NaughtyTurtle, { cacheStrategy: 'no-cache' });
+```
+
+## Weak references
+
+The `weak-reference` option will instruct needle to store your injectable instance in the cache using a weak reference. This means that its possible for the garbage collector to reclaim the memory later. Therefore there are no guarantees that if you resolve an injectable from needle the first time, that you will get the same instance a few moments later. The garbage collection is non-deterministic and therefore you should consider this in your use.
+
+```typescript
+//Using the decorator
+@Injectable({cacheStrategy: 'weak-reference'})
+class NaughtyTurtle {}
+
+//Using the registration API
+injector.register(NaughtyTurtle, { cacheStrategy: 'weak-reference'' });
+```
+
+## Idle
+
+The idle cache strategy will ensure your injectable is purged after a set period of time. You can define this in your configuration as follows. Note, if subsequent resolutions happen before the timeout is reached, needle will reset the elapsed time back to 0.
+
+```typescript
+//Using the decorator
+@Injectable({ cacheStrategy: { timeout: 500 } })
+class NaughtyTurtle {}
+
+//Using the registration API
+injector.register(NaughtyTurtle, { cacheStrategy: { timeout: 500 } });
+```
+
+## Conditional
+
+The conditional cache strategy is useful if you which to evict items from memory based on some specific condition.  Example below. 
+
+```typescript
+//Using the decorator
+@Injectable({ cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/  } })
+class NaughtyTurtle {}
+
+//Using the registration API
+injector.register(NaughtyTurtle, { cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/  } });
 ```
 
 # Scoped injection
