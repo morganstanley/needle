@@ -41,13 +41,23 @@ export type ResolvedType<T> = T extends string ? unknown : T extends symbol ? un
  * Idle cache strategy type
  * @description This strategy will purge the item from the cache if no resolutions within a given time
  */
-export type IdleCacheStrategyType = { timeout: number };
+export type IdleCacheStrategyType = {
+    /**
+     * The time in milliseconds after which the item will be purged from the cache if not accessed
+     */
+     timeout: number 
+};
 
 /**
  * Conditional cache strategy type
  * @description This strategy will purge the item from the cache if a given predicate returns true
  */
 export type ConditionalCacheStrategyType = {
+    /**
+     * A predicate function that will be called with the instance to determine if it should be purged from the cache
+     * @param instance The instance to check (optional
+     * @returns true if the instance should be purged, false otherwise
+     */
     predicate: (instance: any) => boolean;
 };
 
