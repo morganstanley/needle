@@ -43,7 +43,6 @@ import {
     isLazyParameterToken,
     isStringOrSymbol,
     isBoxedValue,
-    isDestroyable,
 } from './guards';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
@@ -78,6 +77,8 @@ export interface IConstructionOptionsInternal<T extends Newable, TParams = Parti
  * Injector type used for registering types for injection
  */
 export class Injector implements IInjector {
+    static verify = false;
+
     /**
      * Creates a new map from our internal child maps
      */
@@ -417,6 +418,21 @@ export class Injector implements IInjector {
     }
 
     /**
+     * Schedules a verification if the injector which will happen at the end of the current event loop
+     * @description This is used to ensure that the cache is purged of any stale instances for example
+     */
+    private scheduleVerify(): void {
+        if (Injector.verify === false) {
+            Injector.verify = true;
+
+            queueMicrotask(() => {
+                this.cache.purge();
+                Injector.verify = false;
+            });
+        }
+    }
+
+    /**
      * To avoid circular import we can use this function to get the root injector
      */
     private getRootInjector(): Injector {
@@ -440,6 +456,9 @@ export class Injector implements IInjector {
                 `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${this.id}]`,
             );
         }
+
+        //Any operation that results in a get should trigger verification at the end of the event loop. Note it will only run once
+        this.scheduleVerify();
 
         // Measuring time taken
         const start = Date.now();

@@ -1709,7 +1709,7 @@ describe('Injector', () => {
             expect(child1).not.toBe(child2);
         });
 
-        it('should return same reference if GC has not run', () => {
+        it('should return same reference for weak reference instance if GC has not run', () => {
             const instance = getInstance();
             instance.register(WeakReferenceInjectable, { cacheStrategy: 'weak-reference' });
 
@@ -1730,7 +1730,7 @@ describe('Injector', () => {
          * Garbage Collector. Therefore to test this you can run the test then in chrome
          * devtools you can run the GC manually and the test will pass.
          */
-        xit('should return a different instance after the GC has had time to run', async () => {
+        xit('should return a different instance for a weakly referenced type after the GC has had time to run', async () => {
             const instance = getInstance();
             instance.register(WeakReferenceInjectable, { cacheStrategy: 'weak-reference' });
 
@@ -1768,6 +1768,21 @@ describe('Injector', () => {
             expect(firstInstance).not.toBe(secondInstance);
         });
 
+        it('should evict the injectable from the cache after its timeout has expired and call destroy if it implements IDestroyable', async () => {
+            const instance = getInstance();
+            instance.register(Child, { cacheStrategy: { timeout: 500 } });
+
+            const child = instance.get(Child);
+            const before = child.isDestroyed;
+
+            await pause(750); // Wait for the timeout to expire
+
+            const after = child.isDestroyed;
+
+            expect(before).toBe(false);
+            expect(after).toBe(true);
+        });
+
         it('should NOT evict the injectable from the cache ifs its timeout has NOT expired and other resolutions have occurred', async () => {
             const instance = getInstance();
             instance.register(WeakReferenceInjectable, { cacheStrategy: { timeout: 1000 } });
@@ -1789,7 +1804,60 @@ describe('Injector', () => {
             expect(firstInstance).toBe(secondInstance);
             expect(secondInstance).toBe(thirdInstance);
             expect(thirdInstance).toBe(forthInstance);
-            expect(fifthInstance).not.toBe(forthInstance);//Should be different because the timeout has expired
+            expect(fifthInstance).not.toBe(forthInstance); //Should be different because the timeout has expired
+        });
+
+        it('should NOT evict the injectable from the cache if its cache condition is return FALSE', () => {
+            const instance = getInstance();
+            instance.register(Child, { cacheStrategy: { predicate: () => false } });
+
+            const firstInstance = instance.get(Child);
+            const secondInstance = instance.get(Child);
+            const thirdInstance = instance.get(Child);
+            const forthInstance = instance.get(Child);
+
+            expect(firstInstance).toBe(secondInstance);
+            expect(secondInstance).toBe(thirdInstance);
+            expect(thirdInstance).toBe(forthInstance);
+        });
+
+        it('should evict the injectable from the cache if its cache condition returns TRUE', async () => {
+            const instance = getInstance();
+            let condition = false;
+            instance.register(Child, { cacheStrategy: { predicate: () => condition } });
+
+            const firstInstance = instance.get(Child);
+            const secondInstance = instance.get(Child);
+
+            condition = true;
+            await pause(25); // Wait brief period
+
+            const thirdInstance = instance.get(Child);
+            const forthInstance = instance.get(Child);
+
+            expect(firstInstance).toBe(secondInstance);
+            expect(secondInstance).not.toBe(thirdInstance);
+            expect(thirdInstance).toBe(forthInstance);
+        });
+
+        it('should evict the injectable from the cache and run its destroy if its cache condition returns TRUE and it implements IDestroyable', async () => {
+            const instance = getInstance();
+            let condition = false;
+            instance.register(Child, { cacheStrategy: { predicate: () => condition } });
+
+            const child = instance.get(Child);
+            const before = child.isDestroyed;
+
+            condition = true;
+            await pause(25); // Wait for the timeout to expire
+
+            const child2 = instance.get(Child);
+
+            const after = child.isDestroyed;
+
+            expect(before).toBe(false);
+            expect(after).toBe(true);
+            expect(child).not.toBe(child2);
         });
     });
 

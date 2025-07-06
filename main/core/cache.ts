@@ -1,10 +1,11 @@
-import { ICache, IInjectionConfiguration, InstanceOfType } from '../contracts/contracts';
+import { ConditionalCacheStrategyType, ICache, IInjectionConfiguration, InstanceOfType } from '../contracts/contracts';
 import { isConditionalCacheStrategy, isDestroyable, isIdleCacheStrategy } from './guards';
 import { getRootInjector } from './util.functions';
 
 export class InstanceCache implements ICache {
     private instanceMap = new Map<any, any>();
-    private scheduledEvictionList = new Map<any, { timeout: number; timeoutRef: any }>();
+    private scheduled = new Map<any, { timeout: number; timeoutRef: any }>();
+    private conditionals = new Map<any, ConditionalCacheStrategyType>();
 
     public resolve<T>(type: T): InstanceOfType<T> {
         let instance = this.instanceMap.get(type);
@@ -13,7 +14,7 @@ export class InstanceCache implements ICache {
         }
 
         //We must check to see if this instance has an existing eviction time and if so we must reschedule it
-        const scheduledEviction = this.scheduledEvictionList.get(type);
+        const scheduledEviction = this.scheduled.get(type);
         if (scheduledEviction) {
             this.scheduleEviction(type, scheduledEviction.timeout);
         }
@@ -34,7 +35,7 @@ export class InstanceCache implements ICache {
         } else if (isIdleCacheStrategy(cacheStrategy)) {
             this.scheduleEviction(type, cacheStrategy.timeout);
         } else if (isConditionalCacheStrategy(cacheStrategy)) {
-            //Todo
+            this.conditionals.set(type, cacheStrategy);
         }
 
         if (previous && previous !== instance) {
@@ -60,14 +61,14 @@ export class InstanceCache implements ICache {
 
         //Add the timer to the scheduled eviction list
         //This allows us to clear the timer if needed before it fires
-        this.scheduledEvictionList.set(type, { timeout: timeout, timeoutRef: timer });
+        this.scheduled.set(type, { timeout: timeout, timeoutRef: timer });
     }
 
     /**
      * Unschedule the eviction for a given type
      */
     private tryUnscheduleEviction(type: any) {
-        const existingTimer = this.scheduledEvictionList.get(type);
+        const existingTimer = this.scheduled.get(type);
         if (existingTimer) {
             clearTimeout(existingTimer.timeoutRef);
         }
@@ -91,12 +92,47 @@ export class InstanceCache implements ICache {
         this.tryUnscheduleEviction(type);
         this.tryDestroy(instance);
         this.instanceMap.delete(type);
+        this.conditionals.delete(type);
     }
 
     private tryDestroy(instance: any): void {
         if (isDestroyable(instance)) {
             instance.needle_destroy();
         }
+    }
+
+    /**
+     * Verifies all conditionals in the cache and evicts instances that meet the criteria
+     * This is useful for cleaning up instances that are no longer valid based on some condition
+     */
+    public purge(): void {
+        this.conditionals.forEach((strategy, type) => {
+            const instance = this.resolve(type);
+            if (instance) {
+                let result = false;
+                try {
+                    result = strategy.predicate(instance);
+                } catch (e) {
+                    console.warn(`Error evaluating predicate for type ${type}:`, e);
+                    result = false;
+                }
+                if (result) {
+                    //If the condition is met we must remove the instance from the cache
+                    this.evict(type);
+                }
+            }
+        });
+
+        //We must also check for weak references that have been garbage collected
+        this.instanceMap.forEach((instance, type) => {
+            if (instance instanceof WeakRef) {
+                const derefInstance = instance.deref();
+                if (!derefInstance) {
+                    //If the weak reference has been garbage collected we must remove it from the cache
+                    this.evict(type);
+                }
+            }
+        });
     }
 
     public get instanceCount(): number {

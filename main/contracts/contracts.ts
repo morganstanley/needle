@@ -48,7 +48,7 @@ export type IdleCacheStrategyType = { timeout: number };
  * @description This strategy will purge the item from the cache if a given predicate returns true
  */
 export type ConditionalCacheStrategyType = {
-    predicate: (instance: any, injector: IInjector) => boolean;
+    predicate: (instance: any) => boolean;
 };
 
 /**
@@ -175,6 +175,11 @@ export interface ICache {
      * Returns an array of all instances in the cache
      */
     instances(): Array<any>;
+
+    /**
+     * Will attempt instances from the cache based on conditional cache strategy or and weak reference cache strategy.
+     */
+    purge(): void;
 }
 
 /**
