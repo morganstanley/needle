@@ -882,15 +882,17 @@ injector.register(NaughtyTurtle, { cacheStrategy: { timeout: 500 } });
 
 ## Conditional
 
-The conditional cache strategy is useful if you which to evict items from memory based on some specific condition.  Example below. 
+The conditional cache strategy is useful if you which to evict items from memory based on some specific condition. Example below.
 
 ```typescript
 //Using the decorator
-@Injectable({ cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/  } })
+@Injectable({ cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/ } })
 class NaughtyTurtle {}
 
 //Using the registration API
-injector.register(NaughtyTurtle, { cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/  } });
+injector.register(NaughtyTurtle, {
+    cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/ },
+});
 ```
 
 # Scoped injection
@@ -1088,6 +1090,26 @@ By default the injector will track common metric information about types in the 
 import { getRootInjector } from '@morgan-stanley/needle';
 
 getRootInjector().configuration.trackMetrics = false;
+```
+
+## Default cache strategy
+
+You set the global `defaultCacheStrategy` that will be used for injectables which do not define a local caching strategy via the injection config. For Example
+
+```typescript
+import { getRootInjector } from '@morgan-stanley/needle';
+
+getRootInjector().configuration.defaultCacheStrategy = 'persistent';
+```
+
+## Default metadata modes
+
+You set the global default `metadataMode` that will be used when resolving metadata for injection. The options are `explicit`, where metadata is resolved the metadata array only, `reflection` where the metadata will attempt to be resolved using the reflect-metadata polyfill, or `both` which is the default and will attempt to resolve explicit first then fallback to reflection.
+
+```typescript
+import { getRootInjector } from '@morgan-stanley/needle';
+
+getRootInjector().configuration.metadataMode = 'explicit';
 ```
 
 ## External Resolution Strategy
