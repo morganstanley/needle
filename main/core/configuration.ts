@@ -1,71 +1,48 @@
-import { IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts';
+import { CacheStrategyType, IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts';
 
 /**
  * Configuration class used for handling global container settings and behavioral flags
  */
 export class Configuration implements IConfiguration {
     /**
-     * Gets the current max tree depth depth
+     * The current max tree depth
      */
-    public get maxTreeDepth(): number {
-        return this._maxTreeDepth;
-    }
+    public maxTreeDepth: number = 100;
 
     /**
-     * Sets the limit on how deep the dependency graph tree can go.
+     * The external type resolver if one has been registered
      */
-    public set maxTreeDepth(value: number) {
-        this._maxTreeDepth = value;
-    }
+    public externalResolutionStrategy?: IExternalResolutionConfiguration;
 
     /**
-     * Gets the external type resolver if one has been registered
-     */
-    public get externalResolutionStrategy(): IExternalResolutionConfiguration | undefined {
-        return this._externalResolutionStrategy;
-    }
-
-    /**
-     * Sets the type resolver to an external implementation. Delegates all construction and caching to that container
-     */
-    public set externalResolutionStrategy(value: IExternalResolutionConfiguration | undefined) {
-        this._externalResolutionStrategy = value;
-    }
-
-    /**
-     * Gets the flag indicating if duplicate tokens should be allowed.
+     * Flag indicating if duplicate tokens should be allowed.
      * @default false
      */
-    public get allowDuplicateTokens(): boolean {
-        return this._allowDuplicateTokens;
-    }
+    public allowDuplicateTokens: boolean = false;
 
     /**
-     * Sets the flag to signal to the injector that duplicate tokens are either allowed or restricted
+     * Flag indicating if metrics tracking is enabled
+     * @default true
      */
-    public set allowDuplicateTokens(value: boolean) {
-        this._allowDuplicateTokens = value;
-    }
+    public trackMetrics: boolean = true;
 
-    /**
-     * Gets the flag indicating if metrics tracking is enabled
-     * @default false
+    /*
+     * The metadata mode to use for type resolution.
+     * - 'explicit': Uses explicit metadata provided by the user.
+     * - 'reflection': Uses reflection to gather metadata.
+     * - 'both': Attempts to resolve metadata using explicit first then reflection second.
+     * @default 'both'
      */
-    public get trackMetrics(): boolean {
-        return this._trackMetrics;
-    }
+    public metadataMode: 'explicit' | 'reflection' | 'both' = 'both';
 
-    /**
-     * Sets the flag to signal if metrics tracking is enabled
+    /*
+     * The metadata mode to use for type resolution.
+     * - 'explicit': Uses explicit metadata provided by the user.
+     * - 'reflection': Uses reflection to gather metadata.
+     * - 'both': Attempts to resolve metadata using explicit first then reflection second.
+     * @default 'both'
      */
-    public set trackMetrics(value: boolean) {
-        this._trackMetrics = value;
-    }
-
-    private _maxTreeDepth = 100;
-    private _externalResolutionStrategy: IExternalResolutionConfiguration | undefined;
-    private _allowDuplicateTokens = false;
-    public _trackMetrics = true;
+    public defaultCacheStrategy: CacheStrategyType = 'persistent';
 
     /**
      * Resets the configuration back to its default state
@@ -74,6 +51,6 @@ export class Configuration implements IConfiguration {
         this.maxTreeDepth = 500;
         this.externalResolutionStrategy = undefined;
         this.allowDuplicateTokens = false;
-        this._trackMetrics = false;
+        this.trackMetrics = false;
     }
 }

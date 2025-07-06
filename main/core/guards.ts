@@ -9,6 +9,8 @@ import {
     IExternalValueResolutionConfiguration,
     IBoxedValue,
     IDestroyable,
+    IdleCacheStrategyType,
+    ConditionalCacheStrategyType,
 } from '../contracts/contracts';
 import { BOXED_TYPE_ID } from '../constants/constants';
 
@@ -97,5 +99,17 @@ export function isDestroyable(value: any): value is IDestroyable {
         value != null &&
         (value as IDestroyable).needle_destroy != null &&
         typeof (value as IDestroyable).needle_destroy === 'function'
+    );
+}
+
+export function isIdleCacheStrategy(value: any): value is IdleCacheStrategyType {
+    return value != null && (value as IdleCacheStrategyType).timeout != null;
+}
+
+export function isConditionalCacheStrategy(value: any): value is ConditionalCacheStrategyType {
+    return (
+        value != null &&
+        (value as ConditionalCacheStrategyType).predicate != null &&
+        typeof (value as ConditionalCacheStrategyType).predicate === 'function'
     );
 }

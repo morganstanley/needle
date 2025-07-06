@@ -1,17 +1,12 @@
 {
     "compilerOptions": {
-        "target": "ES5",
+        "target": "es2024",
         "module": "commonjs",
-        "lib": [
-            "ES5",
-            "ES6",
-            "DOM",
-        ],
+        "lib": ["ES2024", "DOM"],
         "declaration": true,
         "sourceMap": true,
         "outDir": "./dist",
         "rootDir": "./",
-        "downlevelIteration": true,
         "skipLibCheck": false,
         "strict": true,
         "noUnusedLocals": true,
@@ -22,9 +17,7 @@
         "baseUrl": "./",
         "esModuleInterop": true,
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
+        "emitDecoratorMetadata": true
     },
-    "exclude": [
-        "dist"
-    ]
+    "exclude": ["dist"]
 }

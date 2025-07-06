@@ -8,11 +8,15 @@ declare const Reflect: any;
  */
 export function getConstructorTypes<T = unknown>(constr: T): any[] {
     const registration = getRootInjector().getRegistrationForType(constr);
-    if (registration != null && registration.metadata != null) {
-        return registration.metadata;
-    } else if (Reflect != null && typeof Reflect?.getMetadata === 'function') {
-        return Reflect.getMetadata('design:paramtypes', constr) || [];
+    const metadataModel = getRootInjector().configuration.metadataMode;
+    switch (metadataModel) {
+        case 'explicit':
+            return registration?.metadata ?? [];
+        case 'reflection':
+            return Reflect.getMetadata('design:paramtypes', constr) || [];
+        case 'both':
+            return registration?.metadata ?? Reflect.getMetadata('design:paramtypes', constr) ?? [];
+        default:
+            return [];
     }
-
-    return [];
 }

@@ -151,6 +151,9 @@ class Vehicle {
 @Injectable()
 class Engine {}
 
+@Injectable({ cacheStrategy: { timeout: 500 } })
+class IdleInjection {}
+
 @Injectable()
 class Car extends Vehicle {
     constructor(@Optional() public engine: Engine) {
@@ -818,7 +821,7 @@ describe('Injector', () => {
 
             expect(error).toBeDefined();
             expect(error.message).toBe(
-                `Cannot register Type [class_1] with token 'my-value'. Duplicate token found for the following type [class_1]`,
+                `Cannot register Type [Type] with token 'my-value'. Duplicate token found for the following type [Type]`,
             );
         });
     });
@@ -1674,6 +1677,16 @@ describe('Injector', () => {
                 expect(invoked).toEqual(1);
                 expect(instance.cache.instanceCount).toBe(1); // Cache should not be updated by default.
             });
+        });
+    });
+
+    describe('Caching', () => {
+        it('should resolve an instance of injector if injector.get invoked with type of Injector', () => {
+            const instance = getInstance();
+            const instance2 = instance.get(Injector);
+
+            expect(instance2).toBeDefined();
+            expect(instance).toBe(instance2);
         });
     });
 

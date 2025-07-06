@@ -1,9 +1,15 @@
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
+/**
+ * ValueType represents the various types that can be injected into the container.
+ * @description This includes primitive types, objects, arrays, functions, and more.
+ */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | object;
 
+/// InjectorIdentifier is a unique identifier for an injector instance
+/// @description This is typically a string that represents the injector's ID or name.
 export type InjectorIdentifier = string;
 
 export type StringOrSymbol = string | symbol;
@@ -30,6 +36,31 @@ export type NewableConstructorInterceptor = new (...args: any[]) => IConstructio
 export type InstanceOfType<T> = T extends { prototype: infer U } ? U : T;
 
 export type ResolvedType<T> = T extends string ? unknown : T extends symbol ? unknown : T;
+
+/**
+ * Idle cache strategy type
+ * @description This strategy will purge the item from the cache if no resolutions within a given time
+ */
+export type IdleCacheStrategyType = { timeout: number };
+
+/**
+ * Conditional cache strategy type
+ * @description This strategy will purge the item from the cache if a given predicate returns true
+ */
+export type ConditionalCacheStrategyType = {
+    predicate: (instance: any, injector: IInjector) => boolean;
+};
+
+/**
+ * Cache strategy type
+ * @description This type represents the various cache strategies available in the system.
+ */
+export type CacheStrategyType =
+    | 'persistent'
+    | 'no-cache'
+    | 'weak-reference'
+    | IdleCacheStrategyType
+    | ConditionalCacheStrategyType;
 
 /**
  * Constructor options allows passing of partial params to injector for construction
@@ -100,6 +131,21 @@ export interface IConfiguration {
      * A flag indicating if metrics will be tracked for resolutions
      */
     trackMetrics: boolean;
+
+    /*
+     * The metadata mode to use for type resolution.
+     * - 'explicit': Uses explicit metadata provided by the user.
+     * - 'reflection': Uses reflection to gather metadata.
+     * - 'both': Attempts to resolve metadata using explicit first then reflection second.
+     * @default 'both'
+     */
+    metadataMode: 'explicit' | 'reflection' | 'both';
+
+    /**
+     * The default cache strategy to use for types that do not have a specific cache strategy defined
+     * @description This is used to determine how the type will be cached in memory
+     */
+    defaultCacheStrategy: CacheStrategyType;
 }
 
 /**
@@ -120,7 +166,7 @@ export interface ICache {
      * @param type The constructor type
      * @param instance the instance
      */
-    update(type: any, instance: any): void;
+    update(type: any, instance: any, configuration?: IInjectionConfiguration): void;
     /**
      * Clears the cache
      */
@@ -391,6 +437,11 @@ export interface IInjectionConfiguration<T = any> {
      * You can provide explicit metadata for a type using this property.  Note if you are not leveraging decorators with 'emitDecoratorMetadata' you must provide all metadata for a given type
      */
     metadata?: MetadataStaticConstructorTypes<T>;
+
+    /**
+     * Determines how the type will be cached in memory
+     */
+    cacheStrategy?: CacheStrategyType;
 }
 
 /**
