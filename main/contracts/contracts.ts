@@ -45,7 +45,7 @@ export type IdleCacheStrategyType = {
     /**
      * The time in milliseconds after which the item will be purged from the cache if not accessed
      */
-     timeout: number 
+    timeout: number;
 };
 
 /**
@@ -414,6 +414,12 @@ export interface IInjector {
      * Resets the injector back to its default state
      */
     reset(): void;
+
+    /**
+     * verify the injector's state
+     * @description This will verify the cache performing cleanups of dead references etc
+     */
+    verify(): void;
 }
 
 /**
