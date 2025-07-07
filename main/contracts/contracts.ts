@@ -170,7 +170,7 @@ export interface ICache {
      * Gets an instance from the cache based on the constructor type
      * @param type
      */
-    resolve<T>(type: T): InstanceOfType<T>;
+    resolve<T>(type: T): InstanceOfType<T> |undefined;
     /**
      * Updates or inserts a record into the instance cache
      * @param type The constructor type

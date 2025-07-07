@@ -774,7 +774,7 @@ export class Injector implements IInjector {
             const optional = this.isOptionalParam(optionalParamTokens, index);
 
             let instance =
-                paramInjector.cache.resolve(paramType) ||
+                paramInjector.cache.resolve(paramType) ??
                 paramInjector.getImpl(paramType, ancestors, {
                     mode: optional ? 'optional' : 'standard',
                 });
