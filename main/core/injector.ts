@@ -426,10 +426,19 @@ export class Injector implements IInjector {
             Injector.verify = true;
 
             queueMicrotask(() => {
-                this.cache.purge();
+                //Start from the top and work our way down
+                this.getRootInjector().verify();
                 Injector.verify = false;
             });
         }
+    }
+
+    private verify() {
+        //Ok lets walk down the tree of scopes and start verifying
+        this.children.forEach((child) => child.verify());
+
+        //Purge our local cache here
+        this.cache.purge();
     }
 
     /**
