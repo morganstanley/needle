@@ -433,7 +433,7 @@ export class Injector implements IInjector {
         }
     }
 
-    private verify() {
+    public verify(): void {
         //Ok lets walk down the tree of scopes and start verifying
         this.children.forEach((child) => child.verify());
 
