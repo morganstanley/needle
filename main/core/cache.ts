@@ -143,7 +143,6 @@ export class InstanceCache implements ICache {
                     result = strategy.predicate(instance);
                 } catch (e) {
                     console.warn(`Error evaluating predicate for type ${type}:`, e);
-                    result = false;
                 }
                 if (result) {
                     //If the condition is met we must remove the instance from the cache
