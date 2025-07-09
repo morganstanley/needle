@@ -43,7 +43,6 @@ import {
     isLazyParameterToken,
     isStringOrSymbol,
     isBoxedValue,
-    isDestroyable,
 } from './guards';
 import { LazyInstance } from './lazy';
 import { getConstructorTypes } from './metadata.functions';
@@ -78,6 +77,8 @@ export interface IConstructionOptionsInternal<T extends Newable, TParams = Parti
  * Injector type used for registering types for injection
  */
 export class Injector implements IInjector {
+    static verify = false;
+
     /**
      * Creates a new map from our internal child maps
      */
@@ -251,7 +252,7 @@ export class Injector implements IInjector {
         }
 
         // Preload the cache
-        this.cache.update(type, instance);
+        this.cache.update(type, instance, existingRegistration);
         return this;
     }
 
@@ -327,13 +328,6 @@ export class Injector implements IInjector {
         if (parent == null && this.parent != null) {
             this.parent.children.delete(this.id);
         }
-
-        //Before we purge the cache we must check to see if the type implements IDestroyable and then invoke as needed
-        this._cache.instances().forEach((instance) => {
-            if (isDestroyable(instance)) {
-                instance.needle_destroy();
-            }
-        });
 
         // Clear out all the local data (registrations, cache etc)
         this.reset();
@@ -424,6 +418,30 @@ export class Injector implements IInjector {
     }
 
     /**
+     * Schedules a verification if the injector which will happen at the end of the current event loop
+     * @description This is used to ensure that the cache is purged of any stale instances for example
+     */
+    private scheduleVerify(): void {
+        if (Injector.verify === false) {
+            Injector.verify = true;
+
+            queueMicrotask(() => {
+                //Start from the top and work our way down
+                this.getRootInjector().verify();
+                Injector.verify = false;
+            });
+        }
+    }
+
+    public verify(): void {
+        //Ok lets walk down the tree of scopes and start verifying
+        this.children.forEach((child) => child.verify());
+
+        //Purge our local cache here
+        this.cache.purge();
+    }
+
+    /**
      * To avoid circular import we can use this function to get the root injector
      */
     private getRootInjector(): Injector {
@@ -447,6 +465,9 @@ export class Injector implements IInjector {
                 `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${this.id}]`,
             );
         }
+
+        //Any operation that results in a get should trigger verification at the end of the event loop. Note it will only run once
+        this.scheduleVerify();
 
         // Measuring time taken
         const start = Date.now();
@@ -509,14 +530,21 @@ export class Injector implements IInjector {
 
                     if (instance !== TYPE_NOT_FOUND && externalResolutionStrategy.cacheSyncing === true) {
                         // Sync cache if required
-                        injector.cache.update(constructorType, instance);
+                        injector.cache.update(constructorType, instance, registration);
                     }
                 }
 
                 // At this point either we have no external resolution or if we did it didn't want to handle it so we must now try
                 if (instance === TYPE_NOT_FOUND || instance == null) {
                     if (registration) {
-                        instance = this.createInstance(constructorType, true, options as any, ancestry, injector);
+                        instance = this.createInstance(
+                            constructorType,
+                            true,
+                            options as any,
+                            ancestry,
+                            injector,
+                            registration,
+                        );
                     } else {
                         this.throwRegistrationNotFound(constructorType, ancestry);
                     }
@@ -544,8 +572,8 @@ export class Injector implements IInjector {
 
     private throwRegistrationNotFound(constructorType: any, ancestry: any[]) {
         throw new Error(
-            `Cannot construct Type '${constructorType.name}' with ancestry '${ancestry
-                .map((ancestor) => ancestor.name)
+            `Cannot construct Type '${constructorType?.name}' with ancestry '${ancestry
+                .map((ancestor) => ancestor?.name)
                 .join(
                     ' -> ',
                 )}' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
@@ -564,7 +592,7 @@ export class Injector implements IInjector {
         if (registration == null) {
             this.throwRegistrationNotFound(type, ancestors);
         }
-        return this.createInstance(type, updateCache, options, ancestors, injector);
+        return this.createInstance(type, updateCache, options, ancestors, injector, registration);
     }
 
     private createInstance<T extends new (...args: any[]) => any>(
@@ -573,12 +601,13 @@ export class Injector implements IInjector {
         options?: IConstructionOptionsInternal<T>,
         ancestors: any[] = [],
         injector: IInjector = globalReference[DI_ROOT_INJECTOR_KEY],
+        configuration?: IInjectionConfiguration,
     ): InstanceType<T> {
         // Do our base checks to see if we are exceeding our depth limits
         if (ancestors.length > injector.configuration.maxTreeDepth) {
             throw new Error(
-                `Cannot construct Type '${(type as any).name}' with ancestry '${ancestors
-                    .map((ancestor) => ancestor.name)
+                `Cannot construct Type '${(type as any)?.name}' with ancestry '${ancestors
+                    .map((ancestor) => ancestor?.name)
                     .join(' -> ')}' as max tree depth has been reached`,
             );
         }
@@ -615,7 +644,7 @@ export class Injector implements IInjector {
         interceptorContexts.forEach((context) => context.interceptor.afterCreate(instance, context));
 
         if (updateCache) {
-            injector.cache.update(type, instance);
+            injector.cache.update(type, instance, configuration);
         }
 
         return instance;
@@ -745,7 +774,7 @@ export class Injector implements IInjector {
             const optional = this.isOptionalParam(optionalParamTokens, index);
 
             let instance =
-                paramInjector.cache.resolve(paramType) ||
+                paramInjector.cache.resolve(paramType) ??
                 paramInjector.getImpl(paramType, ancestors, {
                     mode: optional ? 'optional' : 'standard',
                 });

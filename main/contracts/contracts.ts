@@ -1,9 +1,15 @@
 import { AutoFactory } from '../core/factory';
 import { LazyInstance } from '../core/lazy';
 
+/**
+ * ValueType represents the various types that can be injected into the container.
+ * @description This includes primitive types, objects, arrays, functions, and more.
+ */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | object;
 
+/// InjectorIdentifier is a unique identifier for an injector instance
+/// @description This is typically a string that represents the injector's ID or name.
 export type InjectorIdentifier = string;
 
 export type StringOrSymbol = string | symbol;
@@ -30,6 +36,52 @@ export type NewableConstructorInterceptor = new (...args: any[]) => IConstructio
 export type InstanceOfType<T> = T extends { prototype: infer U } ? U : T;
 
 export type ResolvedType<T> = T extends string ? unknown : T extends symbol ? unknown : T;
+
+/**
+ * Idle cache strategy type
+ * @description This strategy will purge the item from the cache if no resolutions within a given time
+ */
+export type IdleCacheStrategyType = {
+    /**
+     * The type of the cache strategy
+     * @description This is used to identify the strategy type in the cache
+     */
+    type: 'idle';
+
+    /**
+     * The time in milliseconds after which the item will be purged from the cache if not accessed
+     */
+    timeout: number;
+};
+
+/**
+ * Conditional cache strategy type
+ * @description This strategy will purge the item from the cache if a given predicate returns true
+ */
+export type ConditionalCacheStrategyType = {
+    /**
+     * The type of the cache strategy
+     * @description This is used to identify the strategy type in the cache
+     */
+    type: 'conditional';
+    /**
+     * A predicate function that will be called with the instance to determine if it should be purged from the cache
+     * @param instance The instance to check (optional
+     * @returns true if the instance should be purged, false otherwise
+     */
+    predicate: (instance: any) => boolean;
+};
+
+/**
+ * Cache strategy type
+ * @description This type represents the various cache strategies available in the system.
+ */
+export type CacheStrategyType =
+    | 'persistent'
+    | 'no-cache'
+    | 'weak-reference'
+    | IdleCacheStrategyType
+    | ConditionalCacheStrategyType;
 
 /**
  * Constructor options allows passing of partial params to injector for construction
@@ -100,6 +152,21 @@ export interface IConfiguration {
      * A flag indicating if metrics will be tracked for resolutions
      */
     trackMetrics: boolean;
+
+    /*
+     * The metadata mode to use for type resolution.
+     * - 'explicit': Uses explicit metadata provided by the user.
+     * - 'reflection': Uses reflection to gather metadata.
+     * - 'both': Attempts to resolve metadata using explicit first then reflection second.
+     * @default 'both'
+     */
+    metadataMode: 'explicit' | 'reflection' | 'both';
+
+    /**
+     * The default cache strategy to use for types that do not have a specific cache strategy defined
+     * @description This is used to determine how the type will be cached in memory
+     */
+    defaultCacheStrategy: CacheStrategyType;
 }
 
 /**
@@ -114,13 +181,13 @@ export interface ICache {
      * Gets an instance from the cache based on the constructor type
      * @param type
      */
-    resolve<T>(type: T): InstanceOfType<T>;
+    resolve<T>(type: T): InstanceOfType<T> | undefined;
     /**
      * Updates or inserts a record into the instance cache
      * @param type The constructor type
      * @param instance the instance
      */
-    update(type: any, instance: any): void;
+    update(type: any, instance: any, configuration?: IInjectionConfiguration): void;
     /**
      * Clears the cache
      */
@@ -129,6 +196,11 @@ export interface ICache {
      * Returns an array of all instances in the cache
      */
     instances(): Array<any>;
+
+    /**
+     * Will attempt instances from the cache based on conditional cache strategy or and weak reference cache strategy.
+     */
+    purge(): void;
 }
 
 /**
@@ -353,6 +425,12 @@ export interface IInjector {
      * Resets the injector back to its default state
      */
     reset(): void;
+
+    /**
+     * verify the injector's state
+     * @description This will verify the cache performing cleanups of dead references etc
+     */
+    verify(): void;
 }
 
 /**
@@ -391,6 +469,11 @@ export interface IInjectionConfiguration<T = any> {
      * You can provide explicit metadata for a type using this property.  Note if you are not leveraging decorators with 'emitDecoratorMetadata' you must provide all metadata for a given type
      */
     metadata?: MetadataStaticConstructorTypes<T>;
+
+    /**
+     * Determines how the type will be cached in memory
+     */
+    cacheStrategy?: CacheStrategyType;
 }
 
 /**

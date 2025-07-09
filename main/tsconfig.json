@@ -1,9 +1,5 @@
 {
     "extends": "../tsconfig.json",
-    "exclude": [
-        "dist"
-    ],
-    "files": [
-        "index.ts"
-    ]
+    "exclude": ["dist"],
+    "files": ["index.ts"]
 }
