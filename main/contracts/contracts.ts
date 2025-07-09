@@ -43,6 +43,12 @@ export type ResolvedType<T> = T extends string ? unknown : T extends symbol ? un
  */
 export type IdleCacheStrategyType = {
     /**
+     * The type of the cache strategy
+     * @description This is used to identify the strategy type in the cache
+     */
+    type: 'idle';
+
+    /**
      * The time in milliseconds after which the item will be purged from the cache if not accessed
      */
     timeout: number;
@@ -53,6 +59,11 @@ export type IdleCacheStrategyType = {
  * @description This strategy will purge the item from the cache if a given predicate returns true
  */
 export type ConditionalCacheStrategyType = {
+    /**
+     * The type of the cache strategy
+     * @description This is used to identify the strategy type in the cache
+     */
+    type: 'conditional';
     /**
      * A predicate function that will be called with the instance to determine if it should be purged from the cache
      * @param instance The instance to check (optional
@@ -170,7 +181,7 @@ export interface ICache {
      * Gets an instance from the cache based on the constructor type
      * @param type
      */
-    resolve<T>(type: T): InstanceOfType<T> |undefined;
+    resolve<T>(type: T): InstanceOfType<T> | undefined;
     /**
      * Updates or inserts a record into the instance cache
      * @param type The constructor type

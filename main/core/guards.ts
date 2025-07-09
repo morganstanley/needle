@@ -103,9 +103,17 @@ export function isDestroyable(value: any): value is IDestroyable {
 }
 
 export function isIdleCacheStrategy(value: any): value is IdleCacheStrategyType {
-    return value != null && typeof (value as IdleCacheStrategyType).timeout === 'number';
+    return (
+        value != null &&
+        (value as IdleCacheStrategyType).type === 'idle' &&
+        typeof (value as IdleCacheStrategyType).timeout === 'number'
+    );
 }
 
 export function isConditionalCacheStrategy(value: any): value is ConditionalCacheStrategyType {
-    return value != null && typeof (value as ConditionalCacheStrategyType).predicate === 'function';
+    return (
+        value != null &&
+        (value as ConditionalCacheStrategyType).type === 'conditional' &&
+        typeof (value as ConditionalCacheStrategyType).predicate === 'function'
+    );
 }

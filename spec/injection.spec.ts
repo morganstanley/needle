@@ -1757,7 +1757,7 @@ describe('Injector', () => {
 
         it('should evict the injectable from the cache after its timeout has expired and no other resolutions', async () => {
             const instance = getInstance();
-            instance.register(WeakReferenceInjectable, { cacheStrategy: { timeout: 500 } });
+            instance.register(WeakReferenceInjectable, { cacheStrategy: { type: 'idle', timeout: 500 } });
 
             const firstInstance: WeakReferenceInjectable | undefined = instance.get(WeakReferenceInjectable);
 
@@ -1770,7 +1770,7 @@ describe('Injector', () => {
 
         it('should evict the injectable from the cache after its timeout has expired and call destroy if it implements IDestroyable', async () => {
             const instance = getInstance();
-            instance.register(Child, { cacheStrategy: { timeout: 500 } });
+            instance.register(Child, { cacheStrategy: { type: 'idle', timeout: 500 } });
 
             const child = instance.get(Child);
             const before = child.isDestroyed;
@@ -1785,7 +1785,7 @@ describe('Injector', () => {
 
         it('should NOT evict the injectable from the cache ifs its timeout has NOT expired and other resolutions have occurred', async () => {
             const instance = getInstance();
-            instance.register(WeakReferenceInjectable, { cacheStrategy: { timeout: 1000 } });
+            instance.register(WeakReferenceInjectable, { cacheStrategy: { type: 'idle', timeout: 1000 } });
 
             const firstInstance: WeakReferenceInjectable | undefined = instance.get(WeakReferenceInjectable);
 
@@ -1809,7 +1809,7 @@ describe('Injector', () => {
 
         it('should NOT evict the injectable from the cache if its cache condition is return FALSE', () => {
             const instance = getInstance();
-            instance.register(Child, { cacheStrategy: { predicate: () => false } });
+            instance.register(Child, { cacheStrategy: { type: 'conditional', predicate: () => false } });
 
             const firstInstance = instance.get(Child);
             const secondInstance = instance.get(Child);
@@ -1824,7 +1824,7 @@ describe('Injector', () => {
         it('should evict the injectable from the cache if its cache condition returns TRUE', async () => {
             const instance = getInstance();
             let condition = false;
-            instance.register(Child, { cacheStrategy: { predicate: () => condition } });
+            instance.register(Child, { cacheStrategy: { type: 'conditional', predicate: () => condition } });
 
             const firstInstance = instance.get(Child);
             const secondInstance = instance.get(Child);
@@ -1843,7 +1843,7 @@ describe('Injector', () => {
         it('should evict the injectable from the cache and run its destroy if its cache condition returns TRUE and it implements IDestroyable', async () => {
             const instance = getInstance();
             let condition = false;
-            instance.register(Child, { cacheStrategy: { predicate: () => condition } });
+            instance.register(Child, { cacheStrategy: { type: 'conditional', predicate: () => condition } });
 
             const child = instance.get(Child);
             const before = child.isDestroyed;

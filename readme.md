@@ -871,15 +871,15 @@ injector.register(NaughtyTurtle, { cacheStrategy: 'weak-reference'' });
 
 ## Idle
 
-The idle cache strategy automatically removes your injectable from the cache after a specified period of inactivity. You can configure the timeout in milliseconds. Each time the injectable is accessed, the timer resets—so the instance remains cached as long as it is used within the timeout window. This is useful for managing memory in scenarios where objects should only persist while actively in use.
+The idle cache strategy automatically removes your injectable from the cache after a specified period of inactivity. You can configure the timeout in milliseconds. Each time the injectable is accessed, the timer resets so the instance remains cached as long as it is used within the timeout window. This is useful for managing memory in scenarios where objects should only persist while actively in use.
 
 ```typescript
 //Using the decorator
-@Injectable({ cacheStrategy: { timeout: 500 } })
+@Injectable({ cacheStrategy: { type: 'idle', timeout: 500 } })
 class NaughtyTurtle {}
 
 //Using the registration API
-injector.register(NaughtyTurtle, { cacheStrategy: { timeout: 500 } });
+injector.register(NaughtyTurtle, { cacheStrategy: { type: 'idle', timeout: 500 } });
 ```
 
 ## Conditional
@@ -888,12 +888,20 @@ The conditional cache strategy allows you to evict items from the cache based on
 
 ```typescript
 //Using the decorator
-@Injectable({ cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/ } })
+@Injectable({
+    cacheStrategy: {
+        type: 'conditional',
+        predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/,
+    },
+})
 class NaughtyTurtle {}
 
 //Using the registration API
 injector.register(NaughtyTurtle, {
-    cacheStrategy: { predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/ },
+    cacheStrategy: {
+        type: 'conditional',
+        predicate: (instance) => new Date().getDay() === 3 /*its Wednesday so evict*/,
+    },
 });
 ```
 
