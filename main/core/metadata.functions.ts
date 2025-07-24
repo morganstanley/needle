@@ -13,9 +13,9 @@ export function getConstructorTypes<T = unknown>(constr: T): any[] {
         case 'explicit':
             return registration?.metadata ?? [];
         case 'reflection':
-            return Reflect?.getMetadata('design:paramtypes', constr) || [];
+            return Reflect?.getMetadata?.('design:paramtypes', constr) || [];
         case 'both':
-            return registration?.metadata ?? Reflect?.getMetadata('design:paramtypes', constr) ?? [];
+            return registration?.metadata ?? Reflect?.getMetadata?.('design:paramtypes', constr) ?? [];
         default:
             return [];
     }
