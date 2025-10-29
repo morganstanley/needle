@@ -343,24 +343,20 @@ Using token injection we follow a last in first out (`LIFO`). Therefore, the las
 _Note: the configuration must be set to `allowDuplicateTokens` for this to be possible._
 
 ```typescript
-import { getRootInjector, Injectable } from '@morgan-stanley/needle';
+import { getRootInjector, Injectable, METADATA } from '@morgan-stanley/needle';
 
 getRootInjector().configuration.allowDuplicateTokens = true;
 
-@Injectable(
-    tokens: ['pricing']
-)
+@Injectable({ tokens: ['pricing'] })
 export class PricingServiceV1 implements IPricing {}
 
-@Injectable(
-    tokens: ['pricing']
-)
-export class PricingServiceV2 implements IPricing  {}
+@Injectable({ tokens: ['pricing'] })
+export class PricingServiceV2 implements IPricing {}
 
-@Injectable()
+@Injectable({ metadata: [METADATA.token] })
 export class CustomerPricing {
     constructor(@Inject('pricing') private pricing: IPricing) {
-        console.log(pricing instanceof PricingServiceV2) // true
+        console.log(pricing instanceof PricingServiceV2); // true
         super();
     }
 }
@@ -378,7 +374,7 @@ const argumentIndex = 0;
 getRootInjector()
     .register(PricingServiceV1, { tokens: ['pricing'] })
     .register(PricingServiceV2, { tokens: ['pricing'] })
-    .register(CustomerPricing)
+    .register(CustomerPricing, { metadata: [METADATA.token] })
     .registerParamForTokenInjection('pricing', CustomerPricing, argumentIndex);
 ```
 
