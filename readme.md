@@ -1,6 +1,6 @@
 # @morgan-stanley/needle
 
-![Lifecycle Active](https://badgen.net/badge/Lifecycle/Active/green)
+![Lifecycle Active](https://img.shields.io/badge/Lifecycle-Active-brightgreen)
 ![npm](https://img.shields.io/npm/v/@morgan-stanley/needle)
 [![Build Status](https://github.com/morganstanley/needle/actions/workflows/build.yml/badge.svg)](https://github.com/Roaders/needle/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/MorganStanley/needle/branch/master/graph/badge.svg)](https://codecov.io/gh/MorganStanley/needle)
