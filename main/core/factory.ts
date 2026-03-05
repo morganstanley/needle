@@ -1,4 +1,4 @@
-import { IConstructionOptions, IInjector, Newable, OptionalConstructorParameters } from '../contracts/contracts';
+import { IConstructionOptions, IInjector, Newable, OptionalConstructorParameters } from '../contracts/contracts.js';
 
 /**
  * The AutoFactory class can be injected into a consumer and allow the user to construct an instance of a type supplying optional dependencies for the constructor.

@@ -1,5 +1,5 @@
-import { NewableConstructorInterceptor } from '../contracts/contracts';
-import { getRootInjector } from '../core/util.functions';
+import { NewableConstructorInterceptor } from '../contracts/contracts.js';
+import { getRootInjector } from '../core/util.functions.js';
 
 /**
  * This decorator can be used to register interceptors

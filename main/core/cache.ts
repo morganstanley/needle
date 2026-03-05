@@ -1,6 +1,6 @@
-import { ConditionalCacheStrategyType, ICache, IInjectionConfiguration, InstanceOfType } from '../contracts/contracts';
-import { isConditionalCacheStrategy, isDestroyable, isIdleCacheStrategy } from './guards';
-import { getRootInjector } from './util.functions';
+import { ConditionalCacheStrategyType, ICache, IInjectionConfiguration, InstanceOfType } from '../contracts/contracts.js';
+import { isConditionalCacheStrategy, isDestroyable, isIdleCacheStrategy } from './guards.js';
+import { getRootInjector } from './util.functions.js';
 
 /**
  * This is the default cache implementation for Needle.

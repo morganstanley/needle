@@ -1,4 +1,4 @@
-import { CacheStrategyType, IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts';
+import { CacheStrategyType, IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts.js';
 
 /**
  * Configuration class used for handling global container settings and behavioral flags

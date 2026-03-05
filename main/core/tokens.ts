@@ -5,8 +5,8 @@ import {
     IParameterInjectionToken,
     ITokenCache,
     StringOrSymbol,
-} from '../contracts/contracts';
-import { isConstructorParameterToken } from './guards';
+} from '../contracts/contracts.js';
+import { isConstructorParameterToken } from './guards.js';
 
 /**
  * The injection token cache is used to store all uses of the @Inject annotation.

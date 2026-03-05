@@ -1,5 +1,5 @@
-import { IInjectionConfiguration } from '../contracts/contracts';
-import { getRootInjector } from '../core/util.functions';
+import { IInjectionConfiguration } from '../contracts/contracts.js';
+import { getRootInjector } from '../core/util.functions.js';
 
 /**
  * This is the core decorator for all injectables

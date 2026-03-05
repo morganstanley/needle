@@ -1,4 +1,4 @@
-import { getRootInjector } from './util.functions';
+import { getRootInjector } from './util.functions.js';
 
 /* Consumers must import the "reflect-metadata" polyfill. */
 declare const Reflect: any;

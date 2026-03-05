@@ -1,17 +1,17 @@
-import { generateUUID } from '../core/uuid';
-import { Factory } from '../annotations/factory';
-import { Inject } from '../annotations/inject';
-import { Lazy } from '../annotations/lazy';
-import { Optional } from '../annotations/optional';
-import { Strategy } from '../annotations/strategy';
+import { generateUUID } from '../core/uuid.js';
+import { Factory } from '../annotations/factory.js';
+import { Inject } from '../annotations/inject.js';
+import { Lazy } from '../annotations/lazy.js';
+import { Optional } from '../annotations/optional.js';
+import { Strategy } from '../annotations/strategy.js';
 import {
     DI_ROOT_INJECTOR_KEY,
     INJECTOR_TYPE_ID,
     NULL_VALUE,
     TYPE_NOT_FOUND,
     UNDEFINED_VALUE,
-} from '../constants/constants';
-import { defaultInjectionConfiguration } from '../constants/defaults';
+} from '../constants/constants.js';
+import { defaultInjectionConfiguration } from '../constants/defaults.js';
 import {
     ICache,
     IConfiguration,
@@ -31,23 +31,23 @@ import {
     IValueInjectionConfiguration,
     ValueType,
     ResolvedType,
-} from '../contracts/contracts';
-import { InstanceCache } from './cache';
-import { Configuration } from './configuration';
-import { AutoFactory } from './factory';
-import { getGlobal } from './globals';
-import { createBoxedValueType } from './boxing';
+} from '../contracts/contracts.js';
+import { InstanceCache } from './cache.js';
+import { Configuration } from './configuration.js';
+import { AutoFactory } from './factory.js';
+import { getGlobal } from './globals.js';
+import { createBoxedValueType } from './boxing.js';
 import {
     isExternalResolutionConfigurationLike,
     isFactoryParameterToken,
     isLazyParameterToken,
     isStringOrSymbol,
     isBoxedValue,
-} from './guards';
-import { LazyInstance } from './lazy';
-import { getConstructorTypes } from './metadata.functions';
-import { Metrics } from './metrics';
-import { InjectionTokensCache } from './tokens';
+} from './guards.js';
+import { LazyInstance } from './lazy.js';
+import { getConstructorTypes } from './metadata.functions.js';
+import { Metrics } from './metrics.js';
+import { InjectionTokensCache } from './tokens.js';
 
 /**
  * Local polyfill function to avoid IE11 not having find index on array

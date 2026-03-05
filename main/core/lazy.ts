@@ -1,4 +1,4 @@
-import { InstanceOfType } from '../contracts/contracts';
+import { InstanceOfType } from '../contracts/contracts.js';
 
 /**
  * Lazy type is used to resolve a given instance at point of use.

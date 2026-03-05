@@ -1,6 +1,6 @@
-import { generateUUID } from '../core/uuid';
-import { Newable } from '../contracts/contracts';
-import { getRootInjector } from '../core/util.functions';
+import { generateUUID } from '../core/uuid.js';
+import { Newable } from '../contracts/contracts.js';
+import { getRootInjector } from '../core/util.functions.js';
 
 /**
  * The @Lazy annotation allows you inject a Lazy<T> into a given parameter.
