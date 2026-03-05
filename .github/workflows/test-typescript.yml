@@ -17,14 +17,14 @@ jobs:
 
     strategy:
       matrix:
-        typescript-version: [4.9, 5.0, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7]
+        typescript-version: [4.9, 5.0, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9]
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - name: Use Node.js 16.x
+    - name: Use Node.js 24.x
       uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
-        node-version: 16.x
+        node-version: 24.x
     - run: npm ci
     - run: npm run build
     - run: npm install typescript@${{ matrix.typescript-version }} 
