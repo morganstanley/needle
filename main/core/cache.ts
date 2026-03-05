@@ -44,11 +44,14 @@ export class InstanceCache implements ICache {
      */
     public update(type: any, instance: any, configuration?: IInjectionConfiguration): void {
         const cacheStrategy = configuration?.cacheStrategy ?? getRootInjector().configuration.defaultCacheStrategy;
-        const previous = this.resolve(type);
+        const previous = this.getCachedInstance(type);
         let cacheValue = instance;
 
-        //If we are not caching this type then we simply return
+        // If not caching this type, ensure any existing cached instance is removed.
         if (cacheStrategy === 'no-cache') {
+            if (this.instanceMap.has(type)) {
+                this.evict(type);
+            }
             return;
         } else if (cacheStrategy === 'weak-reference') {
             cacheValue = new WeakRef(instance);
@@ -91,7 +94,13 @@ export class InstanceCache implements ICache {
         const existingTimer = this.scheduled.get(type);
         if (existingTimer) {
             clearTimeout(existingTimer.timeoutRef);
+            this.scheduled.delete(type);
         }
+    }
+
+    private getCachedInstance(type: any): any {
+        const cached = this.instanceMap.get(type);
+        return cached instanceof WeakRef ? cached.deref() : cached;
     }
 
     /**

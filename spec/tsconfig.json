@@ -1,6 +1,7 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-        "declaration": false
+        "declaration": false,
+        "types": ["vitest/globals", "node"]
     }
 }

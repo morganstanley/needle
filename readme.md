@@ -24,6 +24,25 @@ Required Typescript version: > 3.4
 
 The library depends on TypeScript's support for decorators.
 
+# Benchmark report
+
+To run benchmarks and generate a graphical HTML report:
+
+```bash
+npm run bench:report
+```
+
+This command writes:
+
+- `reports/bench/bench-results.json`
+- `reports/bench/bench-report.html`
+
+If you already have fresh benchmark JSON and only want to rebuild the HTML:
+
+```bash
+npm run bench:report:html
+```
+
 # Why use this?
 
 - Simple & lightweight

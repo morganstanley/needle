@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Needle Benchmark Report</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --ink: #1f2937;
+            --muted: #64748b;
+            --accent: #0f766e;
+            --accent-soft: #ccfbf1;
+            --warn: #b45309;
+            --grid: #e5e7eb;
+            --border: #dbe3ee;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 5% 5%, #e0f2fe 0%, transparent 30%),
+                radial-gradient(circle at 95% 15%, #dcfce7 0%, transparent 35%),
+                var(--bg);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: clamp(1.4rem, 2.8vw, 2rem);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin: 0 0 16px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        button,
+        select,
+        input[type="file"] {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 0.92rem;
+            background: var(--panel);
+            color: var(--ink);
+        }
+
+        button {
+            cursor: pointer;
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #ffffff;
+        }
+
+        button:hover {
+            filter: brightness(0.95);
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        @media (min-width: 980px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .metric-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .metric-card .label {
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-bottom: 4px;
+        }
+
+        .metric-card .value {
+            font-weight: 700;
+            font-size: 1.12rem;
+        }
+
+        .chart-title {
+            margin: 0 0 10px;
+            font-size: 1rem;
+        }
+
+        .svg-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        svg {
+            width: 100%;
+            min-width: 620px;
+            height: 420px;
+            display: block;
+            background: #ffffff;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        thead th {
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            padding: 8px;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            border-bottom: 1px solid var(--grid);
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .status {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.87rem;
+        }
+
+        .error {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Needle Benchmarks</h1>
+        <p class="subtitle">Visual report for Vitest benchmark JSON output.</p>
+
+        <div class="controls">
+            <button id="reloadBtn" type="button">Reload `bench-results.json`</button>
+            <input id="fileInput" type="file" accept="application/json" />
+            <label for="sortBy" class="muted">Sort</label>
+            <select id="sortBy">
+                <option value="hz">Throughput (hz)</option>
+                <option value="mean">Mean (ms/op)</option>
+                <option value="rank">Rank</option>
+                <option value="rme">RME (%)</option>
+            </select>
+        </div>
+
+        <div id="status" class="status">Loading report...</div>
+
+        <div class="metrics" id="metrics"></div>
+
+        <div class="grid">
+            <section class="panel">
+                <h2 class="chart-title">Throughput (higher is better)</h2>
+                <div class="svg-wrap">
+                    <svg id="hzChart" viewBox="0 0 920 420" role="img" aria-label="Throughput chart"></svg>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2 class="chart-title">Mean Latency ms/op (lower is better)</h2>
+                <div class="svg-wrap">
+                    <svg id="meanChart" viewBox="0 0 920 420" role="img" aria-label="Latency chart"></svg>
+                </div>
+            </section>
+        </div>
+
+        <section class="panel" style="margin-top: 14px;">
+            <h2 class="chart-title">Benchmark Details</h2>
+            <table id="detailsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>hz</th>
+                        <th>mean (ms)</th>
+                        <th>rank</th>
+                        <th>rme (%)</th>
+                        <th>sampleCount</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const hzChart = document.getElementById('hzChart');
+        const meanChart = document.getElementById('meanChart');
+        const detailsTableBody = document.querySelector('#detailsTable tbody');
+        const metricsEl = document.getElementById('metrics');
+        const sortByEl = document.getElementById('sortBy');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const embeddedJson = window.__BENCH_DATA__ || null;
+
+        let benchRows = [];
+
+        function setStatus(message, isError) {
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'status error' : 'status';
+        }
+
+        function formatNumber(value, digits = 2) {
+            return Number(value).toLocaleString(undefined, {
+                maximumFractionDigits: digits,
+                minimumFractionDigits: digits,
+            });
+        }
+
+        function formatHz(hz) {
+            return Number(hz).toLocaleString(undefined, {
+                maximumFractionDigits: 2,
+            });
+        }
+
+        function toMilliseconds(seconds) {
+            return Number(seconds) * 1000;
+        }
+
+        function parseBenchmarks(json) {
+            const rows = [];
+            const files = Array.isArray(json.files) ? json.files : [];
+            files.forEach((file) => {
+                const groups = Array.isArray(file.groups) ? file.groups : [];
+                groups.forEach((group) => {
+                    const benches = Array.isArray(group.benchmarks) ? group.benchmarks : [];
+                    benches.forEach((b) => {
+                        rows.push({
+                            file: file.filepath || 'unknown',
+                            group: group.fullName || 'unknown',
+                            name: b.name || 'unnamed',
+                            hz: Number(b.hz || 0),
+                            meanMs: toMilliseconds(b.mean || 0),
+                            rank: Number(b.rank || 0),
+                            rme: Number(b.rme || 0),
+                            sampleCount: Number(b.sampleCount || 0),
+                        });
+                    });
+                });
+            });
+
+            return rows;
+        }
+
+        function renderMetrics(rows) {
+            if (rows.length === 0) {
+                metricsEl.innerHTML = '';
+                return;
+            }
+
+            const fastest = rows.reduce((a, b) => (a.hz > b.hz ? a : b));
+            const slowest = rows.reduce((a, b) => (a.hz < b.hz ? a : b));
+            const avgHz = rows.reduce((sum, r) => sum + r.hz, 0) / rows.length;
+            const avgMean = rows.reduce((sum, r) => sum + r.meanMs, 0) / rows.length;
+
+            metricsEl.innerHTML = [
+                card('Benchmarks', String(rows.length)),
+                card('Fastest', fastest.name),
+                card('Fastest hz', formatHz(fastest.hz)),
+                card('Slowest', slowest.name),
+                card('Average hz', formatHz(avgHz)),
+                card('Average mean (ms)', formatNumber(avgMean, 4)),
+            ].join('');
+        }
+
+        function card(label, value) {
+            return `<div class="metric-card"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`;
+        }
+
+        function sortRows(rows) {
+            const key = sortByEl.value;
+            const sorted = [...rows];
+            if (key === 'mean' || key === 'rank' || key === 'rme') {
+                sorted.sort((a, b) => a[key] - b[key]);
+            } else {
+                sorted.sort((a, b) => b[key] - a[key]);
+            }
+            return sorted;
+        }
+
+        function renderTable(rows) {
+            const data = sortRows(rows);
+            detailsTableBody.innerHTML = data
+                .map(
+                    (r) =>
+                        `<tr>
+                            <td>${escapeHtml(r.name)}</td>
+                            <td>${formatHz(r.hz)}</td>
+                            <td>${formatNumber(r.meanMs, 4)}</td>
+                            <td>${formatNumber(r.rank, 0)}</td>
+                            <td>${formatNumber(r.rme, 3)}</td>
+                            <td>${formatNumber(r.sampleCount, 0)}</td>
+                        </tr>`,
+                )
+                .join('');
+        }
+
+        function renderBarChart(svg, rows, valueSelector, labelFormatter, titleFormatter, opts = {}) {
+            const data = sortRows(rows).slice(0, 20);
+            const maxValue = Math.max(...data.map(valueSelector), 1);
+            const width = 920;
+            const height = 420;
+            const margin = { top: 24, right: 20, bottom: 20, left: 280 };
+            const innerW = width - margin.left - margin.right;
+            const rowH = 16;
+            const gap = 3;
+
+            const neededHeight = margin.top + margin.bottom + data.length * (rowH + gap);
+            const chartHeight = Math.max(height, neededHeight);
+            svg.setAttribute('viewBox', `0 0 ${width} ${chartHeight}`);
+
+            const grid = [];
+            for (let i = 0; i <= 5; i++) {
+                const x = margin.left + (innerW / 5) * i;
+                const value = (maxValue / 5) * i;
+                grid.push(`<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${chartHeight - margin.bottom}" stroke="#e5e7eb" />`);
+                grid.push(`<text x="${x}" y="${chartHeight - 6}" text-anchor="middle" fill="#64748b" font-size="11">${escapeHtml(labelFormatter(value))}</text>`);
+            }
+
+            const bars = data
+                .map((r, i) => {
+                    const y = margin.top + i * (rowH + gap);
+                    const val = valueSelector(r);
+                    const w = Math.max(1, (val / maxValue) * innerW);
+                    const fill = i < 3 ? '#0f766e' : '#14b8a6';
+                    const name = truncate(r.name, 38);
+                    const valueText = titleFormatter(r);
+
+                    return `
+                        <text x="${margin.left - 8}" y="${y + 12}" text-anchor="end" fill="#1f2937" font-size="12">${escapeHtml(name)}</text>
+                        <rect x="${margin.left}" y="${y}" width="${w}" height="${rowH}" fill="${fill}" rx="3" />
+                        <text x="${margin.left + w + 6}" y="${y + 12}" fill="#334155" font-size="11">${escapeHtml(valueText)}</text>
+                    `;
+                })
+                .join('');
+
+            svg.innerHTML = `${grid.join('')}${bars}`;
+        }
+
+        function truncate(text, len) {
+            if (text.length <= len) {
+                return text;
+            }
+            return `${text.slice(0, len - 1)}...`;
+        }
+
+        function escapeHtml(input) {
+            return String(input)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderAll(rows) {
+            benchRows = rows;
+            renderMetrics(rows);
+            renderTable(rows);
+            renderBarChart(
+                hzChart,
+                rows,
+                (r) => r.hz,
+                (v) => formatHz(v),
+                (r) => `${formatHz(r.hz)} hz`,
+            );
+            renderBarChart(
+                meanChart,
+                rows,
+                (r) => r.meanMs,
+                (v) => `${formatNumber(v, 3)} ms`,
+                (r) => `${formatNumber(r.meanMs, 4)} ms`,
+            );
+        }
+
+        function handleJson(json, sourceLabel) {
+            const rows = parseBenchmarks(json);
+            if (rows.length === 0) {
+                setStatus('No benchmark entries found in JSON.', true);
+                return;
+            }
+
+            setStatus(`Loaded ${rows.length} benchmark rows from ${sourceLabel}.`, false);
+            renderAll(rows);
+        }
+
+        async function loadDefaultJson() {
+            if (embeddedJson != null) {
+                handleJson(embeddedJson, 'embedded bench data');
+                return;
+            }
+
+            try {
+                const response = await fetch('./bench-results.json', { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const json = await response.json();
+                handleJson(json, 'bench-results.json');
+            } catch (err) {
+                setStatus(
+                    'Could not auto-load bench-results.json. Use the file picker, or serve this folder and retry.',
+                    true,
+                );
+                renderMetrics([]);
+                detailsTableBody.innerHTML = '';
+                hzChart.innerHTML = '';
+                meanChart.innerHTML = '';
+            }
+        }
+
+        reloadBtn.addEventListener('click', () => {
+            loadDefaultJson();
+        });
+
+        sortByEl.addEventListener('change', () => {
+            if (benchRows.length > 0) {
+                renderAll(benchRows);
+            }
+        });
+
+        fileInput.addEventListener('change', async (event) => {
+            const target = event.target;
+            const file = target.files && target.files[0];
+            if (!file) {
+                return;
+            }
+
+            try {
+                const text = await file.text();
+                const json = JSON.parse(text);
+                handleJson(json, file.name);
+            } catch (err) {
+                setStatus('Selected file is not valid benchmark JSON.', true);
+            }
+        });
+
+        loadDefaultJson();
+    </script>
+</body>
+</html>

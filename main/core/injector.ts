@@ -199,20 +199,16 @@ export class Injector implements IInjector {
      * @description Will perform a breadth-first search
      */
     public getScope(nameOrId: string): IInjector | undefined {
-        const childScopes = Array.from(this._children).map(([_id, scope]) => scope);
-
-        const foundIndex = findIndex(childScopes, (c) => c.id === nameOrId || c.name === nameOrId);
-        if (foundIndex !== -1) {
-            return childScopes[foundIndex];
-        }
-
-        for (let index = 0; index < childScopes.length; index++) {
-            const child = childScopes[index];
-            const scope = child.getScope(nameOrId);
-            if (scope != null) {
-                return scope;
+        const queue = [...this._children.values()];
+        while (queue.length > 0) {
+            const child = queue.shift()!;
+            if (child.id === nameOrId || child.name === nameOrId) {
+                return child;
             }
+
+            child.children.forEach((nestedChild) => queue.push(nestedChild as Injector));
         }
+
         return undefined;
     }
 
@@ -345,11 +341,14 @@ export class Injector implements IInjector {
             return [];
         }
 
-        const strategies = [...this.getRegistrations().entries()]
-            .filter(([_t, config]) => config.strategy === strategy)
-            .map(([t]) => this.get<T>(t, []));
+        const strategies: Array<T> = [];
+        this._registrations.forEach((config, type) => {
+            if (config.strategy === strategy) {
+                strategies.push(this.get(type, []) as T);
+            }
+        });
 
-        return strategies as unknown as Array<T>;
+        return strategies;
     }
 
     /**
@@ -804,9 +803,12 @@ export class Injector implements IInjector {
      * Gets strategy types (but takes hierarchy into account)
      */
     private getStrategiesTypes(injector: IInjector, strategyToken: IParameterInjectionToken) {
-        const strategies = [...injector.getRegistrations().entries()].filter(
-            ([_t, config]) => config.strategy === strategyToken.token,
-        );
+        const strategies: Array<[any, IInjectionConfiguration]> = [];
+        injector.getRegistrations().forEach((config, type) => {
+            if (config.strategy === strategyToken.token) {
+                strategies.push([type, config]);
+            }
+        });
 
         return strategies;
     }

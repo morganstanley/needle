@@ -52,5 +52,7 @@ export class Configuration implements IConfiguration {
         this.externalResolutionStrategy = undefined;
         this.allowDuplicateTokens = false;
         this.trackMetrics = false;
+        this.metadataMode = 'both';
+        this.defaultCacheStrategy = 'persistent';
     }
 }

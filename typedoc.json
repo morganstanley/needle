@@ -1,6 +1,7 @@
 {
+    "tsconfig": "main/tsconfig.json",
     "excludeExternals": true,
     "excludePrivate": true,
     "out": "docs",
-    "exclude": ["**/*+(index|.spec|.e2e).ts"]
+    "exclude": ["**/*.spec.ts", "spec/**", "bench/**"]
 }
