@@ -328,6 +328,74 @@ describe('Injector', () => {
                 ) !== -1,
             ).toBeTruthy();
         });
+
+        it('should use zone-safe queueMicrotask when Zone exposes an unpatched API', () => {
+            const instance = getInstance();
+            const scope = window as any;
+
+            const originalZone = scope.Zone;
+            const originalQueueMicrotask = scope.queueMicrotask;
+            const zoneSymbolKey = '__zone_symbol__queueMicrotask';
+            const originalZoneQueueMicrotask = scope[zoneSymbolKey];
+
+            let patchedInvocations = 0;
+            let unpatchedInvocations = 0;
+
+            try {
+                scope.Zone = {
+                    __symbol__: (name: string) => `__zone_symbol__${name}`,
+                };
+
+                scope.queueMicrotask = () => {
+                    ++patchedInvocations;
+                };
+
+                scope[zoneSymbolKey] = (callback: () => void) => {
+                    ++unpatchedInvocations;
+                    callback();
+                };
+
+                instance.register(Child);
+                instance.get(Child);
+
+                expect(unpatchedInvocations).toBe(1);
+                expect(patchedInvocations).toBe(0);
+            } finally {
+                scope.Zone = originalZone;
+                scope.queueMicrotask = originalQueueMicrotask;
+
+                if (originalZoneQueueMicrotask === undefined) {
+                    delete scope[zoneSymbolKey];
+                } else {
+                    scope[zoneSymbolKey] = originalZoneQueueMicrotask;
+                }
+            }
+        });
+
+        it('should fallback to queueMicrotask when Zone is unavailable', () => {
+            const instance = getInstance();
+            const scope = window as any;
+
+            const originalZone = scope.Zone;
+            const originalQueueMicrotask = scope.queueMicrotask;
+            let queueMicrotaskInvocations = 0;
+
+            try {
+                scope.Zone = undefined;
+                scope.queueMicrotask = (callback: () => void) => {
+                    ++queueMicrotaskInvocations;
+                    callback();
+                };
+
+                instance.register(Child);
+                instance.get(Child);
+
+                expect(queueMicrotaskInvocations).toBe(1);
+            } finally {
+                scope.Zone = originalZone;
+                scope.queueMicrotask = originalQueueMicrotask;
+            }
+        });
     });
 
     describe('Registration', () => {

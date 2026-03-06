@@ -35,7 +35,7 @@ import {
 import { InstanceCache } from './cache.js';
 import { Configuration } from './configuration.js';
 import { AutoFactory } from './factory.js';
-import { getGlobal } from './globals.js';
+import { getGlobal, getZoneSafeMicrotaskScheduler } from './globals.js';
 import { createBoxedValueType } from './boxing.js';
 import {
     isExternalResolutionConfigurationLike,
@@ -424,7 +424,10 @@ export class Injector implements IInjector {
         if (Injector.verify === false) {
             Injector.verify = true;
 
-            queueMicrotask(() => {
+            // We can't use a direct queueMicrotask call here as it may be patched by Zone.js which would cause the verify to run inside the zone and potentially cause issues with change detection in frameworks like Angular.  By resolving the microtask scheduler at runtime we can ensure we get the unpatched version if it exists.
+            const scheduleMicrotask = getZoneSafeMicrotaskScheduler(getGlobal());
+
+            scheduleMicrotask(() => {
                 //Start from the top and work our way down
                 this.getRootInjector().verify();
                 Injector.verify = false;
