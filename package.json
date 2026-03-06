@@ -28,7 +28,7 @@
         "clean": "rimraf dist reports ../build ../install ../packages docs",
         "build": "tsc -p main/tsconfig.json",
         "postbuild": "npm run copy",
-        "build:watch": "tsc --watch",
+        "build:watch": "tsc --watch -p main/tsconfig.json",
         "build:verify": "concurrently --kill-others-on-fail npm:lint npm:test npm:build", 
         "build:release": "npm run clean && npm run build:verify &&npm run bench && typedoc main/index.ts",
         "copy": "copyfiles main/**/*.html main/**/*.css main/**/*.jpg dist",
