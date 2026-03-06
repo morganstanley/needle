@@ -1,5 +1,5 @@
 language: node_js
-node_js: 12
+node_js: 24
 script: npm run build:release
 install: skip
 

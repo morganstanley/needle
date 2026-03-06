@@ -5,6 +5,7 @@ reports/
 dist/spec/
 .vscode/
 .github/**/*
+bench/
 
 karma.conf.js
 karma.base.conf.js
@@ -15,6 +16,7 @@ codecov.yml
 CONTRIBUTING.md
 tsconfig.json
 typedoc.json
+
 
 *.tgz
 
