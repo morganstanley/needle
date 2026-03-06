@@ -1,11 +1,16 @@
 declare let global: any;
+declare let window: any;
 
 /**
  * @name getGlobal
- * @description Returns window object in context of browser or global in context of node.
+ * @description Returns the host global reference across browser, Node, and worker-like runtimes.
  */
 /* istanbul ignore next */
 export function getGlobal(): any {
+    if (typeof globalThis !== 'undefined') {
+        return globalThis;
+    }
+
     try {
         return window;
     } catch (e) {
