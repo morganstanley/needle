@@ -2,7 +2,7 @@
     "extends": "../tsconfig.json",
     "compilerOptions": {
         "declaration": false,
-        "types": ["vitest/globals", "node"]
+        "types": ["node"]
     },
     "include": ["../main/**/*.spec.ts", "./setup.ts"]
 }
