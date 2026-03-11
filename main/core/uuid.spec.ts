@@ -1,4 +1,5 @@
-import { generateUUID } from '../main/core/uuid'; // Adjust the import path as necessary
+import { describe, expect, it } from 'vitest';
+import { generateUUID } from './uuid.js';
 
 describe('generateUUID', () => {
     it('should return a string', () => {

@@ -21,7 +21,7 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'jsdom',
-        include: ['spec/**/*.spec.ts'],
+        include: ['main/**/*.spec.ts'],
         setupFiles: ['spec/setup.ts'],
         reporters: ['default', 'junit'],
         outputFile: {

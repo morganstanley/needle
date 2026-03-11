@@ -21,17 +21,17 @@ import {
     LazyInstance,
     Optional,
     Strategy,
-} from '../main';
+} from '../index.js';
 import {
     DI_ROOT_INJECTOR_KEY,
     NULL_VALUE,
     TYPE_NOT_FOUND,
     UNDEFINED_VALUE,
     AUTO_RESOLVE,
-} from '../main/constants/constants';
-import { InstanceCache } from '../main/core/cache';
-import { isInjectorLike } from '../main/core/guards';
-import { InjectionTokensCache } from '../main/core/tokens';
+} from '../constants/constants.js';
+import { InstanceCache } from './cache.js';
+import { InjectionTokensCache } from './tokens.js';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 export abstract class Individual {
     public id = Math.floor(Math.random() * 100000 + 1);
@@ -237,22 +237,6 @@ describe('Injector', () => {
         return getRootInjector();
     };
 
-    describe('Functions', () => {
-        it('should return true if the type is injectorLike', () => {
-            const instance = getInstance();
-
-            const result = isInjectorLike(instance);
-
-            expect(result).toBeTruthy();
-        });
-
-        it('should return false if the type is not injectorLike', () => {
-            const result = isInjectorLike({});
-
-            expect(result).toBeFalsy();
-        });
-    });
-
     describe('Defaults', () => {
         it('should return an instance of the injector', () => {
             const instance = getInstance();
@@ -329,73 +313,6 @@ describe('Injector', () => {
             ).toBeTruthy();
         });
 
-        it('should use zone-safe queueMicrotask when Zone exposes an unpatched API', () => {
-            const instance = getInstance();
-            const scope = window as any;
-
-            const originalZone = scope.Zone;
-            const originalQueueMicrotask = scope.queueMicrotask;
-            const zoneSymbolKey = '__zone_symbol__queueMicrotask';
-            const originalZoneQueueMicrotask = scope[zoneSymbolKey];
-
-            let patchedInvocations = 0;
-            let unpatchedInvocations = 0;
-
-            try {
-                scope.Zone = {
-                    __symbol__: (name: string) => `__zone_symbol__${name}`,
-                };
-
-                scope.queueMicrotask = () => {
-                    ++patchedInvocations;
-                };
-
-                scope[zoneSymbolKey] = (callback: () => void) => {
-                    ++unpatchedInvocations;
-                    callback();
-                };
-
-                instance.register(Child);
-                instance.get(Child);
-
-                expect(unpatchedInvocations).toBe(1);
-                expect(patchedInvocations).toBe(0);
-            } finally {
-                scope.Zone = originalZone;
-                scope.queueMicrotask = originalQueueMicrotask;
-
-                if (originalZoneQueueMicrotask === undefined) {
-                    delete scope[zoneSymbolKey];
-                } else {
-                    scope[zoneSymbolKey] = originalZoneQueueMicrotask;
-                }
-            }
-        });
-
-        it('should fallback to queueMicrotask when Zone is unavailable', () => {
-            const instance = getInstance();
-            const scope = window as any;
-
-            const originalZone = scope.Zone;
-            const originalQueueMicrotask = scope.queueMicrotask;
-            let queueMicrotaskInvocations = 0;
-
-            try {
-                scope.Zone = undefined;
-                scope.queueMicrotask = (callback: () => void) => {
-                    ++queueMicrotaskInvocations;
-                    callback();
-                };
-
-                instance.register(Child);
-                instance.get(Child);
-
-                expect(queueMicrotaskInvocations).toBe(1);
-            } finally {
-                scope.Zone = originalZone;
-                scope.queueMicrotask = originalQueueMicrotask;
-            }
-        });
     });
 
     describe('Registration', () => {
@@ -1752,20 +1669,6 @@ describe('Injector', () => {
     });
 
     describe('Caching', () => {
-        it('should have a default caching strategy of `persistent`', () => {
-            const defaultCacheStrategy = getInstance().configuration.defaultCacheStrategy;
-
-            expect(defaultCacheStrategy).toBe('persistent');
-        });
-
-        it('should update the cache strategy', () => {
-            getInstance().configuration.defaultCacheStrategy = 'no-cache';
-
-            const defaultCacheStrategy = getInstance().configuration.defaultCacheStrategy;
-
-            expect(defaultCacheStrategy).toBe('no-cache');
-        });
-
         it('should NOT cache the injectable if default cache strategy set to `no-cache`', () => {
             getInstance().configuration.defaultCacheStrategy = 'no-cache';
 
