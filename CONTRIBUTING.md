@@ -7,6 +7,12 @@ before making a change.
 Please note we have a code of conduct, please follow it in all your interactions
 with the project.
 
+## Development toolchain
+
+- Use Node.js 24.x for local development.
+- If you use `nvm`, run `nvm use` at the repo root to pick up the version from `.nvmrc`.
+- Install dependencies with `npm ci` for a reproducible setup.
+
 ## Before your first pull request
 
 If you have not previously contributed to the project, 

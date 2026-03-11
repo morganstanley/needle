@@ -1,5 +1,5 @@
-import { StringOrSymbol } from '../contracts/contracts';
-import { getRootInjector } from '../core/util.functions';
+import { StringOrSymbol } from '../contracts/contracts.js';
+import { getRootInjector } from '../core/util.functions.js';
 
 /**
  * The @Inject annotation allows you inject an instance of a given type using a token instead of the prototype of the type

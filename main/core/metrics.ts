@@ -1,5 +1,5 @@
-import { IMetricRecord, IMetricsProvider } from '../contracts/contracts';
-import { getConstructorTypes } from './metadata.functions';
+import { IMetricRecord, IMetricsProvider } from '../contracts/contracts.js';
+import { getConstructorTypes } from './metadata.functions.js';
 
 export class Metrics implements IMetricsProvider {
     public get data() {

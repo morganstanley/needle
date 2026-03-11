@@ -1,6 +1,8 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-        "declaration": false
-    }
+        "declaration": false,
+        "types": ["node"]
+    },
+    "include": ["../main/**/*.spec.ts", "./setup.ts"]
 }

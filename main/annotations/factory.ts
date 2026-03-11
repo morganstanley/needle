@@ -1,6 +1,6 @@
-import { Newable } from '../contracts/contracts';
-import { getRootInjector } from '../core/util.functions';
-import { generateUUID } from '../core/uuid';
+import { Newable } from '../contracts/contracts.js';
+import { getRootInjector } from '../core/util.functions.js';
+import { generateUUID } from '../core/uuid.js';
 
 /**
  * The @Factory annotation allows you inject a AutoFactory<T> into a given parameter.

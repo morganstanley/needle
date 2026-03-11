@@ -1,4 +1,4 @@
-import { CacheStrategyType, IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts';
+import { CacheStrategyType, IConfiguration, IExternalResolutionConfiguration } from '../contracts/contracts.js';
 
 /**
  * Configuration class used for handling global container settings and behavioral flags
@@ -52,5 +52,7 @@ export class Configuration implements IConfiguration {
         this.externalResolutionStrategy = undefined;
         this.allowDuplicateTokens = false;
         this.trackMetrics = false;
+        this.metadataMode = 'both';
+        this.defaultCacheStrategy = 'persistent';
     }
 }

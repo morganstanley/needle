@@ -1,5 +1,5 @@
-import { AutoFactory } from '../core/factory';
-import { LazyInstance } from '../core/lazy';
+import { AutoFactory } from '../core/factory.js';
+import { LazyInstance } from '../core/lazy.js';
 
 /**
  * ValueType represents the various types that can be injected into the container.

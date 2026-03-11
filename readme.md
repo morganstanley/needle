@@ -2,9 +2,9 @@
 
 ![Lifecycle Active](https://img.shields.io/badge/Lifecycle-Active-brightgreen)
 ![npm](https://img.shields.io/npm/v/@morgan-stanley/needle)
-[![Build Status](https://github.com/morganstanley/needle/actions/workflows/build.yml/badge.svg)](https://github.com/Roaders/needle/actions/workflows/build.yml)
+[![Build Status](https://github.com/morganstanley/needle/actions/workflows/build.yml/badge.svg)](https://github.com/morganstanley/needle/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/MorganStanley/needle/branch/master/graph/badge.svg)](https://codecov.io/gh/MorganStanley/needle)
-[![Known Vulnerabilities](https://snyk.io/test/github/MorganStanley/needle/badge.svg)](https://snyk.io/test/github/MorganStanley/needle})
+[![Known Vulnerabilities](https://snyk.io/test/github/MorganStanley/needle/badge.svg)](https://snyk.io/test/github/MorganStanley/needle)
 ![NPM](https://img.shields.io/npm/l/@morgan-stanley/needle)
 ![NPM](https://img.shields.io/badge/types-TypeScript-blue)
 
@@ -20,9 +20,40 @@ npm install @morgan-stanley/needle
 
 # TypeScript
 
-Required Typescript version: > 3.4
+Required TypeScript version: >= 5.7 < 6
 
 The library depends on TypeScript's support for decorators.
+
+Compatibility is validated in CI against TypeScript 5.7, 5.8, and 5.9.
+
+# Contributor toolchain
+
+This repository includes an `.nvmrc` file pinned to Node.js 24.
+
+```bash
+nvm use
+```
+
+If you are not using `nvm`, use the equivalent Node.js 24.x runtime in your local toolchain.
+
+# Benchmark report
+
+To run benchmarks and generate a graphical HTML report:
+
+```bash
+npm run bench:report
+```
+
+This command writes:
+
+- `reports/bench/bench-results.json`
+- `reports/bench/bench-report.html`
+
+If you already have fresh benchmark JSON and only want to rebuild the HTML:
+
+```bash
+npm run bench:report:html
+```
 
 # Why use this?
 

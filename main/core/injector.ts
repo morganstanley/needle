@@ -1,17 +1,17 @@
-import { generateUUID } from '../core/uuid';
-import { Factory } from '../annotations/factory';
-import { Inject } from '../annotations/inject';
-import { Lazy } from '../annotations/lazy';
-import { Optional } from '../annotations/optional';
-import { Strategy } from '../annotations/strategy';
+import { generateUUID } from '../core/uuid.js';
+import { Factory } from '../annotations/factory.js';
+import { Inject } from '../annotations/inject.js';
+import { Lazy } from '../annotations/lazy.js';
+import { Optional } from '../annotations/optional.js';
+import { Strategy } from '../annotations/strategy.js';
 import {
     DI_ROOT_INJECTOR_KEY,
     INJECTOR_TYPE_ID,
     NULL_VALUE,
     TYPE_NOT_FOUND,
     UNDEFINED_VALUE,
-} from '../constants/constants';
-import { defaultInjectionConfiguration } from '../constants/defaults';
+} from '../constants/constants.js';
+import { defaultInjectionConfiguration } from '../constants/defaults.js';
 import {
     ICache,
     IConfiguration,
@@ -31,23 +31,23 @@ import {
     IValueInjectionConfiguration,
     ValueType,
     ResolvedType,
-} from '../contracts/contracts';
-import { InstanceCache } from './cache';
-import { Configuration } from './configuration';
-import { AutoFactory } from './factory';
-import { getGlobal } from './globals';
-import { createBoxedValueType } from './boxing';
+} from '../contracts/contracts.js';
+import { InstanceCache } from './cache.js';
+import { Configuration } from './configuration.js';
+import { AutoFactory } from './factory.js';
+import { getGlobal, getZoneSafeMicrotaskScheduler } from './globals.js';
+import { createBoxedValueType } from './boxing.js';
 import {
     isExternalResolutionConfigurationLike,
     isFactoryParameterToken,
     isLazyParameterToken,
     isStringOrSymbol,
     isBoxedValue,
-} from './guards';
-import { LazyInstance } from './lazy';
-import { getConstructorTypes } from './metadata.functions';
-import { Metrics } from './metrics';
-import { InjectionTokensCache } from './tokens';
+} from './guards.js';
+import { LazyInstance } from './lazy.js';
+import { getConstructorTypes } from './metadata.functions.js';
+import { Metrics } from './metrics.js';
+import { InjectionTokensCache } from './tokens.js';
 
 /**
  * Local polyfill function to avoid IE11 not having find index on array
@@ -199,20 +199,16 @@ export class Injector implements IInjector {
      * @description Will perform a breadth-first search
      */
     public getScope(nameOrId: string): IInjector | undefined {
-        const childScopes = Array.from(this._children).map(([_id, scope]) => scope);
-
-        const foundIndex = findIndex(childScopes, (c) => c.id === nameOrId || c.name === nameOrId);
-        if (foundIndex !== -1) {
-            return childScopes[foundIndex];
-        }
-
-        for (let index = 0; index < childScopes.length; index++) {
-            const child = childScopes[index];
-            const scope = child.getScope(nameOrId);
-            if (scope != null) {
-                return scope;
+        const queue = [...this._children.values()];
+        while (queue.length > 0) {
+            const child = queue.shift()!;
+            if (child.id === nameOrId || child.name === nameOrId) {
+                return child;
             }
+
+            child.children.forEach((nestedChild) => queue.push(nestedChild as Injector));
         }
+
         return undefined;
     }
 
@@ -345,11 +341,14 @@ export class Injector implements IInjector {
             return [];
         }
 
-        const strategies = [...this.getRegistrations().entries()]
-            .filter(([_t, config]) => config.strategy === strategy)
-            .map(([t]) => this.get<T>(t, []));
+        const strategies: Array<T> = [];
+        this._registrations.forEach((config, type) => {
+            if (config.strategy === strategy) {
+                strategies.push(this.get(type, []) as T);
+            }
+        });
 
-        return strategies as unknown as Array<T>;
+        return strategies;
     }
 
     /**
@@ -425,7 +424,10 @@ export class Injector implements IInjector {
         if (Injector.verify === false) {
             Injector.verify = true;
 
-            queueMicrotask(() => {
+            // We can't use a direct queueMicrotask call here as it may be patched by Zone.js which would cause the verify to run inside the zone and potentially cause issues with change detection in frameworks like Angular.  By resolving the microtask scheduler at runtime we can ensure we get the unpatched version if it exists.
+            const scheduleMicrotask = getZoneSafeMicrotaskScheduler(getGlobal());
+
+            scheduleMicrotask(() => {
                 //Start from the top and work our way down
                 this.getRootInjector().verify();
                 Injector.verify = false;
@@ -804,9 +806,12 @@ export class Injector implements IInjector {
      * Gets strategy types (but takes hierarchy into account)
      */
     private getStrategiesTypes(injector: IInjector, strategyToken: IParameterInjectionToken) {
-        const strategies = [...injector.getRegistrations().entries()].filter(
-            ([_t, config]) => config.strategy === strategyToken.token,
-        );
+        const strategies: Array<[any, IInjectionConfiguration]> = [];
+        injector.getRegistrations().forEach((config, type) => {
+            if (config.strategy === strategyToken.token) {
+                strategies.push([type, config]);
+            }
+        });
 
         return strategies;
     }

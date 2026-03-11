@@ -11,8 +11,8 @@ import {
     IDestroyable,
     IdleCacheStrategyType,
     ConditionalCacheStrategyType,
-} from '../contracts/contracts';
-import { BOXED_TYPE_ID } from '../constants/constants';
+} from '../contracts/contracts.js';
+import { BOXED_TYPE_ID } from '../constants/constants.js';
 
 /**
  * Determines if the given type is an IInjectionTokenParameter

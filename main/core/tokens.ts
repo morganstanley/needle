@@ -5,8 +5,8 @@ import {
     IParameterInjectionToken,
     ITokenCache,
     StringOrSymbol,
-} from '../contracts/contracts';
-import { isConstructorParameterToken } from './guards';
+} from '../contracts/contracts.js';
+import { isConstructorParameterToken } from './guards.js';
 
 /**
  * The injection token cache is used to store all uses of the @Inject annotation.
@@ -55,7 +55,8 @@ export class InjectionTokensCache implements ITokenCache {
     }
 
     public getTypeForToken(token: StringOrSymbol): any | undefined {
-        return this.getTypesForToken(token).pop();
+        const types = this.tokensToTypes.get(token);
+        return types == null || types.length === 0 ? undefined : types[types.length - 1];
     }
 
     public register(
@@ -91,15 +92,10 @@ export class InjectionTokensCache implements ITokenCache {
      */
     private registerTypeTokens(metadata: IInjectionToken) {
         if (metadata.injectionType === 'singleton') {
-            // Update the lookup for tokens -> types
-            this.typeToTokens.set(metadata.owner, [...this.getTokensForType(metadata.owner), metadata]);
-            // Update the reverse lookup for types -> token
-            this.tokensToTypes.set(metadata.token, [...this.getTypesForToken(metadata.token), metadata.owner]);
+            this.appendToMapArray(this.typeToTokens, metadata.owner, metadata);
+            this.appendToMapArray(this.tokensToTypes, metadata.token, metadata.owner);
         } else if (metadata.injectionType === 'multiple') {
-            this.strategyConsumers.set(metadata.token, [
-                ...this.getStrategyConsumers(metadata.token),
-                [metadata.owner],
-            ]);
+            this.appendToMapArray(this.strategyConsumers, metadata.token, metadata.owner);
         }
     }
 
@@ -108,15 +104,25 @@ export class InjectionTokensCache implements ITokenCache {
      */
     private registerParameterTokens(metadata: IParameterInjectionToken) {
         if (metadata.injectionType === 'singleton') {
-            this.injectParameterTokens.set(metadata.owner, [...this.getInjectTokens(metadata.owner), metadata]);
+            this.appendToMapArray(this.injectParameterTokens, metadata.owner, metadata);
         } else if (metadata.injectionType === 'multiple') {
-            this.strategyParameterTokens.set(metadata.owner, [...this.getStrategyTokens(metadata.owner), metadata]);
+            this.appendToMapArray(this.strategyParameterTokens, metadata.owner, metadata);
         } else if (metadata.injectionType === 'factory') {
-            this.factoryParameterTokens.set(metadata.owner, [...this.getFactoryTokens(metadata.owner), metadata]);
+            this.appendToMapArray(this.factoryParameterTokens, metadata.owner, metadata);
         } else if (metadata.injectionType === 'lazy') {
-            this.lazyParameterTokens.set(metadata.owner, [...this.getLazyTokens(metadata.owner), metadata]);
+            this.appendToMapArray(this.lazyParameterTokens, metadata.owner, metadata);
         } else if (metadata.injectionType === 'optional') {
-            this.optionalParameterTokens.set(metadata.owner, [...this.getOptionalTokens(metadata.owner), metadata]);
+            this.appendToMapArray(this.optionalParameterTokens, metadata.owner, metadata);
         }
+    }
+
+    private appendToMapArray<TKey, TValue>(map: Map<TKey, TValue[]>, key: TKey, value: TValue): void {
+        const values = map.get(key);
+        if (values == null) {
+            map.set(key, [value]);
+            return;
+        }
+
+        values.push(value);
     }
 }

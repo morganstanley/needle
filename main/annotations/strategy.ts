@@ -1,5 +1,5 @@
-import { StringOrSymbol } from '../contracts/contracts';
-import { getRootInjector } from '../core/util.functions';
+import { StringOrSymbol } from '../contracts/contracts.js';
+import { getRootInjector } from '../core/util.functions.js';
 
 /**
  * The @Strategy annotation allows you inject an array of strategy types registered against the given key

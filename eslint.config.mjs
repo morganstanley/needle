@@ -10,7 +10,7 @@ export default [
         ignores: ['karma.conf.js', 'karma.base.conf.js', 'prettier.config.js', 'reports/**', 'dist/**', 'docs/**'], // Proper way to ignore files in Flat Config
     },
     { files: ['**/*.{js,mjs,cjs,ts}'] },
-    { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
+    { files: ['**/*.cjs'], languageOptions: { sourceType: 'commonjs' } },
     { languageOptions: { globals: globals.browser } },
 
     pluginJs.configs.recommended,

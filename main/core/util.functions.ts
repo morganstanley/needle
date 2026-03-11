@@ -1,4 +1,4 @@
-import { DI_ROOT_INJECTOR_KEY } from '../constants/constants';
+import { DI_ROOT_INJECTOR_KEY } from '../constants/constants.js';
 import {
     IConstructionOptions,
     IInjector,
@@ -6,8 +6,8 @@ import {
     Newable,
     ResolvedType,
     StringOrSymbol,
-} from '../contracts/contracts';
-import { getGlobal } from './globals';
+} from '../contracts/contracts.js';
+import { getGlobal } from './globals.js';
 
 const globalReference = getGlobal();
 /**

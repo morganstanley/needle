@@ -1,21 +1,21 @@
-export * from './annotations/inject';
-export * from './annotations/injectable';
-export * from './annotations/strategy';
-export * from './annotations/factory';
-export * from './annotations/lazy';
-export * from './annotations/optional';
-export * from './annotations/interceptor';
-export * from './constants/constants';
-export * from './contracts/contracts';
-export * from './core/factory';
-export * from './core/lazy';
-export * from './core/metadata.functions';
-export * from './core/util.functions.partial';
-export * from './core/util.functions';
-export * from './core/injector';
+export * from './annotations/inject.js';
+export * from './annotations/injectable.js';
+export * from './annotations/strategy.js';
+export * from './annotations/factory.js';
+export * from './annotations/lazy.js';
+export * from './annotations/optional.js';
+export * from './annotations/interceptor.js';
+export * from './constants/constants.js';
+export * from './contracts/contracts.js';
+export * from './core/factory.js';
+export * from './core/lazy.js';
+export * from './core/metadata.functions.js';
+export * from './core/util.functions.partial.js';
+export * from './core/util.functions.js';
+export * from './core/injector.js';
 
-import { Injector } from './core/injector';
-import { getRootInjector } from './core/util.functions';
+import { Injector } from './core/injector.js';
+import { getRootInjector } from './core/util.functions.js';
 
 /* 
     Register this injector prototype against the current injector (Which could be different depending on the node_modules hierarchy).

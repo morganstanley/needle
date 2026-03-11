@@ -1,5 +1,5 @@
-import { generateUUID } from '../core/uuid';
-import { getRootInjector } from '../core/util.functions';
+import { generateUUID } from '../core/uuid.js';
+import { getRootInjector } from '../core/util.functions.js';
 
 /**
  * The @Optional annotation allows you signal to the injector that you are ok with an undefined value if the type has not been registered with the injector

@@ -24,7 +24,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install node modules and verify build
-        run: npm ci && npm run build-release
+        run: npm ci && npm run build:release
 
       - name: Publish
         run: npm publish --provenance --access public

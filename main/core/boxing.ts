@@ -1,6 +1,6 @@
-import { isExternalValueResolutionConfigurationLike } from './guards';
-import { IInjector, IBoxedValue } from '../contracts/contracts';
-import { BOXED_TYPE_ID } from '../constants/constants';
+import { isExternalValueResolutionConfigurationLike } from './guards.js';
+import { IInjector, IBoxedValue } from '../contracts/contracts.js';
+import { BOXED_TYPE_ID } from '../constants/constants.js';
 
 export function createBoxedValueType() {
     const Type = class implements IBoxedValue {
