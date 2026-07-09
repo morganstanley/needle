@@ -65,7 +65,7 @@
         "rimraf": "^6.0.1",
         "source-map": "0.7.6",
         "typedoc": "^0.28.15",
-        "typescript": "^5.9.3",
+        "typescript": "^6.0.2",
         "typescript-eslint": "^8.26.1",
         "unplugin-swc": "^1.5.8",
         "vite-tsconfig-paths": "^5.1.4",
