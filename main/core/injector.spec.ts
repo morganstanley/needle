@@ -1688,6 +1688,7 @@ describe('Injector', () => {
             let firstInstance: WeakReferenceInjectable | undefined = instance.get(WeakReferenceInjectable);
             const idOne = firstInstance.id;
             //DeRef the child to allow GC to collect it
+            // eslint-disable-next-line no-useless-assignment -- intentional: drop the reference so GC can collect it
             firstInstance = undefined;
 
             const secondInstance = instance.get(WeakReferenceInjectable);
@@ -1713,6 +1714,7 @@ describe('Injector', () => {
             const weakRef = new WeakRef(firstInstance);
 
             // Dereference to allow GC
+            // eslint-disable-next-line no-useless-assignment -- intentional: drop the reference so GC can collect it
             firstInstance = undefined;
 
             // Wait for a short while but not long enough for GC to kick in
