@@ -412,9 +412,13 @@ export class Injector implements IInjector {
             const scheduleMicrotask = getZoneSafeMicrotaskScheduler(getGlobal());
 
             scheduleMicrotask(() => {
-                //Start from the top and work our way down
-                this.getRootInjector().verify();
-                Injector.verify = false;
+                try {
+                    //Start from the top and work our way down
+                    this.getRootInjector().verify();
+                } finally {
+                    //Always reset the flag, otherwise a throwing verify() would stop verification ever being scheduled again
+                    Injector.verify = false;
+                }
             });
         }
     }
