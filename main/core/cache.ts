@@ -82,6 +82,9 @@ export class InstanceCache implements ICache {
             this.evict(type);
         }, timeout);
 
+        //Don't let a pending eviction keep a Node process alive (no-op in browsers where the timer is a number)
+        (timer as { unref?: () => void }).unref?.();
+
         //Add the timer to the scheduled eviction list
         //This allows us to clear the timer if needed before it fires
         this.scheduled.set(type, { timeout: timeout, timeoutRef: timer });

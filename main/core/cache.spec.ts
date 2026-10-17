@@ -43,4 +43,15 @@ describe('InstanceCache', () => {
         cache.purge();
         expect(cache.resolve(token)).toBeUndefined();
     });
+
+    it('unrefs eviction timers so they do not keep the process alive', () => {
+        const unref = vi.fn();
+        const timeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockReturnValue({ unref } as any);
+        const cache = new InstanceCache();
+
+        cache.scheduleEviction(Symbol('unref-token'), 1000);
+
+        expect(unref).toHaveBeenCalledTimes(1);
+        timeoutSpy.mockRestore();
+    });
 });
