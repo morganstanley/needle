@@ -1,4 +1,9 @@
-import { ConditionalCacheStrategyType, ICache, IInjectionConfiguration, InstanceOfType } from '../contracts/contracts.js';
+import {
+    ConditionalCacheStrategyType,
+    ICache,
+    IInjectionConfiguration,
+    InstanceOfType,
+} from '../contracts/contracts.js';
 import { isConditionalCacheStrategy, isDestroyable, isIdleCacheStrategy } from './guards.js';
 import { getRootInjector } from './util.functions.js';
 

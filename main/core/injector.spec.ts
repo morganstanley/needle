@@ -344,7 +344,6 @@ describe('Injector', () => {
                 ) !== -1,
             ).toBeTruthy();
         });
-
     });
 
     describe('Registration', () => {
@@ -1947,9 +1946,7 @@ describe('Injector', () => {
             await pause(50);
 
             instance.get(Child);
-            expect(instance.metrics.data[0].lastResolution.getTime()).toBeGreaterThan(
-                firstResolutionTime.getTime(),
-            );
+            expect(instance.metrics.data[0].lastResolution.getTime()).toBeGreaterThan(firstResolutionTime.getTime());
         });
 
         describe('Scoping', () => {

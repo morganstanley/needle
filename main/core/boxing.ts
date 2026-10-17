@@ -7,7 +7,10 @@ export function createBoxedValueType() {
         public typeId = BOXED_TYPE_ID;
         public value: any;
 
-        constructor(public injector: IInjector, public readonly resolver: any) {}
+        constructor(
+            public injector: IInjector,
+            public readonly resolver: any,
+        ) {}
 
         public unbox(): any {
             if (this.value == null) {
