@@ -43,8 +43,8 @@ const guideNav: INavGroup[] = [
 
 /* ---------- helpers ---------- */
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-const slugify = (s: string) => s.toLowerCase().replace(/<[^>]+>/g, '').replace(/[^\w\- ]/g, '').trim().replace(/ /g, '-');
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"' })[c]!);
+const slugify = (s: string) => s.toLowerCase().replace(/[^\w\- ]/g, '').trim().replace(/ /g, '-');
 const highlight = (code: string, lang?: string) =>
     lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : esc(code);
 
@@ -53,9 +53,10 @@ const marked = new Marked({
         code({ text, lang }) {
             return `<pre><button class="copy" type="button">Copy</button><code class="hljs">${highlight(text, lang || undefined)}</code></pre>`;
         },
-        heading({ tokens, depth }) {
+        heading({ tokens, depth, text: rawText }) {
             const text = this.parser.parseInline(tokens);
-            const id = slugify(text);
+            // Build the id from the raw heading text rather than rendered HTML, so no tag stripping is needed.
+            const id = slugify(rawText);
             return `<h${depth} id="${id}">${text}<a class="anchor" href="#" data-anchor="${id}" aria-label="Link to this section">#</a></h${depth}>`;
         },
         link({ href, tokens }) {
