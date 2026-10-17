@@ -44,14 +44,16 @@
         "test:watch:coverage": "vitest --coverage",
         "lint": "eslint . --ext .ts,.js",
         "lint:fix": "eslint . --ext .ts,.js --fix",
-        "prepublishOnly": "npm run build:release"
+        "prepublishOnly": "npm run build:release",
+        "lint:package": "publint",
+        "audit:prod": "npm audit --omit=dev"
     },
     "devDependencies": {
-        "@vitest/coverage-v8": "^4.1.12",
         "@eslint/js": "^9.22.0",
         "@types/node": "^24.5.2",
         "@typescript-eslint/eslint-plugin": "^8.35.0",
         "@typescript-eslint/parser": "^8.35.0",
+        "@vitest/coverage-v8": "^4.1.12",
         "ajv": "^6.10.2",
         "concurrently": "^9.2.4",
         "copyfiles": "^2.4.1",
@@ -64,6 +66,7 @@
         "globals": "^17.0.0",
         "jsdom": "^26.1.0",
         "prettier": "^3.8.1",
+        "publint": "^0.3.25",
         "reflect-metadata": "^0.2.2",
         "rimraf": "^6.0.1",
         "source-map": "0.7.6",
