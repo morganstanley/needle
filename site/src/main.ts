@@ -177,14 +177,22 @@ function examplePage(id: string) {
     page.appendChild(liveEditor(ex));
     const idx = examples.indexOf(ex);
     const nav = document.createElement('p');
-    nav.innerHTML = [idx > 0 ? `<a href="#/examples/${examples[idx - 1].id}">← ${esc(examples[idx - 1].title)}</a>` : '', idx < examples.length - 1 ? `<a style="float:right" href="#/examples/${examples[idx + 1].id}">${esc(examples[idx + 1].title)} →</a>` : ''].join(' ');
+    nav.innerHTML = [idx > 0 ? `<a href="#/examples/${esc(examples[idx - 1].id)}">← ${esc(examples[idx - 1].title)}</a>` : '', idx < examples.length - 1 ? `<a style="float:right" href="#/examples/${esc(examples[idx + 1].id)}">${esc(examples[idx + 1].title)} →</a>` : ''].join(' ');
     page.appendChild(nav);
     window.scrollTo(0, 0);
 }
 
 /* theming */
 interface ITheme { dark?: boolean; accent?: string; radius?: number }
-const loadTheme = (): ITheme => { try { return JSON.parse(localStorage.getItem('needle-theme') || '{}'); } catch { return {}; } };
+const sanitizeTheme = (raw: unknown): ITheme => {
+    const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+    const t: ITheme = {};
+    if (typeof r.dark === 'boolean') t.dark = r.dark;
+    if (typeof r.accent === 'string' && /^#[0-9a-fA-F]{6}$/.test(r.accent)) t.accent = r.accent;
+    if (typeof r.radius === 'number' && Number.isFinite(r.radius)) t.radius = Math.min(24, Math.max(0, r.radius));
+    return t;
+};
+const loadTheme = (): ITheme => { try { return sanitizeTheme(JSON.parse(localStorage.getItem('needle-theme') || '{}')); } catch { return {}; } };
 const applyTheme = (t: ITheme) => {
     const root = document.documentElement;
     root.classList.toggle('dark', !!t.dark);
@@ -198,16 +206,20 @@ function theming() {
     const swatches = ['#0d9488', '#2563eb', '#7c3aed', '#db2777', '#ea580c', '#16a34a'];
     page.innerHTML = `<h1>Theming</h1><p class="lead">This site is themed with a handful of CSS custom properties. Change them here and the whole site (including the live editors) updates. Your choice is remembered in this browser.</p>
       <div class="theme-grid"><div>
-        <label>Accent <input id="t-accent" type="color" value="${t.accent ?? '#0d9488'}" /></label>
-        <div class="swatches">${swatches.map((c) => `<button type="button" data-c="${c}" style="background:${c}" aria-label="Accent ${c}"></button>`).join('')}</div>
-        <label>Corner radius <input id="t-radius" type="range" min="0" max="24" value="${t.radius ?? 12}" /></label>
-        <label>Dark mode <input id="t-dark" type="checkbox" ${document.documentElement.classList.contains('dark') ? 'checked' : ''} /></label>
+        <label>Accent <input id="t-accent" type="color" value="#0d9488" /></label>
+        <div class="swatches">${swatches.map((c) => `<button type="button" data-c="${esc(c)}" aria-label="Accent ${esc(c)}"></button>`).join('')}</div>
+        <label>Corner radius <input id="t-radius" type="range" min="0" max="24" value="12" /></label>
+        <label>Dark mode <input id="t-dark" type="checkbox" /></label>
         <button type="button" class="ghost-btn" id="t-reset">Reset to defaults</button>
       </div><div>
         <div class="card"><b>Preview card</b><span>Cards, buttons and code blocks follow the same variables.</span></div>
         <p><a class="ghost-btn" style="background:var(--accent);color:#fff;border-color:var(--accent)" href="#/theming">Primary button</a></p>
         <h3>CSS variables</h3><pre><code id="t-css" class="hljs"></code></pre>
       </div></div>`;
+    ($('#t-accent') as HTMLInputElement).value = t.accent ?? '#0d9488';
+    ($('#t-radius') as HTMLInputElement).value = String(t.radius ?? 12);
+    ($('#t-dark') as HTMLInputElement).checked = document.documentElement.classList.contains('dark');
+    page.querySelectorAll<HTMLButtonElement>('.swatches button').forEach((b) => { b.style.background = b.dataset.c!; });
     const read = (): ITheme => ({
         dark: ($('#t-dark') as HTMLInputElement).checked,
         accent: ($('#t-accent') as HTMLInputElement).value,
@@ -238,8 +250,8 @@ function apiPage(focus?: string) {
     const draw = (q: string) => {
         const needleQ = q.trim().toLowerCase();
         const shown = api.filter((i) => !needleQ || i.name.toLowerCase().includes(needleQ) || i.members?.some((m) => m.name.toLowerCase().includes(needleQ)));
-        list.innerHTML = shown.map((i) => `<section class="api-item" id="api-${i.name}">
-          <h3><span class="kind">${i.kind}</span>${esc(i.name)}${i.deprecated ? ' <small>(deprecated)</small>' : ''}</h3>
+        list.innerHTML = shown.map((i) => `<section class="api-item" id="api-${esc(i.name)}">
+          <h3><span class="kind">${esc(i.kind)}</span>${esc(i.name)}${i.deprecated ? ' <small>(deprecated)</small>' : ''}</h3>
           <div class="src">${esc(i.file)}</div>
           ${i.doc ? `<p>${esc(i.doc)}</p>` : ''}
           ${i.signature ? `<pre class="sig"><code class="hljs">${highlight(i.signature, 'typescript')}</code></pre>` : ''}
