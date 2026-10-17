@@ -34,7 +34,7 @@ export function findScope(injector: IInjector, nameOrId: string): IInjector | un
  * Resolves the closest injector on the tree (starting at `injector`) that can handle a type or token based on registrations.
  * Falls back to `fallback` when no injector knows about it.
  */
-export function findInjectorForTypeOrToken(injector: IInjector, tokenOrType: any, fallback: Injector): Injector {
+export function findInjectorForTypeOrToken(injector: IInjector, tokenOrType: unknown, fallback: Injector): Injector {
     const isType = !isStringOrSymbol(tokenOrType);
     let current = injector as Injector | undefined;
 

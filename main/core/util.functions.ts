@@ -14,7 +14,7 @@ const globalReference = getGlobal();
  * Gets the root injector
  */
 export function getRootInjector(): IInjector {
-    return globalReference[DI_ROOT_INJECTOR_KEY];
+    return globalReference[DI_ROOT_INJECTOR_KEY] as IInjector;
 }
 
 /**
@@ -25,7 +25,7 @@ export function getRootInjector(): IInjector {
  */
 export function get<T>(
     type: T,
-    ancestry: any[] = [],
+    ancestry: unknown[] = [],
     options?: T extends Newable ? IConstructionOptions<T> : never,
 ): InstanceOfType<ResolvedType<T>> {
     return getRootInjector().get(type, ancestry, options);
@@ -44,7 +44,7 @@ export function getOptional<T extends Newable>(type: T | StringOrSymbol): Instan
  */
 export function getLazy<T>(
     type: T,
-    ancestry: any[] = [],
+    ancestry: unknown[] = [],
     options?: T extends Newable ? IConstructionOptions<T> : never,
 ): () => InstanceOfType<ResolvedType<T>> {
     return () => get(type, ancestry, options);
@@ -53,7 +53,7 @@ export function getLazy<T>(
 /**
  * Returns an Array of the all types registered in the container
  */
-export function getRegisteredTypes(): Array<any> {
+export function getRegisteredTypes(): Array<unknown> {
     return getRootInjector().getRegisteredTypes();
 }
 

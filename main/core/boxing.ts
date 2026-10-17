@@ -5,14 +5,14 @@ import { BOXED_TYPE_ID } from '../constants/constants.js';
 export function createBoxedValueType() {
     const Type = class implements IBoxedValue {
         public typeId = BOXED_TYPE_ID;
-        public value: any;
+        public value: unknown;
 
         constructor(
             public injector: IInjector,
-            public readonly resolver: any,
+            public readonly resolver: unknown,
         ) {}
 
-        public unbox(): any {
+        public unbox(): unknown {
             if (this.value == null) {
                 if (isExternalValueResolutionConfigurationLike(this.resolver)) {
                     const value = this.resolver.resolver(this.injector);

@@ -19,7 +19,7 @@ export function normalizeRegistration(config: IInjectionConfiguration): IInjecti
 
     if (resolution != null && !isExternalResolutionConfigurationLike(resolution)) {
         config.resolution = {
-            resolver: (_type, currentInjector, locals) => currentInjector.get(resolution, [], locals),
+            resolver: (_type, currentInjector, locals) => currentInjector.get(resolution, [], locals as never),
             cacheSyncing: true,
         } as IExternalResolutionConfiguration;
     }
@@ -29,7 +29,11 @@ export function normalizeRegistration(config: IInjectionConfiguration): IInjecti
 /**
  * Registers a multiple-injection token for a strategy
  */
-export function registerStrategyToken(tokenCache: ITokenCache, type: any, strategy: StringOrSymbol | undefined): void {
+export function registerStrategyToken(
+    tokenCache: ITokenCache,
+    type: unknown,
+    strategy: StringOrSymbol | undefined,
+): void {
     if (isStringOrSymbol(strategy)) {
         const token: IInjectionToken = { token: strategy, owner: type, injectionType: 'multiple' };
         tokenCache.register(token);
@@ -42,7 +46,7 @@ export function registerStrategyToken(tokenCache: ITokenCache, type: any, strate
 export function registerTypeTokens(
     tokenCache: ITokenCache,
     configuration: IConfiguration,
-    type: any,
+    type: unknown,
     tokens: Array<StringOrSymbol> = [],
 ): void {
     tokens
@@ -52,6 +56,7 @@ export function registerTypeTokens(
                 const tokenTypes = tokenCache.getTypesForToken(t.token);
                 if (tokenTypes.length > 0) {
                     throw new DuplicateTokenError(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
                         (type as any).name,
                         t.token,
                         tokenTypes.map((tt) => tt.name),

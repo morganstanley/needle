@@ -5,7 +5,8 @@ import { IConstructionInterceptor, IInjector } from '../../contracts/contracts.j
  * Adds an interceptor to the given registry (always the root injector's), ignoring duplicates.
  */
 export function addInterceptor(
-    registry: Map<any, IConstructionInterceptor[]>,
+    registry: Map<unknown, IConstructionInterceptor[]>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     interceptor: IConstructionInterceptor<any>,
 ): void {
     let interceptors = registry.get(interceptor.target);
@@ -23,7 +24,12 @@ export function addInterceptor(
 /**
  * Builds the contexts passed to each interceptor registered against `type`
  */
-export function createInterceptorContexts(owner: Injector, scope: IInjector, type: any, constructorArgs: any[]) {
+export function createInterceptorContexts(
+    owner: Injector,
+    scope: IInjector,
+    type: unknown,
+    constructorArgs: unknown[],
+) {
     return (owner.getInterceptorsForType(type) || [])
         .filter((interceptor) => interceptor.target === type)
         .map((interceptor) => ({

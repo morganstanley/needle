@@ -21,7 +21,7 @@ export interface IConstructorParamTokens {
 /**
  * Handles resolving the value for a given override value
  */
-export function getOverrideValue(value: any): any {
+export function getOverrideValue(value: unknown): unknown {
     if (value === UNDEFINED_VALUE) {
         return undefined;
     } else if (value === NULL_VALUE) {
@@ -34,7 +34,7 @@ export function getOverrideValue(value: any): any {
  * Gets strategy types (but takes hierarchy into account)
  */
 export function getStrategiesTypes(injector: IInjector, strategyToken: IParameterInjectionToken) {
-    const strategies: Array<[any, IInjectionConfiguration]> = [];
+    const strategies: Array<[unknown, IInjectionConfiguration]> = [];
     injector.getRegistrations().forEach((config, type) => {
         if (config.strategy === strategyToken.token) {
             strategies.push([type, config]);
@@ -50,9 +50,9 @@ export function getStrategiesTypes(injector: IInjector, strategyToken: IParamete
 export function tryGetStrategyParam(
     injector: IInjector,
     paramTokens: IParameterInjectionToken[],
-    ancestors: any[],
+    ancestors: unknown[],
     index: number,
-): any[] | undefined {
+): unknown[] | undefined {
     const strategyToken = paramTokens.find((ip) => ip.index === index);
     if (strategyToken != null) {
         return getStrategiesTypes(injector, strategyToken).map(([t]) => injector.get(t, ancestors));
@@ -68,6 +68,7 @@ export function tryGetFactoryParam(
     injector: IInjector,
     paramTokens: IParameterInjectionToken[],
     index: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     createFactoryImpl: ConstructorParameters<typeof AutoFactory<any>>[2],
 ) {
     const factoryToken = paramTokens.find((ip) => ip.index === index);
@@ -98,7 +99,7 @@ export function isOptionalParam(paramTokens: IParameterInjectionToken[], index: 
 export function tryGetParamTypeFromToken(
     paramTokens: IParameterInjectionToken[],
     index: number,
-    defaultType: any,
+    defaultType: unknown,
     tokenCache: ITokenCache,
 ) {
     const token = paramTokens.find((ip) => ip.index === index);
@@ -108,7 +109,7 @@ export function tryGetParamTypeFromToken(
 /**
  * Gets injection tokens for a given type (but takes hierarchy into account)
  */
-export function getConstructorsParamTokens(injector: IInjector | undefined, type: any): IConstructorParamTokens {
+export function getConstructorsParamTokens(injector: IInjector | undefined, type: unknown): IConstructorParamTokens {
     let injectionParamTokens = new Array<IParameterInjectionToken>();
     let strategyParamTokens = new Array<IParameterInjectionToken>();
     let factoryParamTokens = new Array<IParameterInjectionToken>();

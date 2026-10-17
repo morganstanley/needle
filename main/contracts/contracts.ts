@@ -6,7 +6,7 @@ import { LazyInstance } from '../core/lazy.js';
  * @description This includes primitive types, objects, arrays, functions, and more.
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<any> | object;
+export type ValueType = number | string | Date | boolean | Function | RegExp | Error | Array<unknown> | object;
 
 /// InjectorIdentifier is a unique identifier for an injector instance
 /// @description This is typically a string that represents the injector's ID or name.
@@ -14,22 +14,27 @@ export type InjectorIdentifier = string;
 
 export type StringOrSymbol = string | symbol;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- the produced type is not known statically
 export type InstanceFactory = () => InstanceOfType<any>;
 
 export type InjectionType = 'singleton' | 'multiple' | 'factory' | 'lazy' | 'optional';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constructor signatures must accept any argument list
 export type Newable<T = any, T2 extends T = T> = new (...args: any[]) => T2;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constructor signatures must accept any argument list
 export type Constructor<T> = new (...args: any[]) => T;
 
 export type StaticTypes<T> = {
     [K in keyof T]: Constructor<T[K]>;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constructor signatures must accept any argument list
 export type MetadataParams<T> = T extends new (...args: infer P) => any ? P : never;
 
 export type MetadataStaticConstructorTypes<T> = StaticTypes<MetadataParams<T>>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constructor signatures must accept any argument list
 export type NewableConstructorInterceptor = new (...args: any[]) => IConstructionInterceptor;
 
 // More forgiving InstanceType to support instances of an Abstract Type (not Newable)
@@ -69,7 +74,7 @@ export type ConditionalCacheStrategyType = {
      * @param instance The instance to check (optional
      * @returns true if the instance should be purged, false otherwise
      */
-    predicate: (instance: any) => boolean;
+    predicate: (instance: unknown) => boolean;
 };
 
 /**
@@ -96,6 +101,7 @@ export interface IConstructionOptions<T extends Newable, TParams = Partial<Const
 /**
  * Provides a spreadable Constructor Params type.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constructor signatures must accept any argument list
 export type OptionalConstructorParameters<T extends new (...args: any) => any> = T extends new (...args: infer P) => any
     ? Partial<P>
     : never;
@@ -105,7 +111,7 @@ export type OptionalConstructorParameters<T extends new (...args: any) => any> =
  */
 export interface IInjectionToken {
     token: StringOrSymbol;
-    owner: any;
+    owner: unknown;
     injectionType: InjectionType;
 }
 
@@ -187,7 +193,7 @@ export interface ICache {
      * @param type The constructor type
      * @param instance the instance
      */
-    update(type: any, instance: any, configuration?: IInjectionConfiguration): void;
+    update(type: unknown, instance: unknown, configuration?: IInjectionConfiguration): void;
     /**
      * Clears the cache
      */
@@ -195,7 +201,7 @@ export interface ICache {
     /**
      * Returns an array of all instances in the cache
      */
-    instances(): Array<any>;
+    instances(): Array<unknown>;
 
     /**
      * Will attempt instances from the cache based on conditional cache strategy or and weak reference cache strategy.
@@ -211,46 +217,46 @@ export interface ITokenCache {
      * Get a list of associated inject parameter tokens for the given constructor of a type
      * @param type
      */
-    getInjectTokens(type: any): IParameterInjectionToken[];
+    getInjectTokens(type: unknown): IParameterInjectionToken[];
     /**
      * Get a list of associated strategy parameter tokens for the given constructor of a type
      * @param type
      */
-    getStrategyTokens(type: any): IParameterInjectionToken[];
+    getStrategyTokens(type: unknown): IParameterInjectionToken[];
     /**
      * Get a list of associated factory parameter tokens for the given constructor of a type
      * @param type
      */
-    getFactoryTokens(type: any): IParameterInjectionToken[];
+    getFactoryTokens(type: unknown): IParameterInjectionToken[];
     /**
      * Get a list of associated lazy parameter tokens for the given constructor of a type
      * @param type
      */
-    getLazyTokens(type: any): IParameterInjectionToken[];
+    getLazyTokens(type: unknown): IParameterInjectionToken[];
     /**
      * Get a list of associated lazy parameter tokens for the given constructor of a type
      * @param type
      */
-    getOptionalTokens(type: any): IParameterInjectionToken[];
+    getOptionalTokens(type: unknown): IParameterInjectionToken[];
     /**
      * Gets a list of tokens this type has be registered against
      */
-    getTokensForType(type: any): IInjectionToken[];
+    getTokensForType(type: unknown): IInjectionToken[];
     /**
      * Gets a list of types registered against this token
      * @param token
      */
-    getTypesForToken(token: StringOrSymbol): any[];
+    getTypesForToken(token: StringOrSymbol): Newable[];
     /**
      * Gets a list of types which are consumers of the given strategy key
      * @param token
      */
-    getStrategyConsumers(token: StringOrSymbol): any[];
+    getStrategyConsumers(token: StringOrSymbol): Newable[];
     /**
      * Gets the type associated to this token.  Note, if there are many it will return the last one registered
      * @param token
      */
-    getTypeForToken(token: StringOrSymbol): any | undefined;
+    getTypeForToken(token: StringOrSymbol): Newable | undefined;
 
     /**
      * Register either constructor parameter token or Type injection token
@@ -302,32 +308,36 @@ export interface IInjector {
     /**
      * Registers and instance of a type in the container
      */
-    registerInstance<T extends Newable>(type: any, instance: InstanceOfType<T>, config?: IInjectionConfiguration): this;
+    registerInstance<T extends Newable>(
+        type: unknown,
+        instance: InstanceOfType<T>,
+        config?: IInjectionConfiguration,
+    ): this;
 
     /**
      * Registers a parameter for factory injection. This maps to the @Factory annotation
      */
-    registerParamForFactoryInjection(type: any, ownerType: any, index: number): this;
+    registerParamForFactoryInjection(type: unknown, ownerType: unknown, index: number): this;
 
     /**
      * Registers a parameter for lazy injection. This maps to the @Lazy annotation
      */
-    registerParamForLazyInjection(type: any, ownerType: any, index: number): this;
+    registerParamForLazyInjection(type: unknown, ownerType: unknown, index: number): this;
 
     /**
      * Registers a parameter for optional injection. This maps to the @Optional annotation
      */
-    registerParamForOptionalInjection(ownerType: any, index: number): this;
+    registerParamForOptionalInjection(ownerType: unknown, index: number): this;
 
     /**
      * Registers a parameter for token injection. This maps to the @Inject annotation
      */
-    registerParamForTokenInjection(token: StringOrSymbol, ownerType: any, index: number): this;
+    registerParamForTokenInjection(token: StringOrSymbol, ownerType: unknown, index: number): this;
 
     /**
      * Registers a parameter for strategy injection. This maps to the @Strategy annotation
      */
-    registerParamForStrategyInjection(strategy: StringOrSymbol, ownerType: any, index: number): this;
+    registerParamForStrategyInjection(strategy: StringOrSymbol, ownerType: unknown, index: number): this;
     /**
      * Determine if this is the root injector
      */
@@ -352,7 +362,7 @@ export interface IInjector {
     /**
      * Get the list of registration
      */
-    getRegistrations(): Map<any, IInjectionConfiguration>;
+    getRegistrations(): Map<unknown, IInjectionConfiguration>;
 
     /**
      * Gets an AutoFactory for a given type
@@ -371,7 +381,7 @@ export interface IInjector {
      */
     get<T>(
         typeOrToken: T | StringOrSymbol,
-        ancestry?: any[],
+        ancestry?: unknown[],
         options?: T extends Newable ? IConstructionOptions<T> : never,
     ): InstanceOfType<ResolvedType<T>>;
 
@@ -383,13 +393,13 @@ export interface IInjector {
     /**
      * Returns an Array of the all types registered in the container
      */
-    getRegisteredTypes(): Array<any>;
+    getRegisteredTypes(): Array<Newable>;
 
     /**
      * Resolves an registration for a given type if present
      * @param type
      */
-    getRegistrationForType(type: any): IInjectionConfiguration | undefined;
+    getRegistrationForType(type: unknown): IInjectionConfiguration | undefined;
 
     /**
      * Returns an Array of strategy types for the given strategy token
@@ -399,14 +409,14 @@ export interface IInjector {
     /**
      * Returns an array of all the types registered in the container with associated constructor dependencies
      */
-    getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }>;
+    getRegisteredTypesWithDependencies(): Array<{ provide: Newable; deps: Array<Newable> }>;
 
     /**
      * Resolves the nearest injector in our hierarchy that has a registration for the given type or token
      * @param injector The starting point injector
      * @param tokenOrType The type of the token we are looking for
      */
-    getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): IInjector;
+    getInjectorForTypeOrToken(injector: IInjector, tokenOrType: unknown): IInjector;
 
     /**
      * Gets a scoped injector using the Id or the Name
@@ -448,6 +458,7 @@ export interface IDestroyable {
 /**
  * Injection configuration object used for profiling information and behavior about the injectable to the injector
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- default type argument keeps un-parameterised usages working
 export interface IInjectionConfiguration<T = any> {
     /**
      * A list of tokens that this injectable can be resolved by using the @Inject("token") annotation
@@ -496,7 +507,7 @@ export interface IValueInjectionConfiguration<T extends ValueType> {
  */
 export interface IBoxedValue {
     typeId: string;
-    unbox(): any;
+    unbox(): unknown;
 }
 
 /**
@@ -513,17 +524,19 @@ export interface IExternalResolutionConfigurationBase {
 /**
  * Configuration interface used when defining external resolution strategy
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- default type argument keeps un-parameterised usages working
 export interface IExternalResolutionConfiguration<T = any> extends IExternalResolutionConfigurationBase {
     /**
      * The resolver function to be used when instancing types
      */
-    resolver(type: T, currentInjector: IInjector, locals?: any): InstanceOfType<T>;
+    resolver(type: T, currentInjector: IInjector, locals?: unknown): InstanceOfType<T>;
 }
 
 /**
  * Configuration interface used when defining external value resolution strategy
  */
 export interface IExternalValueResolutionConfiguration<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     T extends ValueType = any,
 > extends IExternalResolutionConfigurationBase {
     /**
@@ -543,7 +556,7 @@ export interface IMetricRecord {
     /**
      * The type whos metrics are being tracked
      */
-    type: any;
+    type: unknown;
     /**
      * First activation time
      */
@@ -551,7 +564,7 @@ export interface IMetricRecord {
     /**
      * What type constructed this type. (Defaults to self if bare resolution)
      */
-    activationTypeOwner: any;
+    activationTypeOwner: unknown;
     /**
      * The number of times this type has been resolved
      */
@@ -588,7 +601,7 @@ export interface IMetrics {
      * Gets the metrics for a given type
      * @param type The type who's metrics we want to read
      */
-    getMetricsForType(type: any): Readonly<IMetricRecord> | undefined;
+    getMetricsForType(type: unknown): Readonly<IMetricRecord> | undefined;
 }
 
 /**
@@ -601,12 +614,13 @@ export interface IMetricsProvider extends IMetrics {
      * @param owner defaults to the same type if not provided
      * @param costMs Cost in milliseconds to construct the type
      */
-    update(type: any, owner: any, costMs: number): void;
+    update(type: unknown, owner: unknown, costMs: number): void;
 }
 
 /**
  * Provides injection context used at the point of creation
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
 export interface IInjectionContext<TType extends Newable = any> {
     /**
      * The type being constructed
@@ -630,6 +644,7 @@ export interface IInjectionContext<TType extends Newable = any> {
  * Base constructor injector interceptor interface
  * @description Constructor Interceptors only fire when cache missed
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
 export interface IConstructionInterceptor<TTarget extends Newable = any> {
     /**
      * The type targeted for interception

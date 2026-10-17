@@ -22,9 +22,14 @@ export default [
         plugins: { prettier: pluginPrettier },
         rules: {
             '@typescript-eslint/explicit-module-boundary-types': 'off',
-            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-unused-vars': 'off',
             '@typescript-eslint/no-this-alias': 'off',
         },
+    },
+    {
+        // Tests and benchmarks routinely reach into internals and build partial mocks
+        files: ['**/*.spec.ts', 'spec/**', 'bench/**'],
+        rules: { '@typescript-eslint/no-explicit-any': 'off' },
     },
 ];

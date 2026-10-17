@@ -1,12 +1,16 @@
+import { Newable } from '../contracts/contracts.js';
 import { getRootInjector } from './util.functions.js';
 
 /* Consumers must import the "reflect-metadata" polyfill. */
-declare const Reflect: any;
+declare const Reflect: { getMetadata?(key: string, target: unknown): unknown[] | undefined } | undefined;
+
+const reflectedTypes = (constr: unknown) =>
+    Reflect?.getMetadata?.('design:paramtypes', constr) as Newable[] | undefined;
 
 /**
  * Gets an array of types defined in a types constructor
  */
-export function getConstructorTypes<T = unknown>(constr: T): any[] {
+export function getConstructorTypes<T = unknown>(constr: T): Newable[] {
     const rootInjector = getRootInjector();
     const registration = rootInjector.getRegistrationForType(constr);
     const metadataModel = rootInjector.configuration.metadataMode;
@@ -14,9 +18,9 @@ export function getConstructorTypes<T = unknown>(constr: T): any[] {
         case 'explicit':
             return registration?.metadata ?? [];
         case 'reflection':
-            return Reflect?.getMetadata?.('design:paramtypes', constr) || [];
+            return reflectedTypes(constr) || [];
         case 'both':
-            return registration?.metadata ?? Reflect?.getMetadata?.('design:paramtypes', constr) ?? [];
+            return registration?.metadata ?? reflectedTypes(constr) ?? [];
         default:
             return [];
     }

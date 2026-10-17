@@ -11,7 +11,7 @@ import { generateUUID } from '../core/uuid.js';
  */
 export function Factory(factoryTarget: Newable) {
     // the original decorator
-    function factory(target: any, property: string | symbol | undefined, index: number): void {
+    function factory(target: unknown, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
             token: `factory_${generateUUID()}`, // We can auto generate a token for factories.
             owner: target,

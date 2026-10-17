@@ -51,7 +51,7 @@ export function isLazyParameterToken(
  * Determines if the value is a string or symbol
  * @param item The value being tested
  */
-export function isStringOrSymbol(item: any): item is StringOrSymbol {
+export function isStringOrSymbol(item: unknown): item is StringOrSymbol {
     return typeof item === 'string' || typeof item === 'symbol';
 }
 
@@ -59,6 +59,7 @@ export function isStringOrSymbol(item: any): item is StringOrSymbol {
  * Determines if the given value is an external resolution config
  * @param item
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
 export function isExternalResolutionConfigurationLike(item: any): item is IExternalResolutionConfiguration {
     return item != null && item.resolver != null && typeof item.resolver === 'function';
 }
@@ -67,6 +68,7 @@ export function isExternalResolutionConfigurationLike(item: any): item is IExter
  * Determines if the given value is an external value resolution config
  * @param item
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
 export function isExternalValueResolutionConfigurationLike(item: any): item is IExternalValueResolutionConfiguration {
     return item != null && item.resolver != null && typeof item.resolver === 'function';
 }
@@ -74,6 +76,7 @@ export function isExternalValueResolutionConfigurationLike(item: any): item is I
 /**
  * Determines if a `thing` is injector like in its appearance.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
 export function isInjectorLike(thing: any): thing is IInjector {
     return (
         thing != null &&
@@ -90,11 +93,12 @@ export function isInjectorLike(thing: any): thing is IInjector {
 /**
  * Determines if a value is a Boxed value
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
 export function isBoxedValue(thing: any): thing is IBoxedValue {
     return thing != null && thing.typeId === BOXED_TYPE_ID;
 }
 
-export function isDestroyable(value: any): value is IDestroyable {
+export function isDestroyable(value: unknown): value is IDestroyable {
     return (
         value != null &&
         (value as IDestroyable).needle_destroy != null &&
@@ -102,7 +106,7 @@ export function isDestroyable(value: any): value is IDestroyable {
     );
 }
 
-export function isIdleCacheStrategy(value: any): value is IdleCacheStrategyType {
+export function isIdleCacheStrategy(value: unknown): value is IdleCacheStrategyType {
     return (
         value != null &&
         (value as IdleCacheStrategyType).type === 'idle' &&
@@ -110,7 +114,7 @@ export function isIdleCacheStrategy(value: any): value is IdleCacheStrategyType 
     );
 }
 
-export function isConditionalCacheStrategy(value: any): value is ConditionalCacheStrategyType {
+export function isConditionalCacheStrategy(value: unknown): value is ConditionalCacheStrategyType {
     return (
         value != null &&
         (value as ConditionalCacheStrategyType).type === 'conditional' &&

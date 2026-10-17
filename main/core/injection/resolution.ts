@@ -31,7 +31,7 @@ import { findInjectorForTypeOrToken } from './scoping.js';
 import { IConstructionOptionsInternal } from './types.js';
 
 function rootInjector(): IInjector {
-    return getGlobal()[DI_ROOT_INJECTOR_KEY];
+    return getGlobal()[DI_ROOT_INJECTOR_KEY] as IInjector;
 }
 
 /**
@@ -46,6 +46,7 @@ export function assertNotDestroyed(self: Injector): void {
 /**
  * Throws the standard error for a type that cannot be constructed because nothing is registered for it
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
 export function throwRegistrationNotFound(constructorType: any, ancestry: any[]): never {
     throw new TypeNotRegisteredError(constructorType?.name, ancestry);
 }
@@ -56,20 +57,21 @@ export function throwRegistrationNotFound(constructorType: any, ancestry: any[])
 export function resolveInstance<T>(
     self: Injector,
     typeOrToken: T | StringOrSymbol,
-    ancestry: any[] = [],
+    ancestry: unknown[] = [],
     options?: T extends Newable ? IConstructionOptionsInternal<T> : never,
 ): InstanceOfType<T> | undefined {
     assertNotDestroyed(self);
 
     // Measuring time taken
     const start = Date.now();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     let instance: any;
 
     const injector = findInjectorForTypeOrToken(self, typeOrToken, self);
 
-    const constructorType: any = isStringOrSymbol(typeOrToken)
-        ? injector.tokenCache.getTypeForToken(typeOrToken)
-        : typeOrToken;
+    const constructorType = (
+        isStringOrSymbol(typeOrToken) ? injector.tokenCache.getTypeForToken(typeOrToken) : typeOrToken
+    ) as Newable | undefined;
 
     const allowOptional = options != null && options.mode === 'optional';
 
@@ -83,7 +85,7 @@ export function resolveInstance<T>(
     ancestry.push(constructorType);
 
     //We use a special Id (Guid) to determine if a type could be an injector type rather than fallible prototype comparison
-    const isInjectorType = constructorType.typeId === INJECTOR_TYPE_ID;
+    const isInjectorType = (constructorType as { typeId?: string }).typeId === INJECTOR_TYPE_ID;
     instance = isInjectorType ? self : injector.cache.resolve(constructorType);
 
     //Intrinsic types are boxed by default and primed in the cache.  If we have one lets unbox its value and use that
@@ -113,6 +115,7 @@ export function resolveInstance<T>(
                 instance = externalResolutionStrategy.resolver(
                     constructorType,
                     injector, // Pass injector so resolver understands the current context (scope, cache etc)
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
                     ((options || {}) as any).params || [],
                 );
 
@@ -129,7 +132,7 @@ export function resolveInstance<T>(
                         self,
                         constructorType,
                         true,
-                        options as any,
+                        options as IConstructionOptionsInternal<Newable> | undefined,
                         ancestry,
                         injector,
                         registration,
@@ -143,6 +146,7 @@ export function resolveInstance<T>(
 
     // Capture metrics on this types usage
     if (self.configuration.trackMetrics) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
         (injector.metrics as any).update(constructorType, undefined, Date.now() - start);
     }
 
@@ -157,7 +161,7 @@ export function createInstanceFactory<T extends Newable>(
     type: T,
     updateCache = false,
     options?: IConstructionOptionsInternal<T>,
-    ancestors: any[] = [],
+    ancestors: unknown[] = [],
     injector: IInjector = rootInjector(),
 ) {
     const injectorForType = injector.getInjectorForTypeOrToken(injector, type);
@@ -171,17 +175,18 @@ export function createInstanceFactory<T extends Newable>(
 /**
  * Constructs a new instance of a type, resolving its constructor parameters and running interceptors
  */
-export function createInstance<T extends new (...args: any[]) => any>(
+export function createInstance<T extends new (...args: unknown[]) => unknown>(
     self: Injector,
     type: T,
     updateCache = false,
     options?: IConstructionOptionsInternal<T>,
-    ancestors: any[] = [],
+    ancestors: unknown[] = [],
     injector: IInjector = rootInjector(),
     configuration?: IInjectionConfiguration,
 ): InstanceType<T> {
     // Do our base checks to see if we are exceeding our depth limits
     if (ancestors.length > injector.configuration.maxTreeDepth) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
         throw new MaxDepthExceededError((type as any)?.name, ancestors);
     }
 
@@ -203,6 +208,7 @@ export function createInstance<T extends new (...args: any[]) => any>(
     // Trigger before interceptors
     interceptorContexts.forEach((context) => context.interceptor.beforeCreate(context));
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     const instance: any = new type(...constructorParamValues);
 
     // Trigger after interceptors
@@ -218,12 +224,12 @@ export function createInstance<T extends new (...args: any[]) => any>(
 /**
  * Resolves all the constructor args values taking into account the tokens
  */
-function getConstructorParamValues<T extends new (...args: any[]) => any>(
+function getConstructorParamValues<T extends new (...args: unknown[]) => unknown>(
     self: Injector,
-    constructorParamTypes: any[],
+    constructorParamTypes: unknown[],
     overrideParams: Partial<ConstructorParameters<T>> | never[],
     injector: IInjector,
-    ancestors: any[],
+    ancestors: unknown[],
     type: T,
 ) {
     if (constructorParamTypes.length === 0) {
@@ -254,6 +260,7 @@ function getConstructorParamValues<T extends new (...args: any[]) => any>(
             paramInjector,
             factoryParamTokens,
             index,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
             (s: any, m: boolean, i?: IConstructionOptions<any>, l?: Array<any>, e?: IInjector) =>
                 createInstanceFactory(self, s, m, i, l, e),
         );
@@ -274,7 +281,7 @@ function getConstructorParamValues<T extends new (...args: any[]) => any>(
             paramInjector.cache.resolve(paramType) ??
             resolveInstance(paramInjector, paramType, ancestors, {
                 mode: optional ? 'optional' : 'standard',
-            } as any);
+            } as never);
 
         if (isBoxedValue(instance)) {
             instance = instance.unbox();

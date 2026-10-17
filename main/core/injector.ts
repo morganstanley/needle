@@ -76,8 +76,8 @@ export class Injector implements IInjector {
     }
     public static readonly typeId = INJECTOR_TYPE_ID;
     private _isDestroyed = false;
-    private readonly _registrations = new Map<any, IInjectionConfiguration>();
-    private readonly _interceptors = new Map<any, IConstructionInterceptor[]>();
+    private readonly _registrations = new Map<unknown, IInjectionConfiguration>();
+    private readonly _interceptors = new Map<unknown, IConstructionInterceptor[]>();
     private readonly _children = new Map<InjectorIdentifier, Injector>();
     public readonly id = generateUUID();
 
@@ -104,6 +104,7 @@ export class Injector implements IInjector {
      * Registers an interceptor with the root injector
      * @param interceptor
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public registerInterceptor(interceptor: IConstructionInterceptor<any>): this {
         addInterceptor(getRootInjector(this)._interceptors, interceptor);
         return this;
@@ -112,7 +113,7 @@ export class Injector implements IInjector {
     /**
      * Registers a type and associated injection config with the the injector
      */
-    public register(type: any, config: IInjectionConfiguration = defaultInjectionConfiguration): this {
+    public register(type: unknown, config: IInjectionConfiguration = defaultInjectionConfiguration): this {
         // Make a shallow copy and normalise the resolution strategy
         config = normalizeRegistration(config);
 
@@ -159,7 +160,7 @@ export class Injector implements IInjector {
     /**
      * Get the list of registration
      */
-    public getRegistrations(): Map<any, IInjectionConfiguration> {
+    public getRegistrations(): Map<unknown, IInjectionConfiguration> {
         return new Map(this._registrations);
     }
 
@@ -167,7 +168,7 @@ export class Injector implements IInjector {
      * Registers and instance of a type in the container
      */
     public registerInstance<T extends Newable>(
-        type: any,
+        type: unknown,
         instance: InstanceOfType<T>,
         config: IInjectionConfiguration = defaultInjectionConfiguration,
     ): this {
@@ -189,6 +190,7 @@ export class Injector implements IInjector {
     /**
      * Registers a parameter for factory injection.  This maps to the @Factory annotation
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public registerParamForFactoryInjection(type: any, ownerType: any, index: number): this {
         Factory(type)(ownerType, undefined, index);
         return this;
@@ -197,6 +199,7 @@ export class Injector implements IInjector {
     /**
      * Registers a parameter for Lazy injection. This maps to the @Lazy annotation
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public registerParamForLazyInjection(type: any, ownerType: any, index: number): this {
         Lazy(type)(ownerType, undefined, index);
         return this;
@@ -205,7 +208,7 @@ export class Injector implements IInjector {
     /**
      * Registers a parameter for Optional injection. This maps to the @Optional annotation
      */
-    public registerParamForOptionalInjection(ownerType: any, index: number): this {
+    public registerParamForOptionalInjection(ownerType: unknown, index: number): this {
         Optional()(ownerType, undefined, index);
         return this;
     }
@@ -213,7 +216,7 @@ export class Injector implements IInjector {
     /**
      * Registers a parameter for token injection.  This maps to the @Inject annotation
      */
-    public registerParamForTokenInjection(token: string, ownerType: any, index: number): this {
+    public registerParamForTokenInjection(token: string, ownerType: unknown, index: number): this {
         Inject(token)(ownerType, undefined, index);
         return this;
     }
@@ -221,7 +224,7 @@ export class Injector implements IInjector {
     /**
      * Registers a parameter for strategy injection.  This maps to the @Strategy annotation
      */
-    public registerParamForStrategyInjection(strategy: string, ownerType: any, index: number): this {
+    public registerParamForStrategyInjection(strategy: string, ownerType: unknown, index: number): this {
         Strategy(strategy)(ownerType, undefined, index);
         return this;
     }
@@ -290,6 +293,7 @@ export class Injector implements IInjector {
      * @param type
      */
     public getFactory<T extends Newable>(type: T): AutoFactory<T> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
         return new AutoFactory<any>(type, this, (...args: [any, boolean?, any?, any[]?, IInjector?]) =>
             createInstanceFactory(this, ...args),
         );
@@ -300,6 +304,7 @@ export class Injector implements IInjector {
      * @param typeOrToken
      */
     public getLazy<T>(typeOrToken: T | StringOrSymbol): LazyInstance<ResolvedType<T>> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
         return new LazyInstance<any>(() => this.get(typeOrToken));
     }
 
@@ -312,15 +317,17 @@ export class Injector implements IInjector {
 
     public get<T>(
         typeOrToken: T | StringOrSymbol,
-        ancestry: any[] = [],
+        ancestry: unknown[] = [],
         options?: T extends Newable ? IConstructionOptions<T> : never,
     ): InstanceOfType<ResolvedType<T>> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
         return this.getImpl(typeOrToken, ancestry, options) as InstanceOfType<any>;
     }
 
     /**
      * Returns an Array of the all types registered in the container
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public getRegisteredTypes(): Array<any> {
         return Array.from(this._registrations.keys());
     }
@@ -328,6 +335,7 @@ export class Injector implements IInjector {
     /**
      * Returns an array of all the types registered in the container with associated constructor dependencies
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public getRegisteredTypesWithDependencies(): Array<{ provide: any; deps: Array<any> }> {
         return this.getRegisteredTypes().map((t) => ({ provide: t, deps: getConstructorTypes(t) }));
     }
@@ -344,11 +352,11 @@ export class Injector implements IInjector {
         this._interceptors.clear();
     }
 
-    public getInterceptorsForType(type: any): IConstructionInterceptor[] | undefined {
+    public getInterceptorsForType(type: unknown): IConstructionInterceptor[] | undefined {
         return getRootInjector(this)._interceptors.get(type);
     }
 
-    public getRegistrationForType(type: any): IInjectionConfiguration | undefined {
+    public getRegistrationForType(type: unknown): IInjectionConfiguration | undefined {
         return this._registrations.get(type);
     }
 
@@ -363,6 +371,7 @@ export class Injector implements IInjector {
     /**
      * This method will resolve the closest injector on our tree who can handle construction of this type based on registrations
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public getInjectorForTypeOrToken(injector: IInjector, tokenOrType: any): Injector {
         return findInjectorForTypeOrToken(injector, tokenOrType, this);
     }
@@ -376,7 +385,7 @@ export class Injector implements IInjector {
 
     private getImpl<T>(
         typeOrToken: T | StringOrSymbol,
-        ancestry: any[] = [],
+        ancestry: unknown[] = [],
         options?: T extends Newable ? IConstructionOptionsInternal<T> : never,
     ): InstanceOfType<T> | undefined {
         assertNotDestroyed(this);
