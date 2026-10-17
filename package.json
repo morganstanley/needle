@@ -5,6 +5,9 @@
     "license": "Apache-2.0",
     "author": "Morgan Stanley",
     "type": "module",
+    "sideEffects": [
+        "./dist/main/index.js"
+    ],
     "main": "./dist/main/index.js",
     "module": "./dist/main/index.js",
     "types": "./dist/main/index.d.ts",
@@ -29,7 +32,7 @@
         "build": "tsc -p main/tsconfig.json",
         "postbuild": "npm run copy",
         "build:watch": "tsc --watch -p main/tsconfig.json",
-        "build:verify": "concurrently --kill-others-on-fail npm:lint npm:test npm:build", 
+        "build:verify": "concurrently --kill-others-on-fail npm:lint npm:test npm:build",
         "build:release": "npm run clean && npm run build:verify &&npm run bench && typedoc main/index.ts",
         "copy": "copyfiles main/**/*.html main/**/*.css main/**/*.jpg dist",
         "bench": "node -e \"require('fs').mkdirSync('reports/bench',{recursive:true})\" && vitest bench --run --config vitest.bench.config.ts --outputJson reports/bench/bench-results.json",
@@ -73,6 +76,9 @@
     },
     "peerDependencies": {
         "typescript": ">=3.4"
+    },
+    "engines": {
+        "node": ">=20"
     },
     "repository": {
         "type": "git",
