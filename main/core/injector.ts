@@ -50,22 +50,6 @@ import { Metrics } from './metrics.js';
 import { InjectionTokensCache } from './tokens.js';
 
 /**
- * Local polyfill function to avoid IE11 not having find index on array
- * @param data
- * @param predicate
- */
-function findIndex<T>(data: Array<T>, predicate: (item: T) => boolean): number {
-    let index = -1;
-    for (let i = 0; i < data.length; ++i) {
-        if (predicate(data[i])) {
-            index = i;
-            break;
-        }
-    }
-    return index;
-}
-
-/**
  * This interface extends the constructor options to allow internal behavior to profiled when constructing injectables
  */
 export interface IConstructionOptionsInternal<T extends Newable, TParams = Partial<ConstructorParameters<T>>>
@@ -428,9 +412,13 @@ export class Injector implements IInjector {
             const scheduleMicrotask = getZoneSafeMicrotaskScheduler(getGlobal());
 
             scheduleMicrotask(() => {
-                //Start from the top and work our way down
-                this.getRootInjector().verify();
-                Injector.verify = false;
+                try {
+                    //Start from the top and work our way down
+                    this.getRootInjector().verify();
+                } finally {
+                    //Always reset the flag, otherwise a throwing verify() would stop verification ever being scheduled again
+                    Injector.verify = false;
+                }
             });
         }
     }
@@ -678,7 +666,7 @@ export class Injector implements IInjector {
         ancestors: any[],
         index: number,
     ): any[] | undefined {
-        const strategyToken = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
+        const strategyToken = paramTokens.find((ip) => ip.index === index);
         if (strategyToken != null) {
             const strategies = this.getStrategiesTypes(injector, strategyToken).map(([t]) =>
                 injector.get(t, ancestors),
@@ -695,7 +683,7 @@ export class Injector implements IInjector {
      * @param index constructor index position
      */
     private tryGetFactoryParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
-        const factoryToken = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
+        const factoryToken = paramTokens.find((ip) => ip.index === index);
         if (factoryToken != null && isFactoryParameterToken(factoryToken)) {
             return new AutoFactory(
                 factoryToken.factoryTarget as Newable,
@@ -715,7 +703,7 @@ export class Injector implements IInjector {
      * @param index constructor index position
      */
     private tryGetLazyParam(injector: IInjector, paramTokens: IParameterInjectionToken[], index: number) {
-        const lazyToken = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
+        const lazyToken = paramTokens.find((ip) => ip.index === index);
         if (lazyToken != null && isLazyParameterToken(lazyToken)) {
             return new LazyInstance(() => injector.get(lazyToken.lazyTarget));
         }
@@ -723,7 +711,7 @@ export class Injector implements IInjector {
     }
 
     private isOptionalParam(paramTokens: IParameterInjectionToken[], index: number): boolean {
-        return findIndex(paramTokens, (ip) => ip.index === index) !== -1;
+        return paramTokens.some((ip) => ip.index === index);
     }
 
     /**
@@ -795,7 +783,7 @@ export class Injector implements IInjector {
         defaultType: any,
         paramInjector: Injector,
     ) {
-        const token = paramTokens[findIndex(paramTokens, (ip) => ip.index === index)];
+        const token = paramTokens.find((ip) => ip.index === index);
         if (token != null) {
             defaultType = paramInjector._tokenCache.getTypeForToken(token.token);
         }

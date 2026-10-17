@@ -5,6 +5,9 @@
     "license": "Apache-2.0",
     "author": "Morgan Stanley",
     "type": "module",
+    "sideEffects": [
+        "./dist/main/index.js"
+    ],
     "main": "./dist/main/index.js",
     "module": "./dist/main/index.js",
     "types": "./dist/main/index.d.ts",
@@ -29,7 +32,7 @@
         "build": "tsc -p main/tsconfig.json",
         "postbuild": "npm run copy",
         "build:watch": "tsc --watch -p main/tsconfig.json",
-        "build:verify": "concurrently --kill-others-on-fail npm:lint npm:test npm:build", 
+        "build:verify": "concurrently --kill-others-on-fail npm:lint npm:test npm:build",
         "build:release": "npm run clean && npm run build:verify &&npm run bench && typedoc main/index.ts",
         "copy": "copyfiles main/**/*.html main/**/*.css main/**/*.jpg dist",
         "bench": "node -e \"require('fs').mkdirSync('reports/bench',{recursive:true})\" && vitest bench --run --config vitest.bench.config.ts --outputJson reports/bench/bench-results.json",
@@ -41,14 +44,16 @@
         "test:watch:coverage": "vitest --coverage",
         "lint": "eslint . --ext .ts,.js",
         "lint:fix": "eslint . --ext .ts,.js --fix",
-        "prepublishOnly": "npm run build:release"
+        "prepublishOnly": "npm run build:release",
+        "lint:package": "publint",
+        "audit:prod": "npm audit --omit=dev"
     },
     "devDependencies": {
-        "@vitest/coverage-v8": "^4.1.10",
         "@eslint/js": "^9.22.0",
         "@types/node": "^24.5.2",
         "@typescript-eslint/eslint-plugin": "^8.35.0",
         "@typescript-eslint/parser": "^8.35.0",
+        "@vitest/coverage-v8": "^4.1.12",
         "ajv": "^6.10.2",
         "concurrently": "^9.2.4",
         "copyfiles": "^2.4.1",
@@ -61,6 +66,7 @@
         "globals": "^17.0.0",
         "jsdom": "^26.1.0",
         "prettier": "^3.8.1",
+        "publint": "^0.3.25",
         "reflect-metadata": "^0.2.2",
         "rimraf": "^6.0.1",
         "source-map": "0.7.6",
@@ -69,10 +75,13 @@
         "typescript-eslint": "^8.71.1",
         "unplugin-swc": "^1.5.8",
         "vite-tsconfig-paths": "^5.1.4",
-        "vitest": "^4.1.10"
+        "vitest": "^4.1.12"
     },
     "peerDependencies": {
         "typescript": ">=3.4"
+    },
+    "engines": {
+        "node": ">=20"
     },
     "repository": {
         "type": "git",

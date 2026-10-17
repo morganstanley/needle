@@ -153,7 +153,7 @@ export interface IConfiguration {
      */
     trackMetrics: boolean;
 
-    /*
+    /**
      * The metadata mode to use for type resolution.
      * - 'explicit': Uses explicit metadata provided by the user.
      * - 'reflection': Uses reflection to gather metadata.

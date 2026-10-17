@@ -23,11 +23,25 @@ describe('Configuration', () => {
 
         config.reset();
 
-        expect(config.maxTreeDepth).toBe(500);
+        expect(config.maxTreeDepth).toBe(100);
         expect(config.allowDuplicateTokens).toBe(false);
-        expect(config.trackMetrics).toBe(false);
+        expect(config.trackMetrics).toBe(true);
         expect(config.metadataMode).toBe('both');
         expect(config.defaultCacheStrategy).toBe('persistent');
         expect(config.externalResolutionStrategy).toBeUndefined();
+    });
+
+    it('reset() restores exactly the same state as a new Configuration', () => {
+        const config = new Configuration();
+        config.maxTreeDepth = 1;
+        config.allowDuplicateTokens = true;
+        config.trackMetrics = false;
+        config.metadataMode = 'reflection';
+        config.defaultCacheStrategy = 'no-cache';
+        config.externalResolutionStrategy = { resolver: () => null } as any;
+
+        config.reset();
+
+        expect({ ...config }).toEqual({ ...new Configuration() });
     });
 });

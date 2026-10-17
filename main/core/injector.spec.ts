@@ -31,7 +31,7 @@ import {
 } from '../constants/constants.js';
 import { InstanceCache } from './cache.js';
 import { InjectionTokensCache } from './tokens.js';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 export abstract class Individual {
     public id = Math.floor(Math.random() * 100000 + 1);
@@ -236,6 +236,38 @@ describe('Injector', () => {
 
         return getRootInjector();
     };
+
+    describe('Scheduled verification', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+            (Injector as any).verify = false;
+        });
+
+        it('should reset the static verify flag when verify throws so it can be scheduled again', () => {
+            const instance = getInstance() as Injector;
+            const queued: Array<() => void> = [];
+            vi.spyOn(globalThis, 'queueMicrotask').mockImplementation((cb) => {
+                queued.push(cb);
+            });
+            const verifySpy = vi.spyOn(instance, 'verify').mockImplementation(() => {
+                throw new Error('verify failed');
+            });
+
+            (instance as any).scheduleVerify();
+            expect(queued.length).toBe(1);
+            expect((Injector as any).verify).toBe(true);
+
+            expect(() => queued[0]()).toThrow('verify failed');
+            expect((Injector as any).verify).toBe(false);
+
+            // A later resolution must be able to schedule verification again
+            verifySpy.mockImplementation(() => undefined);
+            (instance as any).scheduleVerify();
+            expect(queued.length).toBe(2);
+            queued[1]();
+            expect(verifySpy).toHaveBeenCalledTimes(2);
+        });
+    });
 
     describe('Defaults', () => {
         it('should return an instance of the injector', () => {
