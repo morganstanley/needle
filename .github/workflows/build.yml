@@ -37,6 +37,7 @@ jobs:
         cache: npm
     - run: npm ci
     - run: npm test
+    - run: npm run examples
 
   build:
     runs-on: ubuntu-latest

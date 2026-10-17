@@ -7,7 +7,7 @@ import pluginPrettier from 'eslint-plugin-prettier';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
     {
-        ignores: ['karma.conf.js', 'karma.base.conf.js', 'prettier.config.js', 'reports/**', 'dist/**', 'docs/**'], // Proper way to ignore files in Flat Config
+        ignores: ['karma.conf.js', 'karma.base.conf.js', 'prettier.config.js', 'reports/**', 'dist/**', 'docs/api/**'], // Proper way to ignore files in Flat Config
     },
     { files: ['**/*.{js,mjs,cjs,ts}'] },
     { files: ['**/*.cjs'], languageOptions: { sourceType: 'commonjs' } },
@@ -26,6 +26,10 @@ export default [
             '@typescript-eslint/no-unused-vars': 'off',
             '@typescript-eslint/no-this-alias': 'off',
         },
+    },
+    {
+        files: ['scripts/**/*.mjs', 'bench/**/*.mjs'],
+        languageOptions: { globals: globals.node },
     },
     {
         // Tests and benchmarks routinely reach into internals and build partial mocks
