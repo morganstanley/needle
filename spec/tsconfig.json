@@ -4,5 +4,5 @@
         "declaration": false,
         "types": ["node"]
     },
-    "include": ["../main/**/*.spec.ts", "./setup.ts"]
+    "include": ["../main/**/*.spec.ts", "./*.ts"]
 }
