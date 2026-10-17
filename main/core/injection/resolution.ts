@@ -7,6 +7,12 @@ import {
     Newable,
     StringOrSymbol,
 } from '../../contracts/contracts.js';
+import {
+    InjectorDestroyedError,
+    MaxDepthExceededError,
+    NotResolvableError,
+    TypeNotRegisteredError,
+} from '../errors.js';
 import { getGlobal } from '../globals.js';
 import { isBoxedValue, isStringOrSymbol } from '../guards.js';
 import { getConstructorTypes } from '../metadata.functions.js';
@@ -33,9 +39,7 @@ function rootInjector(): IInjector {
  */
 export function assertNotDestroyed(self: Injector): void {
     if (self.isDestroyed()) {
-        throw new Error(
-            `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${self.id}]`,
-        );
+        throw new InjectorDestroyedError(self.id);
     }
 }
 
@@ -43,13 +47,7 @@ export function assertNotDestroyed(self: Injector): void {
  * Throws the standard error for a type that cannot be constructed because nothing is registered for it
  */
 export function throwRegistrationNotFound(constructorType: any, ancestry: any[]): never {
-    throw new Error(
-        `Cannot construct Type '${constructorType?.name}' with ancestry '${ancestry
-            .map((ancestor) => ancestor?.name)
-            .join(
-                ' -> ',
-            )}' the type is either not decorated with @Injectable or injector.register was not called for the type or the constructor param is not marked @Optional`,
-    );
+    throw new TypeNotRegisteredError(constructorType?.name, ancestry);
 }
 
 /**
@@ -79,13 +77,7 @@ export function resolveInstance<T>(
         if (allowOptional) {
             return undefined;
         }
-        throw new Error(
-            isStringOrSymbol(typeOrToken)
-                ? `Cannot resolve Type with token '${typeOrToken.toString()}' as no types have been registered against that token value`
-                : `Cannot resolve Type '${
-                      (typeOrToken as any)?.name
-                  }' as no types have been registered against any injectors`,
-        );
+        throw new NotResolvableError(typeOrToken, ancestry, isStringOrSymbol(typeOrToken));
     }
 
     ancestry.push(constructorType);
@@ -190,11 +182,7 @@ export function createInstance<T extends new (...args: any[]) => any>(
 ): InstanceType<T> {
     // Do our base checks to see if we are exceeding our depth limits
     if (ancestors.length > injector.configuration.maxTreeDepth) {
-        throw new Error(
-            `Cannot construct Type '${(type as any)?.name}' with ancestry '${ancestors
-                .map((ancestor) => ancestor?.name)
-                .join(' -> ')}' as max tree depth has been reached`,
-        );
+        throw new MaxDepthExceededError((type as any)?.name, ancestors);
     }
 
     const overrideParams = (options || {}).params || [];

@@ -523,8 +523,9 @@ export interface IExternalResolutionConfiguration<T = any> extends IExternalReso
 /**
  * Configuration interface used when defining external value resolution strategy
  */
-export interface IExternalValueResolutionConfiguration<T extends ValueType = any>
-    extends IExternalResolutionConfigurationBase {
+export interface IExternalValueResolutionConfiguration<
+    T extends ValueType = any,
+> extends IExternalResolutionConfigurationBase {
     /**
      * The resolver function to be used when resolving the value
      */

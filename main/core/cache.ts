@@ -1,3 +1,4 @@
+import { getLogger } from './logger.js';
 import {
     ConditionalCacheStrategyType,
     ICache,
@@ -159,7 +160,7 @@ export class InstanceCache implements ICache {
                 try {
                     result = strategy.predicate(instance);
                 } catch (e) {
-                    console.warn(`Error evaluating predicate for type ${type}:`, e);
+                    getLogger().warn(`Error evaluating predicate for type ${type}:`, e);
                 }
                 if (result) {
                     //If the condition is met we must remove the instance from the cache

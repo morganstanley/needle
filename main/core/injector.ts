@@ -23,6 +23,7 @@ import {
     ValueType,
     ResolvedType,
 } from '../contracts/contracts.js';
+import { MissingValueTokenError } from './errors.js';
 import { InstanceCache } from './cache.js';
 import { Configuration } from './configuration.js';
 import { AutoFactory } from './factory.js';
@@ -123,7 +124,7 @@ export class Injector implements IInjector {
 
     public registerValue<T extends ValueType>(configuration: IValueInjectionConfiguration<T>): this {
         if (configuration.tokens == null || configuration.tokens.length === 0) {
-            throw new Error('All values must be registered with a given token');
+            throw new MissingValueTokenError();
         }
 
         // Create a boxed value type, then an instance of it.

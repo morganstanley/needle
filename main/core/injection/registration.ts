@@ -1,3 +1,4 @@
+import { DuplicateTokenError } from '../errors.js';
 import {
     IExternalResolutionConfiguration,
     IInjectionConfiguration,
@@ -50,12 +51,10 @@ export function registerTypeTokens(
             if (!configuration.allowDuplicateTokens) {
                 const tokenTypes = tokenCache.getTypesForToken(t.token);
                 if (tokenTypes.length > 0) {
-                    throw new Error(
-                        `Cannot register Type [${
-                            (type as any).name
-                        }] with token '${t.token.toString()}'. Duplicate token found for the following type [${tokenTypes
-                            .map((tt) => tt.name)
-                            .join(' -> ')}]`,
+                    throw new DuplicateTokenError(
+                        (type as any).name,
+                        t.token,
+                        tokenTypes.map((tt) => tt.name),
                     );
                 }
             }

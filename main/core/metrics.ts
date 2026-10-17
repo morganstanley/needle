@@ -1,3 +1,4 @@
+import { getLogger } from './logger.js';
 import { IMetricRecord, IMetricsProvider } from '../contracts/contracts.js';
 import { getConstructorTypes } from './metadata.functions.js';
 
@@ -16,10 +17,11 @@ export class Metrics implements IMetricsProvider {
     }
 
     public dump(): void {
-        if (console.table) {
-            console.table(this.data);
+        const logger = getLogger();
+        if (logger.table) {
+            logger.table(this.data);
         } else {
-            console.log(this.data);
+            logger.log(this.data);
         }
     }
 
