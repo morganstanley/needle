@@ -43,7 +43,7 @@ const guideNav: INavGroup[] = [
 
 /* ---------- helpers ---------- */
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"' })[c]!);
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '\x26amp;', '<': '\x26lt;', '>': '\x26gt;', '"': '\x26quot;' })[c]!);
 const slugify = (s: string) => s.toLowerCase().replace(/[^\w\- ]/g, '').trim().replace(/ /g, '-');
 const highlight = (code: string, lang?: string) =>
     lang && hljs.getLanguage(lang) ? hljs.highlight(code, { language: lang }).value : esc(code);
