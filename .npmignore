@@ -31,4 +31,4 @@ docs/**/*
 
 # except for ts files (required for source maps)
 
-!main/**/*.ts
+!main/**/*.tssite/

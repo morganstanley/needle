@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Needle — dependency injection for TypeScript</title>
+    <meta name="description" content="Needle: a small, lightweight dependency injection container for Angular, React, Node and plain JavaScript. Guides, API reference and live examples." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d9488'/%3E%3Cpath d='M9 24 23 8' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='9.5' r='2.2' fill='%230d9488' stroke='white' stroke-width='1.6'/%3E%3C/svg%3E" />
+    <script>
+      // Apply the saved theme before first paint to avoid a flash
+      try {
+        const t = JSON.parse(localStorage.getItem('needle-theme') || '{}');
+        if (t.dark ?? matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
+        if (t.accent) document.documentElement.style.setProperty('--accent', t.accent);
+        if (t.radius != null) document.documentElement.style.setProperty('--radius', t.radius + 'px');
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#page">Skip to content</a>
+    <header class="top">
+      <a class="brand" href="#/"><span class="logo" aria-hidden="true"></span>needle</a>
+      <nav class="topnav" aria-label="Main">
+        <a href="#/start">Get started</a>
+        <a href="#/guide/tokens">Guides</a>
+        <a href="#/examples/basics">Examples</a>
+        <a href="#/theming">Theming</a>
+        <a href="#/api">API</a>
+      </nav>
+      <a class="ghost-btn" href="https://github.com/morganstanley/needle" aria-label="GitHub repository">GitHub</a>
+      <button id="theme" class="ghost-btn" aria-label="Toggle dark mode">◐</button>
+      <button id="menu" class="ghost-btn only-mobile" aria-label="Menu">☰</button>
+    </header>
+    <div class="shell">
+      <aside id="side" class="side" aria-label="Documentation"></aside>
+      <main id="page" class="page" tabindex="-1"></main>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
