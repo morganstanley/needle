@@ -59,3 +59,31 @@ describe('logger', () => {
         expect(logger.warn).toHaveBeenCalled();
     });
 });
+
+describe('logger shared slot', () => {
+    const key = Symbol.for('needle.morganstanley.com.logger');
+    const host = globalThis as unknown as Record<symbol, unknown>;
+
+    afterEach(() => resetLogger());
+
+    it('stores the logger on globalThis so every loaded copy of Needle shares it', () => {
+        const logger: ILogger = { warn: vi.fn(), log: vi.fn() };
+        setLogger(logger);
+        expect(host[key]).toBe(logger);
+    });
+
+    it('reads a logger written to the shared slot by another copy', () => {
+        const logger: ILogger = { warn: vi.fn(), log: vi.fn() };
+        host[key] = logger;
+        expect(getLogger()).toBe(logger);
+    });
+
+    it('falls back to the console logger when the slot is empty', () => {
+        delete host[key];
+        expect(getLogger()).toBe(consoleLogger);
+        setLogger({ warn: vi.fn(), log: vi.fn() });
+        resetLogger();
+        expect(key in host).toBe(false);
+        expect(getLogger()).toBe(consoleLogger);
+    });
+});
