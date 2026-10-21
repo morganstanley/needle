@@ -2,7 +2,7 @@ name: Docs site
 
 on:
   push:
-    branches: [docs-site, main]
+    branches: [main]
     paths:
       - 'site/**'
       - 'docs/**'

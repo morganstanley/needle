@@ -1,5 +1,7 @@
-const formatAncestry = (ancestry: ReadonlyArray<unknown>): string =>
-    ancestry.map((ancestor) => (ancestor as { name?: string } | undefined)?.name ?? String(ancestor)).join(' -> ');
+const ancestryNames = (ancestry: ReadonlyArray<unknown>): Array<string> =>
+    ancestry.map((ancestor) => (ancestor as { name?: string } | undefined)?.name ?? String(ancestor));
+
+const formatAncestry = (ancestry: ReadonlyArray<unknown>): string => ancestryNames(ancestry).join(' -> ');
 
 const withPath = (message: string, path: ReadonlyArray<string>): string =>
     path.length > 0 ? `${message} (resolution path: ${path.join(' -> ')})` : message;
@@ -8,12 +10,14 @@ const withPath = (message: string, path: ReadonlyArray<string>): string =>
  * Base class for every error thrown by Needle. Use `instanceof NeedleError` or the `code` to handle them.
  */
 export class NeedleError extends Error {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'NeedleError';
+
     constructor(
         message: string,
         public readonly code: string,
     ) {
         super(message);
-        this.name = new.target.name;
         Object.setPrototypeOf(this, new.target.prototype);
     }
 }
@@ -22,13 +26,16 @@ export class NeedleError extends Error {
  * Base class for errors raised while resolving a type; carries the path of types being resolved.
  */
 export class ResolutionError extends NeedleError {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'ResolutionError';
+
     /**
      * Names of the types that were being resolved, outermost first
      */
     public readonly resolutionPath: ReadonlyArray<string>;
 
     constructor(message: string, code: string, ancestry: ReadonlyArray<unknown> = [], appendPath = false) {
-        const path = ancestry.map((a) => (a as { name?: string } | undefined)?.name ?? String(a));
+        const path = ancestryNames(ancestry);
         super(appendPath ? withPath(message, path) : message, code);
         this.resolutionPath = path;
     }
@@ -38,6 +45,9 @@ export class ResolutionError extends NeedleError {
  * Thrown when a type is requested that no injector has a registration for
  */
 export class TypeNotRegisteredError extends ResolutionError {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'TypeNotRegisteredError';
+
     constructor(
         public readonly typeName: string | undefined,
         ancestry: ReadonlyArray<unknown> = [],
@@ -54,6 +64,9 @@ export class TypeNotRegisteredError extends ResolutionError {
  * Thrown when a type or token cannot be found on any injector
  */
 export class NotResolvableError extends ResolutionError {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'NotResolvableError';
+
     constructor(
         public readonly typeOrToken: unknown,
         ancestry: ReadonlyArray<unknown> = [],
@@ -74,6 +87,9 @@ export class NotResolvableError extends ResolutionError {
  * Thrown when the dependency graph is deeper than `configuration.maxTreeDepth` (usually a circular dependency)
  */
 export class MaxDepthExceededError extends ResolutionError {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'MaxDepthExceededError';
+
     constructor(
         public readonly typeName: string | undefined,
         ancestry: ReadonlyArray<unknown>,
@@ -90,6 +106,9 @@ export class MaxDepthExceededError extends ResolutionError {
  * Thrown when an operation is attempted on an injector that has been destroyed
  */
 export class InjectorDestroyedError extends NeedleError {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'InjectorDestroyedError';
+
     constructor(public readonly injectorId: string) {
         super(
             `Invalid operation, the current injector instance is marked as destroyed. Injector Id: [${injectorId}]`,
@@ -102,6 +121,9 @@ export class InjectorDestroyedError extends NeedleError {
  * Thrown when registering a type against a token that is already taken (and duplicates are not allowed)
  */
 export class DuplicateTokenError extends NeedleError {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'DuplicateTokenError';
+
     constructor(
         public readonly typeName: string | undefined,
         public readonly token: string | symbol,
@@ -118,6 +140,9 @@ export class DuplicateTokenError extends NeedleError {
  * Thrown when a value is registered without any token to look it up by
  */
 export class MissingValueTokenError extends NeedleError {
+    // Literal rather than new.target.name so minifiers can't mangle it
+    public override readonly name: string = 'MissingValueTokenError';
+
     constructor() {
         super('All values must be registered with a given token', 'NEEDLE_MISSING_VALUE_TOKEN');
     }

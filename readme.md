@@ -18,7 +18,7 @@ Needle is a lightweight & powerful dependency injection container for supporting
 npm install @morgan-stanley/needle reflect-metadata
 ```
 
-Requires TypeScript >= 5.7 < 6 with `experimentalDecorators` and `emitDecoratorMetadata` enabled (see [Getting started](docs/getting-started.md) if you would rather use explicit metadata).
+Requires TypeScript >= 5.7 < 6 with `experimentalDecorators` and `emitDecoratorMetadata` enabled (see [Getting started](https://github.com/morganstanley/needle/blob/main/docs/getting-started.md) if you would rather use explicit metadata).
 
 ## Quick start
 
@@ -47,15 +47,15 @@ const car = getRootInjector().get(Car); // Engine is constructed and injected fo
 
 ## Documentation
 
-Full guides live in [`docs/`](docs/README.md):
+Full guides live in [`docs/`](https://github.com/morganstanley/needle/blob/main/docs/README.md):
 
-- [Getting started](docs/getting-started.md), [Tokens](docs/tokens.md), [Strategies](docs/strategies.md), [Factories](docs/factories.md), [Lazy and optional](docs/lazy-and-optional.md)
-- [Instances and values](docs/instances-and-values.md), [External resolution](docs/external-resolution.md), [Caching](docs/caching.md), [Scopes](docs/scopes.md), [Interception](docs/interception.md)
-- [Metrics](docs/metrics.md), [Configuration](docs/configuration.md), [Errors and logging](docs/errors-and-logging.md), [Semantic injection](docs/semantic-injection.md), [Angular](docs/angular.md)
-- [Feature support matrix](docs/feature-support.md), [Troubleshooting](docs/troubleshooting.md), [Contributing and benchmarks](docs/contributing.md)
+- [Getting started](https://github.com/morganstanley/needle/blob/main/docs/getting-started.md), [Tokens](https://github.com/morganstanley/needle/blob/main/docs/tokens.md), [Strategies](https://github.com/morganstanley/needle/blob/main/docs/strategies.md), [Factories](https://github.com/morganstanley/needle/blob/main/docs/factories.md), [Lazy and optional](https://github.com/morganstanley/needle/blob/main/docs/lazy-and-optional.md)
+- [Instances and values](https://github.com/morganstanley/needle/blob/main/docs/instances-and-values.md), [External resolution](https://github.com/morganstanley/needle/blob/main/docs/external-resolution.md), [Caching](https://github.com/morganstanley/needle/blob/main/docs/caching.md), [Scopes](https://github.com/morganstanley/needle/blob/main/docs/scopes.md), [Interception](https://github.com/morganstanley/needle/blob/main/docs/interception.md)
+- [Metrics](https://github.com/morganstanley/needle/blob/main/docs/metrics.md), [Configuration](https://github.com/morganstanley/needle/blob/main/docs/configuration.md), [Errors and logging](https://github.com/morganstanley/needle/blob/main/docs/errors-and-logging.md), [Semantic injection](https://github.com/morganstanley/needle/blob/main/docs/semantic-injection.md), [Angular](https://github.com/morganstanley/needle/blob/main/docs/angular.md)
+- [Feature support matrix](https://github.com/morganstanley/needle/blob/main/docs/feature-support.md), [Troubleshooting](https://github.com/morganstanley/needle/blob/main/docs/troubleshooting.md), [Contributing and benchmarks](https://github.com/morganstanley/needle/blob/main/docs/contributing.md)
 
 Runnable examples are in [`examples/`](examples) (`npm run examples`).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/contributing.md](docs/contributing.md) for the toolchain and benchmark report.
+See [CONTRIBUTING.md](https://github.com/morganstanley/needle/blob/main/CONTRIBUTING.md) and [docs/contributing.md](https://github.com/morganstanley/needle/blob/main/docs/contributing.md) for the toolchain and benchmark report.
