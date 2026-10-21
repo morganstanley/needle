@@ -22,11 +22,19 @@ If an application loads both copies (for example an ESM app that depends on a li
 - `get(Injector)` resolves from either copy, because injectors are recognised by a type id rather than by class identity;
 - the logger is stored on `globalThis` under `Symbol.for('needle.morganstanley.com.logger')`, so `setLogger` in one copy applies to both.
 
-What is **not** shared is class identity: `esmCopy.Injector !== cjsCopy.Injector`, so `instanceof` checks across copies are false. Compare with the exported helpers rather than `instanceof` if you can end up with both. Module-level statics such as `Injector.verify` are also per copy.
+What is **not** shared is class identity: `esmCopy.Injector !== cjsCopy.Injector`, so `instanceof` checks across copies are false. Compare with the exported helpers rather than `instanceof` if you can end up with both. Module-level statics such as `Injector.verify` are also per copy. The same applies to errors: `err instanceof NeedleError` is false when the error was thrown by the other copy, so check `error.code` instead.
+
+### Dual-load warning
+
+Each copy records its format (`esm` or `cjs`) on `globalThis` under `Symbol.for('needle.morganstanley.com.loaded-formats')` when it loads. The first time a second format is seen, Needle logs one warning through its logger (`getLogger().warn`, so `setLogger` can route or silence it):
+
+> Needle has been loaded as both ESM and CommonJS. State is shared, but instanceof checks on Needle classes (e.g. NeedleError) will not match across copies; use error.code instead.
+
+It is logged once per process however many copies load, and never for a single copy. The format is a build-time constant (`main/core/module-format.ts`, stamped to `cjs` by `scripts/write-cjs-package.mjs`), so there is no runtime sniffing of `module`/`exports` that could confuse bundlers or browsers.
 
 ## How it is tested
 
-- `npm run test:package` packs the library, installs the tarball into a throwaway project, then runs a CJS consumer, an ESM consumer, and a script that loads both copies in one process and asserts they share the root injector, singletons and logger.
+- `npm run test:package` packs the library, installs the tarball into a throwaway project, then runs a CJS consumer, an ESM consumer, and a script that loads both copies in one process and asserts they share the root injector, singletons and logger, and that the dual-load warning is logged exactly once.
 - `npm run lint:package` runs [publint](https://publint.dev).
 - `npm run lint:types` runs [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong.github.io) against the packed tarball (node16 CJS and ESM, and bundler resolution). The `node10` resolution is ignored, as it cannot read `exports`.
 

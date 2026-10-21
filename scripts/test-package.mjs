@@ -53,9 +53,18 @@ console.log('esm ok');
     writeFileSync(join(work, 'dual.mjs'), `
 import assert from 'node:assert';
 import { createRequire } from 'node:module';
-import * as esm from '@morgan-stanley/needle';
+const warnings = [];
+const origWarn = console.warn;
+console.warn = (msg, ...rest) => { warnings.push(String(msg)); };
+const esm = await import('@morgan-stanley/needle');
+assert.strictEqual(warnings.length, 0, 'no dual-format warning for a single copy');
 const require = createRequire(import.meta.url);
 const cjs = require('@morgan-stanley/needle');
+require('@morgan-stanley/needle');
+await import('@morgan-stanley/needle');
+console.warn = origWarn;
+const dual = warnings.filter((w) => w.includes('loaded as both ESM and CommonJS'));
+assert.strictEqual(dual.length, 1, 'dual-format warning is logged exactly once');
 assert.notStrictEqual(esm.Injector, cjs.Injector, 'two distinct copies are loaded');
 assert.strictEqual(esm.getRootInjector(), cjs.getRootInjector(), 'copies share one root injector');
 

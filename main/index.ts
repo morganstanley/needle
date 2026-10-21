@@ -18,6 +18,8 @@ export * from './core/logger.js';
 
 import { Injector } from './core/injector.js';
 import { getRootInjector } from './core/util.functions.js';
+import { registerLoadedFormat } from './core/loaded-formats.js';
+import { NEEDLE_MODULE_FORMAT } from './core/module-format.js';
 
 /* 
     Register this injector prototype against the current injector (Which could be different depending on the node_modules hierarchy).
@@ -25,3 +27,6 @@ import { getRootInjector } from './core/util.functions.js';
     Avoids a common `Cannot resolve Injector => Injector => Injector` that is seen.
 */
 getRootInjector().register(Injector);
+
+// Warn (once) if both the ESM and CommonJS copies of Needle end up loaded in the same app.
+registerLoadedFormat(NEEDLE_MODULE_FORMAT);
