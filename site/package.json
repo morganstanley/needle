@@ -1,0 +1,18 @@
+{
+    "name": "needle-docs-site",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "api": "node scripts/gen-api.mjs",
+        "dev": "npm run api && vite",
+        "build": "npm run api && node scripts/check-examples.mjs && vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "highlight.js": "^11.11.1",
+        "marked": "^15.0.12",
+        "typescript": "^5.9.3",
+        "vite": "^7.0.0"
+    }
+}

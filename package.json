@@ -28,7 +28,7 @@
         "morgan stanley"
     ],
     "scripts": {
-        "clean": "rimraf dist reports ../build ../install ../packages docs",
+        "clean": "rimraf dist reports ../build ../install ../packages docs/api",
         "build": "tsc -p main/tsconfig.json",
         "postbuild": "npm run copy",
         "build:watch": "tsc --watch -p main/tsconfig.json",
@@ -46,7 +46,8 @@
         "lint:fix": "eslint . --ext .ts,.js --fix",
         "prepublishOnly": "npm run build:release",
         "lint:package": "publint",
-        "audit:prod": "npm audit --omit=dev"
+        "audit:prod": "npm audit --omit=dev",
+        "examples": "tsc -p examples/tsconfig.json && node scripts/run-examples.mjs"
     },
     "devDependencies": {
         "@eslint/js": "^9.22.0",

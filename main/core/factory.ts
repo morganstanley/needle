@@ -8,7 +8,7 @@ export class AutoFactory<T extends Newable> {
         type: T,
         updateCache: boolean,
         options?: IConstructionOptions<T>,
-        ancestors?: Array<any>,
+        ancestors?: Array<unknown>,
         injector?: IInjector,
     ) => InstanceType<T>;
 
@@ -19,7 +19,7 @@ export class AutoFactory<T extends Newable> {
             type: T,
             updateCache: boolean,
             options?: IConstructionOptions<T>,
-            ancestors?: Array<any>,
+            ancestors?: Array<unknown>,
             injector?: IInjector,
         ) => InstanceType<T>,
     ) {
@@ -30,6 +30,7 @@ export class AutoFactory<T extends Newable> {
      * Create is used to create a new instance of the given type. All constructor params are considered optional and if undefined is passed the container will attempt to resolve the dependencies itself.
      */
     public create(...params: OptionalConstructorParameters<T>): InstanceType<T> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
         return this.boundFactoryImpl(this.type, false, { params: params as any }, [], this.injector);
     }
 }

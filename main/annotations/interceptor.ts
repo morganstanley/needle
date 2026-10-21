@@ -9,8 +9,6 @@ import { getRootInjector } from '../core/util.functions.js';
  */
 export function Interceptor() {
     return (interceptor: NewableConstructorInterceptor) => {
-        getRootInjector()
-            .register(interceptor)
-            .registerInterceptor(getRootInjector().get(interceptor));
+        getRootInjector().register(interceptor).registerInterceptor(getRootInjector().get(interceptor));
     };
 }

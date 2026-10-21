@@ -1,4 +1,10 @@
-import { ConditionalCacheStrategyType, ICache, IInjectionConfiguration, InstanceOfType } from '../contracts/contracts.js';
+import { getLogger } from './logger.js';
+import {
+    ConditionalCacheStrategyType,
+    ICache,
+    IInjectionConfiguration,
+    InstanceOfType,
+} from '../contracts/contracts.js';
 import { isConditionalCacheStrategy, isDestroyable, isIdleCacheStrategy } from './guards.js';
 import { getRootInjector } from './util.functions.js';
 
@@ -8,9 +14,9 @@ import { getRootInjector } from './util.functions.js';
  * It also supports scheduled eviction of instances based on idle time or conditional predicates.
  */
 export class InstanceCache implements ICache {
-    private instanceMap = new Map<any, any>();
-    private scheduled = new Map<any, { timeout: number; timeoutRef: any }>();
-    private conditionals = new Map<any, ConditionalCacheStrategyType>();
+    private instanceMap = new Map<unknown, unknown>();
+    private scheduled = new Map<unknown, { timeout: number; timeoutRef: ReturnType<typeof setTimeout> }>();
+    private conditionals = new Map<unknown, ConditionalCacheStrategyType>();
 
     /**
      * Resolves an instance from the cache for a given type.
@@ -31,7 +37,7 @@ export class InstanceCache implements ICache {
             this.scheduleEviction(type, scheduledEviction.timeout);
         }
 
-        return instance;
+        return instance as InstanceOfType<T> | undefined;
     }
 
     /**
@@ -42,7 +48,7 @@ export class InstanceCache implements ICache {
      * @param configuration
      * @returns
      */
-    public update(type: any, instance: any, configuration?: IInjectionConfiguration): void {
+    public update(type: unknown, instance: unknown, configuration?: IInjectionConfiguration): void {
         const cacheStrategy = configuration?.cacheStrategy ?? getRootInjector().configuration.defaultCacheStrategy;
         const previous = this.getCachedInstance(type);
         let cacheValue = instance;
@@ -54,7 +60,7 @@ export class InstanceCache implements ICache {
             }
             return;
         } else if (cacheStrategy === 'weak-reference') {
-            cacheValue = new WeakRef(instance);
+            cacheValue = new WeakRef(instance as WeakKey);
         } else if (isIdleCacheStrategy(cacheStrategy)) {
             this.scheduleEviction(type, cacheStrategy.timeout);
         } else if (isConditionalCacheStrategy(cacheStrategy)) {
@@ -74,7 +80,7 @@ export class InstanceCache implements ICache {
      * @param type
      * @param timeout
      */
-    public scheduleEviction(type: any, timeout: number) {
+    public scheduleEviction(type: unknown, timeout: number) {
         //we must clear any existing timer for this type before we set a new one
         this.tryUnscheduleEviction(type);
 
@@ -93,7 +99,7 @@ export class InstanceCache implements ICache {
     /**
      * Unschedule the eviction for a given type
      */
-    private tryUnscheduleEviction(type: any) {
+    private tryUnscheduleEviction(type: unknown) {
         const existingTimer = this.scheduled.get(type);
         if (existingTimer) {
             clearTimeout(existingTimer.timeoutRef);
@@ -101,7 +107,7 @@ export class InstanceCache implements ICache {
         }
     }
 
-    private getCachedInstance(type: any): any {
+    private getCachedInstance(type: unknown): unknown {
         const cached = this.instanceMap.get(type);
         return cached instanceof WeakRef ? cached.deref() : cached;
     }
@@ -120,7 +126,7 @@ export class InstanceCache implements ICache {
      * This will return the actual instances, not the types.
      * @returns
      */
-    public instances(): Array<any> {
+    public instances(): Array<unknown> {
         return Array.from(this.instanceMap.values());
     }
 
@@ -128,7 +134,7 @@ export class InstanceCache implements ICache {
      * Evicts a type from the cache and destroys it if needed
      * @param type
      */
-    private evict(type: any): void {
+    private evict(type: unknown): void {
         const instance = this.resolve(type);
         this.tryUnscheduleEviction(type);
         this.tryDestroy(instance);
@@ -136,7 +142,7 @@ export class InstanceCache implements ICache {
         this.conditionals.delete(type);
     }
 
-    private tryDestroy(instance: any): void {
+    private tryDestroy(instance: unknown): void {
         if (isDestroyable(instance)) {
             instance.needle_destroy();
         }
@@ -154,7 +160,7 @@ export class InstanceCache implements ICache {
                 try {
                     result = strategy.predicate(instance);
                 } catch (e) {
-                    console.warn(`Error evaluating predicate for type ${type}:`, e);
+                    getLogger().warn(`Error evaluating predicate for type ${type}:`, e);
                 }
                 if (result) {
                     //If the condition is met we must remove the instance from the cache

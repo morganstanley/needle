@@ -9,7 +9,7 @@ import { getRootInjector } from '../core/util.functions.js';
  */
 export function Inject(token: StringOrSymbol) {
     // the original decorator
-    function inject(target: any, property: string | symbol | undefined, index: number): void {
+    function inject(target: unknown, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
             token,
             owner: target,

@@ -12,48 +12,51 @@ import { isConstructorParameterToken } from './guards.js';
  * The injection token cache is used to store all uses of the @Inject annotation.
  */
 export class InjectionTokensCache implements ITokenCache {
-    private injectParameterTokens = new Map<any, IParameterInjectionToken[]>();
-    private strategyParameterTokens = new Map<any, IParameterInjectionToken[]>();
-    private factoryParameterTokens = new Map<any, IParameterInjectionToken[]>();
-    private lazyParameterTokens = new Map<any, IParameterInjectionToken[]>();
-    private optionalParameterTokens = new Map<any, IParameterInjectionToken[]>();
+    private injectParameterTokens = new Map<unknown, IParameterInjectionToken[]>();
+    private strategyParameterTokens = new Map<unknown, IParameterInjectionToken[]>();
+    private factoryParameterTokens = new Map<unknown, IParameterInjectionToken[]>();
+    private lazyParameterTokens = new Map<unknown, IParameterInjectionToken[]>();
+    private optionalParameterTokens = new Map<unknown, IParameterInjectionToken[]>();
     // Fast reverse lookups.  Need to improve
-    private typeToTokens = new Map<any, IInjectionToken[]>();
-    private tokensToTypes = new Map<StringOrSymbol, any[]>();
-    private strategyConsumers = new Map<StringOrSymbol, any[]>();
+    private typeToTokens = new Map<unknown, IInjectionToken[]>();
+    private tokensToTypes = new Map<StringOrSymbol, unknown[]>();
+    private strategyConsumers = new Map<StringOrSymbol, unknown[]>();
 
-    public getInjectTokens(type: any): IParameterInjectionToken[] {
+    public getInjectTokens(type: unknown): IParameterInjectionToken[] {
         return [...(this.injectParameterTokens.get(type) || [])];
     }
 
-    public getStrategyTokens(type: any): IParameterInjectionToken[] {
+    public getStrategyTokens(type: unknown): IParameterInjectionToken[] {
         return [...(this.strategyParameterTokens.get(type) || [])];
     }
 
-    public getFactoryTokens(type: any): IParameterInjectionToken[] {
+    public getFactoryTokens(type: unknown): IParameterInjectionToken[] {
         return [...(this.factoryParameterTokens.get(type) || [])];
     }
 
-    public getLazyTokens(type: any): IParameterInjectionToken[] {
+    public getLazyTokens(type: unknown): IParameterInjectionToken[] {
         return [...(this.lazyParameterTokens.get(type) || [])];
     }
 
-    public getOptionalTokens(type: any): IParameterInjectionToken[] {
+    public getOptionalTokens(type: unknown): IParameterInjectionToken[] {
         return [...(this.optionalParameterTokens.get(type) || [])];
     }
 
-    public getTokensForType(type: any): IInjectionToken[] {
+    public getTokensForType(type: unknown): IInjectionToken[] {
         return [...(this.typeToTokens.get(type) || [])];
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public getTypesForToken(token: StringOrSymbol): any[] {
         return [...(this.tokensToTypes.get(token) || [])];
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public getStrategyConsumers(token: StringOrSymbol): any[] {
         return [...(this.strategyConsumers.get(token) || [])];
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public getTypeForToken(token: StringOrSymbol): any | undefined {
         const types = this.tokensToTypes.get(token);
         return types == null || types.length === 0 ? undefined : types[types.length - 1];

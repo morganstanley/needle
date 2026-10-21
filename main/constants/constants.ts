@@ -30,7 +30,7 @@ export const AUTO_RESOLVE = undefined;
  * @example @Injectable({metadata: [MyThing, META_DATA.factory, META_DATA.token, META_DATA.strategy]})
  */
 export const METADATA = {
-    factory: Object as Constructor<any>,
-    token: Object as Constructor<any>,
-    strategy: Object as Constructor<any>,
+    factory: Object as Constructor<unknown>,
+    token: Object as Constructor<unknown>,
+    strategy: Object as Constructor<unknown>,
 };

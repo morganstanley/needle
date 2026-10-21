@@ -16,6 +16,7 @@ codecov.yml
 CONTRIBUTING.md
 tsconfig.json
 typedoc.json
+examples/
 
 
 *.tgz
@@ -31,3 +32,5 @@ docs/**/*
 # except for ts files (required for source maps)
 
 !main/**/*.ts
+site/
+

@@ -1,3 +1,4 @@
+import { getLogger } from './logger.js';
 import { IMetricRecord, IMetricsProvider } from '../contracts/contracts.js';
 import { getConstructorTypes } from './metadata.functions.js';
 
@@ -5,24 +6,26 @@ export class Metrics implements IMetricsProvider {
     public get data() {
         return Array.from(this._metrics).map(([_item, value]) => value);
     }
-    private _metrics = new Map<any, IMetricRecord>();
+    private _metrics = new Map<unknown, IMetricRecord>();
 
     public clear(): void {
         this._metrics.clear();
     }
 
-    public getMetricsForType(type: any): Readonly<IMetricRecord> | undefined {
+    public getMetricsForType(type: unknown): Readonly<IMetricRecord> | undefined {
         return this._metrics.get(type);
     }
 
     public dump(): void {
-        if (console.table) {
-            console.table(this.data);
+        const logger = getLogger();
+        if (logger.table) {
+            logger.table(this.data);
         } else {
-            console.log(this.data);
+            logger.log(this.data);
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
     public update(type: any, owner: any, creationTimeMs: number): void {
         // First time init lets create a record
         if (!this._metrics.has(type)) {

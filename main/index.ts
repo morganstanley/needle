@@ -13,6 +13,8 @@ export * from './core/metadata.functions.js';
 export * from './core/util.functions.partial.js';
 export * from './core/util.functions.js';
 export * from './core/injector.js';
+export * from './core/errors.js';
+export * from './core/logger.js';
 
 import { Injector } from './core/injector.js';
 import { getRootInjector } from './core/util.functions.js';

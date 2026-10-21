@@ -8,7 +8,7 @@ import { getRootInjector } from '../core/util.functions.js';
  */
 export function Optional() {
     // the original decorator
-    function optional(target: any, property: string | symbol | undefined, index: number): void {
+    function optional(target: unknown, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
             token: `optional_${generateUUID()}`,
             owner: target,

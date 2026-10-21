@@ -11,7 +11,7 @@ import { getRootInjector } from '../core/util.functions.js';
  */
 export function Lazy(lazyTarget: Newable) {
     // the original decorator
-    function lazy(target: any, property: string | symbol | undefined, index: number): void {
+    function lazy(target: unknown, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
             token: `lazy_${generateUUID()}`, // We can auto generate a token for lazy.
             owner: target,

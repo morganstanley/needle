@@ -6,7 +6,7 @@ import { getRootInjector } from '../core/util.functions.js';
  */
 export function Strategy(strategyName: StringOrSymbol) {
     // the original decorator
-    function strategy(target: any, property: string | symbol | undefined, index: number): void {
+    function strategy(target: unknown, property: string | symbol | undefined, index: number): void {
         getRootInjector().tokenCache.register({
             token: strategyName,
             owner: target,

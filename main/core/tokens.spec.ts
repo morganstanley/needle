@@ -20,7 +20,13 @@ describe('InjectionTokensCache', () => {
 
         cache.register({ owner: Owner, token: 'inject', injectionType: 'singleton', index: 0 } as any);
         cache.register({ owner: Owner, token: 'strategy', injectionType: 'multiple', index: 1 } as any);
-        cache.register({ owner: Owner, token: 'factory', injectionType: 'factory', index: 2, factoryTarget: Target } as any);
+        cache.register({
+            owner: Owner,
+            token: 'factory',
+            injectionType: 'factory',
+            index: 2,
+            factoryTarget: Target,
+        } as any);
         cache.register({ owner: Owner, token: 'lazy', injectionType: 'lazy', index: 3, lazyTarget: Target } as any);
         cache.register({ owner: Owner, token: 'optional', injectionType: 'optional', index: 4 } as any);
 
