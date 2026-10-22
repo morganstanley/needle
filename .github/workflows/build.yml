@@ -67,6 +67,8 @@ jobs:
     - run: npm ci
     - run: npm run build
     - run: npm run lint:package
+    - run: npm run lint:types
+    - run: npm run test:package
     - run: npm pack --dry-run
 
   audit:

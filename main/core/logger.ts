@@ -1,3 +1,5 @@
+import { getGlobal, IGlobalReference } from './globals.js';
+
 /**
  * Minimal logging contract used by Needle for diagnostics.
  * Provide your own implementation with {@link setLogger} to route Needle's output to your logging framework.
@@ -26,25 +28,33 @@ export const consoleLogger: ILogger = {
     table: (data) => (typeof console.table === 'function' ? console.table(data) : console.log(data)),
 };
 
-let currentLogger: ILogger = consoleLogger;
+/**
+ * Key of the shared logger slot on the host global. Using `Symbol.for` means every copy of Needle loaded in the
+ * process (for example the ESM and CommonJS builds side by side) reads and writes the same slot.
+ */
+const NEEDLE_LOGGER_KEY = Symbol.for('needle.morganstanley.com.logger');
+
+function slot(): IGlobalReference {
+    return getGlobal();
+}
 
 /**
  * Replaces the logger used by Needle
  */
 export function setLogger(logger: ILogger): void {
-    currentLogger = logger;
+    slot()[NEEDLE_LOGGER_KEY] = logger;
 }
 
 /**
  * Restores the default console logger
  */
 export function resetLogger(): void {
-    currentLogger = consoleLogger;
+    delete slot()[NEEDLE_LOGGER_KEY];
 }
 
 /**
  * Gets the logger currently used by Needle
  */
 export function getLogger(): ILogger {
-    return currentLogger;
+    return (slot()[NEEDLE_LOGGER_KEY] as ILogger | undefined) ?? consoleLogger;
 }

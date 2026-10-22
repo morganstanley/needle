@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Added
+- Added a CommonJS build alongside ESM, with an `exports` map (`import`/`require`, each with its own types) - see `docs/module-formats.md`.
+- Needle logs a one-time warning when both its ESM and CommonJS copies are loaded in the same process.
+
 ## 1.0.0
 
 ### Added
