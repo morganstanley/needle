@@ -6,6 +6,7 @@ import {
     Newable,
     ResolvedType,
     StringOrSymbol,
+    Token,
 } from '../contracts/contracts.js';
 import { getGlobal } from './globals.js';
 
@@ -23,6 +24,12 @@ export function getRootInjector(): IInjector {
  * @param ancestry
  * @param options
  */
+export function get<T>(token: Token<T>, ancestry?: unknown[]): T;
+export function get<T>(
+    type: T,
+    ancestry?: unknown[],
+    options?: T extends Newable ? IConstructionOptions<T> : never,
+): InstanceOfType<ResolvedType<T>>;
 export function get<T>(
     type: T,
     ancestry: unknown[] = [],
@@ -35,6 +42,8 @@ export function get<T>(
  * Gets an instance of a type or returns undefined if no registration
  * @param type The type to be resolved
  */
+export function getOptional<T>(token: Token<T>): T | undefined;
+export function getOptional<T extends Newable>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined;
 export function getOptional<T extends Newable>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined {
     return getRootInjector().getOptional<T>(type);
 }

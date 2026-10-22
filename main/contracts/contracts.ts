@@ -14,6 +14,15 @@ export type InjectorIdentifier = string;
 
 export type StringOrSymbol = string | symbol;
 
+declare const tokenType: unique symbol;
+
+/**
+ * A typed injection token. At runtime this is just a unique `symbol`, so it works anywhere a symbol token does
+ * (`@Inject`, `deps`, `register({ tokens })`, `get`). The type parameter is only used to infer what resolving it returns.
+ * Create one with `createToken<T>()`.
+ */
+export type Token<T> = symbol & { readonly [tokenType]: T };
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the produced type is not known statically
 export type InstanceFactory = () => InstanceOfType<any>;
 
@@ -105,6 +114,24 @@ export interface IConstructionOptions<T extends Newable, TParams = Partial<Const
 export type OptionalConstructorParameters<T extends new (...args: any) => any> = T extends new (...args: infer P) => any
     ? Partial<P>
     : never;
+
+/**
+ * Describes a non-type constructor dependency (see `dep` helpers)
+ */
+export type IDependencyDescriptor =
+    | { kind: 'token'; token: StringOrSymbol }
+    | { kind: 'strategy'; token: StringOrSymbol }
+    | { kind: 'optional'; target: Newable | StringOrSymbol }
+    | { kind: 'lazy'; target: Newable }
+    | { kind: 'factory'; target: Newable };
+
+declare const dependencyType: unique symbol;
+
+/**
+ * A dependency descriptor that remembers the type of the constructor parameter it provides (phantom, type-level only),
+ * so `injectable()` can check `deps` against the constructor.
+ */
+export type Dependency<T> = IDependencyDescriptor & { readonly [dependencyType]?: () => T };
 
 /**
  * Injection token interface
@@ -374,11 +401,13 @@ export interface IInjector {
      * Gets a Lazy for a given type
      * @param type
      */
+    getLazy<T>(token: Token<T>): LazyInstance<T>;
     getLazy<T>(type: T | StringOrSymbol): LazyInstance<ResolvedType<T>>;
 
     /**
      * Gets an instance of a given type
      */
+    get<T>(token: Token<T>, ancestry?: unknown[]): T;
     get<T>(
         typeOrToken: T | StringOrSymbol,
         ancestry?: unknown[],
@@ -388,6 +417,7 @@ export interface IInjector {
     /***
      * Gets an instance of a type or returns undefined if no registration
      */
+    getOptional<T>(token: Token<T>): T | undefined;
     getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined;
 
     /**
@@ -482,6 +512,14 @@ export interface IInjectionConfiguration<T = any> {
     metadata?: MetadataStaticConstructorTypes<T>;
 
     /**
+     * Explicit constructor dependencies. This is the way to describe constructor injection when using standard (TC39)
+     * decorators, which have no parameter decorators and no `design:paramtypes` metadata. It also works with legacy decorators
+     * or no decorators at all. Plain constructors are type dependencies; use `dep.token/optional/lazy/factory/strategy` for the rest.
+     * Expands to `metadata` + parameter tokens at registration time.
+     */
+    deps?: Array<Newable | Token<unknown> | IDependencyDescriptor>;
+
+    /**
      * Determines how the type will be cached in memory
      */
     cacheStrategy?: CacheStrategyType;
@@ -546,7 +584,7 @@ export interface IExternalValueResolutionConfiguration<
 }
 
 /**
- * Metric record represents a single types metric information
+ * Metric record represents a single types metrics information
  */
 export interface IMetricRecord {
     /**

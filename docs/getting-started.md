@@ -59,6 +59,8 @@ class Owner {
 
 #### Auto-generated metadata
 
+> Using TypeScript 5+ standard decorators instead of `experimentalDecorators`? Skip `reflect-metadata` and see [Standard decorators](standard-decorators.md).
+
 TypeScript has support for being able to generate the metadata for you as part of your compilation. You can enable this feature in your `tsconfig.json` file as follows.
 
 ```json
