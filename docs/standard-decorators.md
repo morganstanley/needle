@@ -200,6 +200,7 @@ Things to watch for:
 - `deps` on `@Injectable` is positional and not type-checked (a class decorator cannot see its own constructor's parameter types). Use `injectable()` for compile-time checking.
 - `registerValue` values and `@Inject(token) accessor` member types are not yet checked against a typed token.
 - `Function.length` ignores parameters with defaults and rest parameters, so the dev-mode warning can be a false alarm for those constructors.
+- Member injection tracks the in-progress construction in module-level state, and the ESM and CommonJS builds each have their own copy. Load the decorators and the injector from the same build (all `import` or all `require`); if they come from different builds, field and `accessor` dependencies fall back to the root injector instead of the requesting scope.
 
 ## Testing the toolchains
 
