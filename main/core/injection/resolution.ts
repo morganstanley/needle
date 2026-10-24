@@ -17,6 +17,7 @@ import { getGlobal } from '../globals.js';
 import { isBoxedValue, isStringOrSymbol } from '../guards.js';
 import { getConstructorTypes } from '../metadata.functions.js';
 import type { Injector } from '../injector.js';
+import { runWithConstructingInjector } from './construction-context.js';
 import { createInterceptorContexts } from './interceptors.js';
 import {
     getConstructorsParamTokens,
@@ -209,7 +210,13 @@ export function createInstance<T extends new (...args: unknown[]) => unknown>(
     interceptorContexts.forEach((context) => context.interceptor.beforeCreate(context));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
-    const instance: any = new type(...constructorParamValues);
+    const instance: any = runWithConstructingInjector(
+        // the requesting injector (not the one holding the registration), so field/accessor deps resolve like
+        // constructor params do: scope-only registrations are visible
+        self,
+        type,
+        () => new type(...constructorParamValues),
+    );
 
     // Trigger after interceptors
     interceptorContexts.forEach((context) => context.interceptor.afterCreate(instance, context));

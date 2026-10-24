@@ -22,6 +22,7 @@ import {
     IValueInjectionConfiguration,
     ValueType,
     ResolvedType,
+    Token,
 } from '../contracts/contracts.js';
 import { MissingValueTokenError } from './errors.js';
 import { InstanceCache } from './cache.js';
@@ -34,6 +35,7 @@ import { getConstructorTypes } from './metadata.functions.js';
 import { Metrics } from './metrics.js';
 import { InjectionTokensCache } from './tokens.js';
 import { addInterceptor } from './injection/interceptors.js';
+import { applyDeps } from './injection/deps.js';
 import { normalizeRegistration, registerStrategyToken, registerTypeTokens } from './injection/registration.js';
 import { assertNotDestroyed, createInstanceFactory, resolveInstance } from './injection/resolution.js';
 import { findInjectorForTypeOrToken, findScope, getRootInjector } from './injection/scoping.js';
@@ -115,7 +117,7 @@ export class Injector implements IInjector {
      */
     public register(type: unknown, config: IInjectionConfiguration = defaultInjectionConfiguration): this {
         // Make a shallow copy and normalise the resolution strategy
-        config = normalizeRegistration(config);
+        config = applyDeps(this.tokenCache, type, normalizeRegistration(config));
 
         registerTypeTokens(this.tokenCache, this.configuration, type, config.tokens);
         registerStrategyToken(this.tokenCache, type, config.strategy);
@@ -303,6 +305,8 @@ export class Injector implements IInjector {
      * Gets an Lazy<T> for a given type
      * @param typeOrToken
      */
+    public getLazy<T>(token: Token<T>): LazyInstance<T>;
+    public getLazy<T>(typeOrToken: T | StringOrSymbol): LazyInstance<ResolvedType<T>>;
     public getLazy<T>(typeOrToken: T | StringOrSymbol): LazyInstance<ResolvedType<T>> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic type, cannot be narrowed without breaking callers
         return new LazyInstance<any>(() => this.get(typeOrToken));
@@ -311,10 +315,18 @@ export class Injector implements IInjector {
     /**
      * Resolves a type and optional returns undefined if no registrations present
      */
+    public getOptional<T>(token: Token<T>): T | undefined;
+    public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined;
     public getOptional<T>(type: T | StringOrSymbol): InstanceOfType<ResolvedType<T>> | undefined {
         return this.getImpl(type as unknown as Newable, [], { mode: 'optional' });
     }
 
+    public get<T>(token: Token<T>, ancestry?: unknown[]): T;
+    public get<T>(
+        typeOrToken: T | StringOrSymbol,
+        ancestry?: unknown[],
+        options?: T extends Newable ? IConstructionOptions<T> : never,
+    ): InstanceOfType<ResolvedType<T>>;
     public get<T>(
         typeOrToken: T | StringOrSymbol,
         ancestry: unknown[] = [],

@@ -1,0 +1,10 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "types": ["node"],
+        "experimentalDecorators": false,
+        "emitDecoratorMetadata": false
+    },
+    "include": ["./*.ts"]
+}

@@ -1,0 +1,65 @@
+name: Standard decorators
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # The same standard-decorator test project, compiled by each toolchain's own decorator emit
+  toolchains:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [swc, tsc, esbuild]
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Use Node.js 24.x
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: 24.x
+        cache: npm
+    - run: npm ci
+    - name: Type check the standard-decorator project
+      run: npx tsc -p spec-standard/tsconfig.json --noEmit
+    - name: swc (unplugin-swc, decorators 2022-03)
+      if: matrix.toolchain == 'swc'
+      run: npm run test:standard
+    - name: tsc native emit
+      if: matrix.toolchain == 'tsc'
+      run: node scripts/test-standard-native.mjs tsc
+    - name: esbuild native emit
+      if: matrix.toolchain == 'esbuild'
+      run: |
+        npm install --no-save esbuild@^0.27
+        node scripts/test-standard-native.mjs esbuild
+
+  # tsc's native standard-decorator emit across TypeScript releases (5.0 added standard decorators)
+  typescript-versions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        typescript-version: ['5.0', '5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9']
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Use Node.js 24.x
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: 24.x
+        cache: npm
+    - run: npm ci
+    - run: npm install --no-save typescript@${{ matrix.typescript-version }}
+    # --skipLibCheck: the repo's @types/node needs a newer TypeScript than 5.0/5.1
+    - name: Library compiles
+      run: npx tsc -p main/tsconfig.json --noEmit --skipLibCheck
+    - name: Standard-decorator project type checks
+      run: npx tsc -p spec-standard/tsconfig.json --noEmit --skipLibCheck
+    - name: Standard-decorator project passes on tsc native emit
+      run: node scripts/test-standard-native.mjs tsc

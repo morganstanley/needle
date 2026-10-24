@@ -45,11 +45,33 @@ const car = getRootInjector().get(Car); // Engine is constructed and injected fo
 - Increases your code testability
 - Supports semantic versioning injection
 
+## Standard (TC39) decorators
+
+Needle works with both TypeScript's legacy `experimentalDecorators` and standard decorators (TypeScript 5+). With standard decorators there is no constructor metadata, so describe the constructor with `deps`, or inject into `accessor` fields:
+
+```typescript
+import { Injectable, Inject, dep, createToken, get } from '@morgan-stanley/needle';
+
+const Config = createToken<{ url: string }>('config');
+
+@Injectable({ deps: [Engine, Config, dep.optional(Logger)] })
+class Car {
+    constructor(engine: Engine, config: { url: string }, logger?: Logger) {}
+}
+
+@Injectable()
+class Boat {
+    @Inject(Engine) accessor engine!: Engine;
+}
+```
+
+See the [standard decorators guide](https://github.com/morganstanley/needle/blob/main/docs/standard-decorators.md) for TypeScript settings and migrating from `experimentalDecorators`.
+
 ## Documentation
 
 Full guides live in [`docs/`](https://github.com/morganstanley/needle/blob/main/docs/README.md):
 
-- [Getting started](https://github.com/morganstanley/needle/blob/main/docs/getting-started.md), [Tokens](https://github.com/morganstanley/needle/blob/main/docs/tokens.md), [Strategies](https://github.com/morganstanley/needle/blob/main/docs/strategies.md), [Factories](https://github.com/morganstanley/needle/blob/main/docs/factories.md), [Lazy and optional](https://github.com/morganstanley/needle/blob/main/docs/lazy-and-optional.md)
+- [Getting started](https://github.com/morganstanley/needle/blob/main/docs/getting-started.md), [Standard (TC39) decorators](https://github.com/morganstanley/needle/blob/main/docs/standard-decorators.md), [Tokens](https://github.com/morganstanley/needle/blob/main/docs/tokens.md), [Strategies](https://github.com/morganstanley/needle/blob/main/docs/strategies.md), [Factories](https://github.com/morganstanley/needle/blob/main/docs/factories.md), [Lazy and optional](https://github.com/morganstanley/needle/blob/main/docs/lazy-and-optional.md)
 - [Instances and values](https://github.com/morganstanley/needle/blob/main/docs/instances-and-values.md), [External resolution](https://github.com/morganstanley/needle/blob/main/docs/external-resolution.md), [Caching](https://github.com/morganstanley/needle/blob/main/docs/caching.md), [Scopes](https://github.com/morganstanley/needle/blob/main/docs/scopes.md), [Interception](https://github.com/morganstanley/needle/blob/main/docs/interception.md)
 - [Metrics](https://github.com/morganstanley/needle/blob/main/docs/metrics.md), [Configuration](https://github.com/morganstanley/needle/blob/main/docs/configuration.md), [Errors and logging](https://github.com/morganstanley/needle/blob/main/docs/errors-and-logging.md), [Semantic injection](https://github.com/morganstanley/needle/blob/main/docs/semantic-injection.md), [Angular](https://github.com/morganstanley/needle/blob/main/docs/angular.md)
 - [Feature support matrix](https://github.com/morganstanley/needle/blob/main/docs/feature-support.md), [Module formats (ESM/CJS)](https://github.com/morganstanley/needle/blob/main/docs/module-formats.md), [Troubleshooting](https://github.com/morganstanley/needle/blob/main/docs/troubleshooting.md), [Contributing and benchmarks](https://github.com/morganstanley/needle/blob/main/docs/contributing.md)

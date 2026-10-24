@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false,
+        "target": "ES2022",
+        "outDir": "../.standard-out/tsc",
+        "rootDir": "..",
+        "sourceMap": false,
+        "skipLibCheck": true
+    },
+    "include": ["./*.spec.ts", "../main/index.ts"]
+}
