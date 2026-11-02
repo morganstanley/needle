@@ -139,6 +139,32 @@ export function assertInjectionTarget(target: unknown, decorator: string): asser
 }
 
 /**
+ * Structural stand-ins for TypeScript 5's `ClassAccessorDecoratorTarget`, `ClassAccessorDecoratorContext`,
+ * `ClassAccessorDecoratorResult` and `ClassFieldDecoratorContext` (from `lib.decorators.d.ts`).
+ * Declared here so the emitted `.d.ts` does not reference those lib types and still compiles for consumers on
+ * TypeScript < 5.0 using `experimentalDecorators`. TS 5's real context objects are assignable to these, and `access`
+ * lets `This` / `Value` be inferred, so standard decorators are still type checked.
+ */
+export interface IStandardAccessorTarget<This, Value> {
+    get(this: This): Value;
+    set(this: This, value: Value): void;
+}
+
+export interface IStandardAccessorResult<This, Value> {
+    get?(this: This): Value;
+    set?(this: This, value: Value): void;
+    init?(this: This, value: Value): Value;
+}
+
+export interface IStandardMemberContext<This, Value, Kind extends 'field' | 'accessor'> {
+    readonly kind: Kind;
+    readonly name: string | symbol;
+    readonly static: boolean;
+    readonly private: boolean;
+    readonly access: { get(object: This): Value };
+}
+
+/**
  * A decorator usable as a legacy constructor-parameter decorator AND as a standard field / accessor decorator
  */
 export interface IInjectionDecorator {
@@ -146,13 +172,13 @@ export interface IInjectionDecorator {
     (target: unknown, property: string | symbol | undefined, index: number): void;
     /** standard auto-accessor */
     <This extends object, Value>(
-        target: ClassAccessorDecoratorTarget<This, Value>,
-        context: ClassAccessorDecoratorContext<This, Value>,
-    ): ClassAccessorDecoratorResult<This, Value>;
+        target: IStandardAccessorTarget<This, Value>,
+        context: IStandardMemberContext<This, Value, 'accessor'>,
+    ): IStandardAccessorResult<This, Value>;
     /** standard field */
     <This extends object, Value>(
         target: undefined,
-        context: ClassFieldDecoratorContext<This, Value>,
+        context: IStandardMemberContext<This, Value, 'field'>,
     ): (this: This, value: Value) => Value;
 }
 
