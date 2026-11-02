@@ -241,6 +241,11 @@ export interface ICache {
  */
 export interface ITokenCache {
     /**
+     * Removes previously registered constructor parameter tokens (matched by identity).
+     * Used when a registration's `deps` are replaced. Optional so custom caches keep compiling.
+     */
+    unregisterParameterTokens?(tokens: IParameterInjectionToken[]): void;
+    /**
      * Get a list of associated inject parameter tokens for the given constructor of a type
      * @param type
      */

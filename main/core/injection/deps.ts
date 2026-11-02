@@ -2,6 +2,7 @@ import {
     Dependency,
     IDependencyDescriptor,
     IInjectionConfiguration,
+    IParameterInjectionToken,
     ITokenCache,
     Newable,
     Token,
@@ -10,6 +11,12 @@ import type { AutoFactory } from '../factory.js';
 import type { LazyInstance } from '../lazy.js';
 import { getLogger } from '../logger.js';
 import { generateUUID } from '../uuid.js';
+
+/**
+ * The parameter tokens each token cache holds because of an owner's `deps`, so re-registering the owner with new
+ * `deps` can drop them (tokens from parameter decorators are left alone).
+ */
+const depsTokens = new WeakMap<ITokenCache, Map<unknown, IParameterInjectionToken[]>>();
 
 /** Placeholder constructor type for parameters whose value is not resolved from a type (token, lazy, factory, strategy) */
 const PLACEHOLDER = Object as unknown as Newable;
@@ -28,15 +35,30 @@ export function applyDeps(
     if (deps == null) {
         return config;
     }
+    let byOwner = depsTokens.get(tokenCache);
+    if (byOwner == null) {
+        byOwner = new Map();
+        depsTokens.set(tokenCache, byOwner);
+    }
+    // Replacing deps replaces the dependency tokens the previous deps registered
+    tokenCache.unregisterParameterTokens?.(byOwner.get(owner) ?? []);
+    const registered: IParameterInjectionToken[] = [];
+    byOwner.set(owner, registered);
+    const recordingCache = {
+        register: (token: IParameterInjectionToken) => {
+            registered.push(token);
+            tokenCache.register(token);
+        },
+    } as unknown as ITokenCache;
     const metadata: Newable[] = deps.map((d, index) => {
         if (typeof d === 'function') {
             return d as Newable;
         }
         if (typeof d === 'symbol') {
             // a bare (typed) token is the same as dep.token(token)
-            return applyDescriptor(tokenCache, owner, index, { kind: 'token', token: d });
+            return applyDescriptor(recordingCache, owner, index, { kind: 'token', token: d });
         }
-        return applyDescriptor(tokenCache, owner, index, d);
+        return applyDescriptor(recordingCache, owner, index, d);
     });
     // explicit metadata wins if the user supplied both, deps then only contributes tokens
     return { ...config, metadata: (config.metadata ?? metadata) as never };
