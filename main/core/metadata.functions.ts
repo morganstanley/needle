@@ -1,4 +1,4 @@
-import { Newable } from '../contracts/contracts.js';
+import { IInjectionConfiguration, Newable } from '../contracts/contracts.js';
 import { getRootInjector } from './util.functions.js';
 
 /* Consumers must import the "reflect-metadata" polyfill. */
@@ -9,10 +9,12 @@ const reflectedTypes = (constr: unknown) =>
 
 /**
  * Gets an array of types defined in a types constructor
+ * @param registration the registration selected for this construction (e.g. one made in a child scope). When omitted,
+ * the root injector's registration is used.
  */
-export function getConstructorTypes<T = unknown>(constr: T): Newable[] {
+export function getConstructorTypes<T = unknown>(constr: T, registration?: IInjectionConfiguration): Newable[] {
     const rootInjector = getRootInjector();
-    const registration = rootInjector.getRegistrationForType(constr);
+    registration = registration ?? rootInjector.getRegistrationForType(constr);
     const metadataModel = rootInjector.configuration.metadataMode;
     switch (metadataModel) {
         case 'explicit':

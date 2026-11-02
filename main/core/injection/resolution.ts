@@ -192,7 +192,11 @@ export function createInstance<T extends new (...args: unknown[]) => unknown>(
     }
 
     const overrideParams = (options || {}).params || [];
-    const constructorParamTypes = getConstructorTypes(type);
+    // Use the metadata of the registration selected for this construction (it may live in a child scope), not the root's
+    const constructorParamTypes = getConstructorTypes(
+        type,
+        configuration ?? injector.getRegistrationForType(type),
+    );
     // Note this call to construct param values introduces recursive behavior
     const constructorParamValues = getConstructorParamValues<T>(
         self,
