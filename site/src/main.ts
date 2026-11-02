@@ -29,7 +29,7 @@ for (const [path, text] of Object.entries(rawDocs)) {
 interface INavGroup { title: string; items: Array<{ slug: string; title: string }> }
 const guideNav: INavGroup[] = [
     { title: 'Core', items: [
-        { slug: 'tokens', title: 'Tokens' }, { slug: 'strategies', title: 'Strategies' }, { slug: 'factories', title: 'Factories' },
+        { slug: 'standard-decorators', title: 'Standard decorators' }, { slug: 'tokens', title: 'Tokens' }, { slug: 'strategies', title: 'Strategies' }, { slug: 'factories', title: 'Factories' },
         { slug: 'lazy-and-optional', title: 'Lazy and optional' }, { slug: 'instances-and-values', title: 'Instances and values' },
         { slug: 'external-resolution', title: 'External resolution' } ] },
     { title: 'Runtime', items: [
@@ -37,7 +37,7 @@ const guideNav: INavGroup[] = [
         { slug: 'metrics', title: 'Metrics' }, { slug: 'configuration', title: 'Configuration' }, { slug: 'errors-and-logging', title: 'Errors and logging' } ] },
     { title: 'More', items: [
         { slug: 'registered-types', title: 'Registered types' }, { slug: 'semantic-injection', title: 'Semantic injection' },
-        { slug: 'angular', title: 'Angular' }, { slug: 'feature-support', title: 'Feature support' }, { slug: 'troubleshooting', title: 'Troubleshooting' },
+        { slug: 'angular', title: 'Angular' }, { slug: 'feature-support', title: 'Feature support' }, { slug: 'module-formats', title: 'Module formats' }, { slug: 'troubleshooting', title: 'Troubleshooting' },
         { slug: 'contributing', title: 'Contributing and benchmarks' } ] },
 ];
 

@@ -77,6 +77,34 @@ export class InjectionTokensCache implements ITokenCache {
     }
 
     /**
+     * Removes previously registered constructor parameter tokens (matched by identity)
+     */
+    public unregisterParameterTokens(tokens: IParameterInjectionToken[]): void {
+        if (tokens.length === 0) {
+            return;
+        }
+        const remove = new Set(tokens);
+        for (const map of [
+            this.injectParameterTokens,
+            this.strategyParameterTokens,
+            this.factoryParameterTokens,
+            this.lazyParameterTokens,
+            this.optionalParameterTokens,
+        ]) {
+            for (const [owner, values] of map) {
+                const kept = values.filter((value) => !remove.has(value));
+                if (kept.length !== values.length) {
+                    if (kept.length === 0) {
+                        map.delete(owner);
+                    } else {
+                        map.set(owner, kept);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Clears the token cache
      */
     public clear(): void {

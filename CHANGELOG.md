@@ -7,6 +7,16 @@ All notable changes to this project are documented in this file.
 ### Added
 - Added a CommonJS build alongside ESM, with an `exports` map (`import`/`require`, each with its own types) - see `docs/module-formats.md`.
 - Needle logs a one-time warning when both its ESM and CommonJS copies are loaded in the same process.
+- Support for standard (TC39) decorators, without `experimentalDecorators`, `emitDecoratorMetadata` or `reflect-metadata` - see `docs/standard-decorators.md`:
+  - `deps` option on `@Injectable` and the `dep.token/optional/lazy/factory/strategy` helpers to describe constructor parameters.
+  - Field and `accessor` injection with `@Inject`, `@Optional`, `@Lazy`, `@Factory` and `@Strategy`.
+  - `createToken<T>()` typed tokens, with typed `get`/`getOptional`/`getLazy` overloads.
+  - `injectable(Type, deps, config?)` to register a class with `deps` checked against its constructor at compile time.
+  - A development-mode warning when a standard-decorated class's `deps` do not match its constructor.
+- `deps` also works with legacy decorators, for incremental migration.
+
+### Changed
+- Decorator factories now return `IInjectionDecorator` (callable as both legacy and standard decorators) and `@Inject` also accepts a class. Existing call sites are source-compatible.
 
 ## 1.0.0
 

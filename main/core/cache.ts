@@ -60,7 +60,7 @@ export class InstanceCache implements ICache {
             }
             return;
         } else if (cacheStrategy === 'weak-reference') {
-            cacheValue = new WeakRef(instance as WeakKey);
+            cacheValue = new WeakRef(instance as object);
         } else if (isIdleCacheStrategy(cacheStrategy)) {
             this.scheduleEviction(type, cacheStrategy.timeout);
         } else if (isConditionalCacheStrategy(cacheStrategy)) {

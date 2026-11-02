@@ -4,6 +4,7 @@
 | ----------------------------------------------- | -------------------------------------------------------- |
 | [Getting started](getting-started.md)           | Install, TypeScript setup, metadata, injectable basics   |
 | [Tokens](tokens.md)                             | Injecting by string/symbol, overriding, uniqueness       |
+| [Standard decorators](standard-decorators.md)   | TC39 decorators, `deps`, typed tokens, `injectable()`    |
 | [Strategies](strategies.md)                     | Injecting every type registered under a key              |
 | [Factories](factories.md)                       | Creating instances on demand                             |
 | [Lazy and optional](lazy-and-optional.md)       | Deferred and optional injection                          |

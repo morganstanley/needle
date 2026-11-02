@@ -6,3 +6,4 @@ reports/
 $WORKSPACE/.npmrc
 npm-debug.log
 npm
+.standard-out

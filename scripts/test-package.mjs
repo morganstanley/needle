@@ -1,9 +1,11 @@
 // Packs the library, installs the tarball into a throwaway project and exercises it the way a consumer would:
-// import() (ESM), require() (CJS), and both copies loaded together (the dual package hazard).
+// import() (ESM), require() (CJS), both copies loaded together (the dual package hazard), and standard (TC39)
+// decorators compiled by tsc against each build.
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import ts from 'typescript';
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const root = resolve('.');
@@ -14,7 +16,11 @@ try {
     run(npm, ['pack', '--pack-destination', work], root);
     const tarball = readdirSync(work).find((f) => f.endsWith('.tgz'));
     writeFileSync(join(work, 'package.json'), JSON.stringify({ name: 'needle-package-test', private: true }));
-    run(npm, ['install', '--no-audit', '--no-fund', '--no-package-lock', join(work, tarball), 'reflect-metadata@^0.2.2'], work);
+    run(
+        npm,
+        ['install', '--no-audit', '--no-fund', '--no-package-lock', join(work, tarball), 'reflect-metadata@^0.2.2'],
+        work,
+    );
 
     const common = `
 require('reflect-metadata');
@@ -35,23 +41,31 @@ module.exports = { check };
     writeFileSync(join(work, 'check.cjs'), common);
 
     // 1. CommonJS consumer
-    writeFileSync(join(work, 'cjs.cjs'), `
+    writeFileSync(
+        join(work, 'cjs.cjs'),
+        `
 const { check } = require('./check.cjs');
 const lib = check(require('@morgan-stanley/needle'), 'cjs');
 console.log('cjs ok', typeof lib.getRootInjector());
-`);
+`,
+    );
     // 2. ESM consumer
-    writeFileSync(join(work, 'esm.mjs'), `
+    writeFileSync(
+        join(work, 'esm.mjs'),
+        `
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { check } = require('./check.cjs');
 import * as lib from '@morgan-stanley/needle';
 check(lib, 'esm');
 console.log('esm ok');
-`);
+`,
+    );
     // 3. Both copies in one process: they must share ONE root injector and recognise each other's Injector.
-    writeFileSync(join(work, 'dual.mjs'), `
-import assert from 'node:assert';
+    writeFileSync(
+        join(work, 'dual.mjs'),
+        `
+import * as assert from 'node:assert';
 import { createRequire } from 'node:module';
 const warnings = [];
 const origWarn = console.warn;
@@ -84,8 +98,67 @@ assert.strictEqual(cjs.getLogger(), logger, 'cjs copy sees logger set via esm co
 cjs.resetLogger();
 assert.strictEqual(esm.getLogger(), esm.consoleLogger, 'esm copy sees reset via cjs copy');
 console.log('dual ok');
-`);
-    for (const f of ['cjs.cjs', 'esm.mjs', 'dual.mjs']) {
+`,
+    );
+
+    // 4. Standard (TC39) decorators against the built package, from both the ESM and the CJS build.
+    //    Compiled with tsc's native decorator emit (no experimentalDecorators, no reflect-metadata).
+    const standardSource = (importLine) => `
+${importLine}
+import * as assert from 'node:assert';
+const Config = createToken<{ url: string }>('pkg-config');
+getRootInjector().registerValue({ tokens: [Config], value: { url: '/api' } });
+@Injectable()
+class Engine {}
+class Logger {}
+@Injectable({ deps: [Engine, Config, dep.optional(Logger)] })
+class Car {
+    constructor(readonly engine: Engine, readonly config: { url: string }, readonly logger: Logger | undefined) {}
+}
+@Injectable()
+class Boat {
+    @Inject(Engine) accessor engine!: Engine;
+    @Inject(Config) accessor config!: { url: string };
+}
+class Plane {
+    constructor(readonly engine: Engine) {}
+}
+injectable(Plane, [Engine]);
+const car = get(Car);
+assert.ok(car.engine instanceof Engine, 'deps: type');
+assert.strictEqual(car.config.url, '/api', 'deps: typed token');
+assert.strictEqual(car.logger, undefined, 'deps: optional');
+const boat = get(Boat);
+assert.ok(boat.engine instanceof Engine, 'accessor: type');
+assert.strictEqual(boat.config.url, '/api', 'accessor: token');
+assert.ok(get(Plane).engine instanceof Engine, 'injectable()');
+console.log('standard decorators ok (' + FORMAT + ')');
+`;
+    const names = 'Injectable, Inject, dep, createToken, injectable, get, getRootInjector';
+    const emit = (source, module) =>
+        ts.transpileModule(source, {
+            compilerOptions: {
+                target: ts.ScriptTarget.ES2022,
+                module,
+                experimentalDecorators: false,
+                emitDecoratorMetadata: false,
+            },
+        }).outputText;
+    writeFileSync(
+        join(work, 'standard-esm.mjs'),
+        emit(
+            `const FORMAT = 'esm';` + standardSource(`import { ${names} } from '@morgan-stanley/needle';`),
+            ts.ModuleKind.ESNext,
+        ),
+    );
+    writeFileSync(
+        join(work, 'standard-cjs.cjs'),
+        emit(
+            `const FORMAT = 'cjs';` + standardSource(`import { ${names} } from '@morgan-stanley/needle';`),
+            ts.ModuleKind.CommonJS,
+        ),
+    );
+    for (const f of ['cjs.cjs', 'esm.mjs', 'dual.mjs', 'standard-esm.mjs', 'standard-cjs.cjs']) {
         run(process.execPath, [f], work);
     }
     console.log('package consumer tests passed');

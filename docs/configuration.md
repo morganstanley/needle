@@ -32,7 +32,7 @@ getRootInjector().configuration.defaultCacheStrategy = 'persistent';
 
 ## Default metadata modes
 
-You set the global default `metadataMode` that will be used when resolving metadata for injection. The options are `explicit`, where metadata is resolved the metadata array only, `reflection` where the metadata will attempt to be resolved using the reflect-metadata polyfill, or `both` which is the default and will attempt to resolve explicit first then fallback to reflection.
+You set the global default `metadataMode` that will be used when resolving metadata for injection. The options are `explicit`, where metadata is resolved the metadata array only, `reflection` where the metadata will attempt to be resolved using the reflect-metadata polyfill, or `both` which is the default and will attempt to resolve explicit first then fallback to reflection. `deps` (used with [standard decorators](standard-decorators.md)) is explicit metadata, so it is ignored in `reflection` mode.
 
 ```typescript
 import { getRootInjector } from '@morgan-stanley/needle';

@@ -48,8 +48,8 @@
         "bench": "node -e \"require('fs').mkdirSync('reports/bench',{recursive:true})\" && vitest bench --run --config vitest.bench.config.ts --outputJson reports/bench/bench-results.json",
         "bench:report": "npm run bench && node bench/generate-bench-report.mjs",
         "bench:report:html": "node bench/generate-bench-report.mjs",
-        "test": "npm run test:types && vitest run",
-        "test:types": "tsc -p spec/tsconfig.json --noEmit",
+        "test": "npm run test:types && vitest run && npm run test:standard",
+        "test:types": "tsc -p spec/tsconfig.json --noEmit && tsc -p spec-standard/tsconfig.json --noEmit",
         "test:watch": "vitest",
         "test:watch:coverage": "vitest --coverage",
         "lint": "eslint . --ext .ts,.js",
@@ -59,7 +59,10 @@
         "audit:prod": "npm audit --omit=dev",
         "examples": "tsc -p examples/tsconfig.json && node scripts/run-examples.mjs",
         "test:package": "node scripts/test-package.mjs",
-        "lint:types": "node scripts/check-types.mjs"
+        "lint:types": "node scripts/check-types.mjs",
+        "test:standard": "vitest run --config vitest.standard.config.ts",
+        "test:standard:tsc": "node scripts/test-standard-native.mjs tsc",
+        "test:standard:esbuild": "node scripts/test-standard-native.mjs esbuild"
     },
     "devDependencies": {
         "@eslint/js": "^9.22.0",
