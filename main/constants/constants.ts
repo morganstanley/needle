@@ -29,8 +29,13 @@ export const AUTO_RESOLVE = undefined;
  *
  * @example @Injectable({metadata: [MyThing, META_DATA.factory, META_DATA.token, META_DATA.strategy]})
  */
+// Placeholders must be assignable to whatever slot type `MetadataStaticConstructorTypes<T>` computes for the
+// constructor parameter (e.g. `Constructor<InterceptorStrategies>`). `Constructor<unknown>` is not, so `any` is
+// intentional here (regression from 1.0.0, TS2322).
+/* eslint-disable @typescript-eslint/no-explicit-any -- see comment above */
 export const METADATA = {
-    factory: Object as Constructor<unknown>,
-    token: Object as Constructor<unknown>,
-    strategy: Object as Constructor<unknown>,
+    factory: Object as Constructor<any>,
+    token: Object as Constructor<any>,
+    strategy: Object as Constructor<any>,
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */
