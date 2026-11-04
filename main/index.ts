@@ -18,11 +18,18 @@ export * from './core/util.functions.js';
 export * from './core/injector.js';
 export * from './core/errors.js';
 export * from './core/logger.js';
+export { NEEDLE_ALLOW_MULTIPLE_INSTANCES_KEY } from './core/instance-guard.js';
+export { NEEDLE_VERSION } from './core/version.js';
 
 import { Injector } from './core/injector.js';
 import { getRootInjector } from './core/util.functions.js';
 import { registerLoadedFormat } from './core/loaded-formats.js';
 import { NEEDLE_MODULE_FORMAT } from './core/module-format.js';
+import { registerNeedleInstance } from './core/instance-guard.js';
+import { NEEDLE_VERSION } from './core/version.js';
+
+// Throw a clear error if another, separately installed copy of Needle is already loaded (see docs/troubleshooting.md).
+registerNeedleInstance({ version: NEEDLE_VERSION, format: NEEDLE_MODULE_FORMAT });
 
 /* 
     Register this injector prototype against the current injector (Which could be different depending on the node_modules hierarchy).

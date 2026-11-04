@@ -182,6 +182,11 @@ export interface IConfiguration {
     allowDuplicateTokens: boolean;
 
     /**
+     * When true, loading more than one copy of Needle logs a warning instead of throwing. Not supported; use at your own risk.
+     */
+    allowMultipleInstances: boolean;
+
+    /**
      * A flag indicating if metrics will be tracked for resolutions
      */
     trackMetrics: boolean;

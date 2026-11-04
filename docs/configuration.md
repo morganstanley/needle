@@ -62,3 +62,19 @@ getRootInjector().configuration.externalResolutionStrategy = dummyStrategy;
 ```
 
 Setting `cacheSyncing` to `true` will ensure that our local cache will be updated when each type instance is resolved. This is useful when you are performing bridging between an external container and the local one. Technically tho, if the external DI strategy is implementing caching you will not need to sync the cache and instead re-request to the strategies resolver should result in a cached instance.
+
+## Allow multiple instances
+
+Loading two separately installed copies of Needle (different versions, or the same version twice) in one app is not supported, and Needle throws a clear error when the second copy loads. Setting `allowMultipleInstances` turns that error into a warning. Prefer deduplicating the dependency instead; see [Multiple instances](multiple-instances.md).
+
+```typescript
+import { getRootInjector } from '@morgan-stanley/needle';
+
+getRootInjector().configuration.allowMultipleInstances = true; // must run before the second copy loads
+```
+
+Because imports are evaluated before your code runs, you can also set the flag before any copy of Needle is imported (for example in a setup file or a script tag):
+
+```typescript
+(globalThis as any)[Symbol.for('needle.morganstanley.com.allow-multiple-instances')] = true;
+```

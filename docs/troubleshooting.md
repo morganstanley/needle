@@ -19,6 +19,10 @@ Metadata for the constructor was not emitted.
 - Type-only imports erase the class. Use a normal `import { Pet }`, not `import type`.
 - Interfaces have no runtime value: inject them with a [token](tokens.md).
 
+## `Multiple copies of @morgan-stanley/needle have been loaded ... This is not supported.`
+
+Two separately installed or bundled copies of Needle are loaded in one app. See [Multiple instances](multiple-instances.md) for why this breaks DI, how to dedupe, and the `allowMultipleInstances` override.
+
 ## `max tree depth has been reached`
 
 Almost always a circular dependency (`A` needs `B` needs `A`). Break the cycle with [`@Lazy`](lazy-and-optional.md) on one side, or inject a [factory](factories.md). If your graph is legitimately deep, raise `configuration.maxTreeDepth` (default 100).
