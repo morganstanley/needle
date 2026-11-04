@@ -7,6 +7,7 @@ const DEFAULTS: Readonly<ConfigurationDefaults> = Object.freeze({
     maxTreeDepth: 100,
     externalResolutionStrategy: undefined,
     allowDuplicateTokens: false,
+    allowMultipleInstances: false,
     trackMetrics: true,
     metadataMode: 'both',
     defaultCacheStrategy: 'persistent',
@@ -31,6 +32,13 @@ export class Configuration implements IConfiguration {
      * @default false
      */
     public allowDuplicateTokens: boolean = DEFAULTS.allowDuplicateTokens;
+
+    /**
+     * Flag that downgrades the "multiple copies of Needle loaded" error to a warning. Running more than one copy
+     * is not supported; prefer deduplicating the dependency.
+     * @default false
+     */
+    public allowMultipleInstances: boolean = DEFAULTS.allowMultipleInstances;
 
     /**
      * Flag indicating if metrics tracking is enabled

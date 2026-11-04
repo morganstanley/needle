@@ -37,7 +37,7 @@ const guideNav: INavGroup[] = [
         { slug: 'metrics', title: 'Metrics' }, { slug: 'configuration', title: 'Configuration' }, { slug: 'errors-and-logging', title: 'Errors and logging' } ] },
     { title: 'More', items: [
         { slug: 'registered-types', title: 'Registered types' }, { slug: 'semantic-injection', title: 'Semantic injection' },
-        { slug: 'angular', title: 'Angular' }, { slug: 'feature-support', title: 'Feature support' }, { slug: 'module-formats', title: 'Module formats' }, { slug: 'troubleshooting', title: 'Troubleshooting' },
+        { slug: 'angular', title: 'Angular' }, { slug: 'feature-support', title: 'Feature support' }, { slug: 'module-formats', title: 'Module formats' }, { slug: 'multiple-instances', title: 'Multiple instances' }, { slug: 'troubleshooting', title: 'Troubleshooting' },
         { slug: 'contributing', title: 'Contributing and benchmarks' } ] },
 ];
 
